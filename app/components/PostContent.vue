@@ -12,7 +12,7 @@ import Image from '@tiptap/extension-image';
 import Link from '@tiptap/extension-link';
 
 interface Props {
-  content: string;
+  content: string | object;  // Allow both HTML string and Tiptap JSON
   editable?: boolean;
 }
 
@@ -58,8 +58,16 @@ const editor = useEditor({
 
 // Watch for content changes from parent
 watch(() => props.content, (newContent) => {
-  if (editor.value && editor.value.getHTML() !== newContent) {
-    editor.value.commands.setContent(newContent);
+  if (editor.value && newContent) {
+    // Handle both HTML string and JSON object
+    if (typeof newContent === 'string') {
+      if (editor.value.getHTML() !== newContent) {
+        editor.value.commands.setContent(newContent);
+      }
+    } else {
+      // It's a Tiptap JSON object
+      editor.value.commands.setContent(newContent);
+    }
   }
 });
 

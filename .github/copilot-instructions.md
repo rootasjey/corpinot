@@ -8,6 +8,38 @@ These notes help AI agents navigate and extend this Nuxt 4 app quickly and corre
 - Server routes live under `server/routes/**` (Nitro). Database schema is defined in `server/database/migrations/schema.sql`.
 - Custom image provider wired to @nuxt/image in `providers/hubblob.ts` and served by `server/routes/images/[pathname].get.ts` via `hubBlob().serve(...)`.
 
+## Project structure
+All frontend-related code must live inside the `app/` directory. This follows Nuxt 4's recommended structure:
+
+```
+my-nuxt-app/
+├─ app/
+│  ├─ assets/           # Stylesheets, fonts, images processed by build tools
+│  ├─ components/       # Vue components auto-imported throughout the app
+│  ├─ composables/      # Auto-imported composables (reusable logic)
+│  ├─ layouts/          # Layout wrappers for pages
+│  ├─ middleware/       # Route middleware (auth, navigation guards, etc.)
+│  ├─ pages/            # File-based routing (each file = a route)
+│  ├─ plugins/          # Nuxt plugins for app-level extensions
+│  ├─ utils/            # Auto-imported utility functions
+│  ├─ app.vue           # Root Vue component
+│  ├─ app.config.ts     # App-level configuration (runtime, not build-time)
+│  └─ error.vue         # Global error page component
+├─ content/             # Nuxt Content files (if using @nuxt/content)
+├─ public/              # Static assets served as-is (robots.txt, favicon, etc.)
+├─ shared/              # Shared types and utilities (e.g., auth.d.ts, post.d.ts)
+├─ server/              # Nitro server routes, API endpoints, and utilities
+└─ nuxt.config.ts       # Nuxt configuration (modules, build settings, etc.)
+```
+
+**Key rules:**
+- Place all Vue components in `app/components/` for auto-import.
+- Store composables in `app/composables/` (naming convention: `useSomething.ts`).
+- Use `app/pages/` for file-based routing; dynamic routes use `[param].vue`.
+- Add global CSS in `app/styles/` and import in `app.vue`.
+- Type definitions shared between client and server go in `shared/types/`.
+- Server-only code (API routes, database utilities) belongs in `server/`.
+
 ## Dev workflows
 - Scripts (see `package.json`):
   - `bun run dev` (or `npm run dev`) – start local dev server.

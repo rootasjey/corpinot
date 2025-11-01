@@ -116,7 +116,7 @@
               class="font-title font-bold text-black dark:text-white transition-all duration-300"
               :class="isScrolled ? 'text-3xl' : 'text-4xl'"
             >
-              Woords®
+              constellate*
             </span>
           </NuxtLink>
         </div>
@@ -219,7 +219,7 @@
 <script setup lang="ts">
 const isMobileMenuOpen = ref(false)
 const colorMode = useColorMode()
-import { useHeaderScroll } from '../../composables/useHeaderScroll'
+import { useHeaderScroll } from '../composables/useHeaderScroll'
 const { isScrolled } = useHeaderScroll({ threshold: 12 })
 
 function toggleMobileMenu() {
@@ -231,6 +231,6 @@ function closeMobileMenu() {
 }
 
 function toggleTheme() {
-  colorMode.preference = colorMode.value === 'light' ? 'dark' : 'light'
+  colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
 }
 </script>

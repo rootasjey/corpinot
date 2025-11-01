@@ -18,6 +18,6 @@
 </template>
 
 <script setup lang="ts">
-import { useHeaderScroll } from '../../composables/useHeaderScroll'
+import { useHeaderScroll } from '../composables/useHeaderScroll'
 const { isScrolled, isScrollingDown } = useHeaderScroll({ threshold: 12 })
 </script>

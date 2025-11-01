@@ -27,25 +27,37 @@
                 </button>
               </div>
 
-              <ul class="space-y-3 max-h-[60vh] overflow-y-auto">
+              <!-- Loading -->
+              <div v-if="tagsPending" class="space-y-3">
+                <div v-for="i in 6" :key="i" class="h-10 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+              </div>
+
+              <!-- Error -->
+              <EmptyState
+                v-else-if="tagsError"
+                title="Tags unavailable"
+                description="We couldn't fetch tags right now. Try again later."
+              />
+
+              <ul v-else class="space-y-3 max-h-[60vh] overflow-y-auto">
                 <li
                   v-for="tag in filteredTags"
-                  :key="tag.slug"
+                  :key="tag.id"
                 >
                   <button
-                    @click="selectTag(tag.slug)"
+                    @click="selectTag(tag.name)"
                     class="w-full flex items-center justify-between gap-4 p-3 rounded-xl hover:shadow-sm transition-all text-left"
-                    :aria-pressed="selectedTag === tag.slug"
+                    :aria-pressed="selectedTag === tag.name"
                   >
                     <div class="flex items-center gap-3">
-                      <span :style="{ backgroundColor: tag.color }" class="w-9 h-9 rounded-lg inline-block flex-none"></span>
+                      <span :style="{ backgroundColor: colorForTag(tag.name) }" class="w-9 h-9 rounded-lg inline-block flex-none"></span>
                       <div>
                         <div class="text-sm font-semibold">{{ tag.name }}</div>
-                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ tag.description }}</div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400">{{ tag.category || 'General' }}</div>
                       </div>
                     </div>
 
-                    <div class="text-xs text-gray-600 dark:text-gray-300 font-semibold">{{ tag.count }}</div>
+                    <div class="text-xs text-gray-600 dark:text-gray-300 font-semibold">{{ tagCounts[tag.name] || 0 }}</div>
                   </button>
                 </li>
               </ul>
@@ -54,27 +66,42 @@
 
           <!-- Posts column -->
           <main class="md:col-span-2">
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-6 gap-y-8">
+            <!-- Loading posts -->
+            <div v-if="postsPending" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-6 gap-y-8">
+              <CardSkeleton v-for="i in 4" :key="i" :lines="3" />
+            </div>
+
+            <!-- Error posts -->
+            <EmptyState
+              v-else-if="postsError"
+              title="Posts unavailable"
+              description="We couldn't fetch posts right now. Try again later."
+              secondary-to="/posts"
+              secondary-label="View posts"
+            />
+
+            <!-- Posts grid -->
+            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-6 gap-y-8">
               <article v-for="post in visiblePosts" :key="post.slug" class="group flex flex-col">
                 <NuxtLink :to="`/posts/${post.slug}`" class="block flex flex-col h-full">
-                  <div class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
-                    <img :src="post.image" :alt="post.title" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                  <div v-if="post.image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
+                    <img :src="post.image.src" :alt="post.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
 
                   <div class="space-y-2 flex-1 flex flex-col">
-                    <span class="inline-block w-fit px-3 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase">{{ post.category }}</span>
-                    <h3 class="text-lg md:text-xl font-serif font-bold leading-snug group-hover:opacity-80 transition-opacity line-clamp-2 flex-1">{{ post.title }}</h3>
+                    <span v-if="post.tags?.length" class="inline-block w-fit px-3 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase">{{ post.tags?.[0]?.name }}</span>
+                    <h3 class="text-lg md:text-xl font-serif font-bold leading-snug group-hover:opacity-80 transition-opacity line-clamp-2 flex-1">{{ post.name }}</h3>
                     <div class="flex items-center gap-2 font-600 text-xs text-gray-500 dark:text-gray-400 mt-auto">
-                      <time>{{ post.date }}</time>
+                      <time>{{ post.formattedDate }}</time>
                       <span>—</span>
-                      <span>{{ post.author }}</span>
+                      <span>{{ post.readingTime }}</span>
                     </div>
                   </div>
                 </NuxtLink>
               </article>
             </div>
 
-            <div v-if="visiblePosts.length === 0" class="mt-12 text-center text-gray-600 dark:text-gray-400">
+            <div v-if="!visiblePosts.length && !postsPending && !postsError" class="mt-12 text-center text-gray-600 dark:text-gray-400">
               No posts found for this tag.
             </div>
           </main>
@@ -86,63 +113,62 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import type { ApiTag } from '~~/shared/types/tags'
+import type { Post as ApiPost } from '~~/shared/types/post'
 
-interface Tag {
-  slug: string
-  name: string
-  description?: string
-  color?: string
-  count?: number
+const { enhancePost } = usePost()
+
+// Tags
+const tags = ref<ApiTag[]>([])
+const tagsPending = ref(true)
+const tagsError = ref<string | null>(null)
+
+try {
+  tags.value = await $fetch<ApiTag[]>('/api/tags')
+} catch (e: any) {
+  tagsError.value = e?.message || 'Failed to load tags'
+} finally {
+  tagsPending.value = false
 }
 
-interface Post {
-  slug: string
-  title: string
-  image: string
-  category: string
-  date: string
-  author: string
-  tags: string[]
-}
+// Posts
+const { data: postsData, pending: postsPending, error: postsError } = await useFetch<ApiPost[]>('/api/posts')
+const posts = computed(() => (postsData.value ?? []).map(p => enhancePost(p)))
 
-// Mock tags (replace with API data)
-const tags = ref<Tag[]>([
-  { slug: 'street-photography', name: 'Street Photography', description: 'Urban life, candid moments', color: '#FFB3BA', count: 12 },
-  { slug: 'travel', name: 'Travel', description: 'Guides and journeys', color: '#BAE1FF', count: 9 },
-  { slug: 'architecture-interiors', name: 'Architecture & Interiors', description: 'Design and space', color: '#FFFFBA', count: 7 },
-  { slug: 'family', name: 'Family', description: 'Family stories and portraits', color: '#E0BBE4', count: 3 },
-  { slug: 'nature', name: 'Nature', description: 'Landscapes and wildlife', color: '#C7CEEA', count: 5 },
-  { slug: 'podcast', name: 'Podcast', description: 'Audio episodes and notes', color: '#FFD5CD', count: 4 },
-])
-
-// Mock posts (replace with API data)
-const posts = ref<Post[]>([
-  { slug: 'street-stories-people-and-places', title: 'Street Stories: The People and Places of Urban Landscapes', image: 'https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?w=800&h=600&fit=crop', category: 'Street Photography', date: '11 Sep 2025', author: 'Bradley Pena', tags: ['street-photography'] },
-  { slug: 'generations-of-love', title: 'Generations of Love: The Everlasting Impact of Family', image: 'https://images.unsplash.com/photo-1511895426328-dc8714191300?w=800&h=600&fit=crop', category: 'Family', date: '11 Sep 2025', author: 'Lara Bell', tags: ['family'] },
-  { slug: 'capturing-candid-moments', title: 'Capturing Candid Moments: A Guide to Street Photography', image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop', category: 'Street Photography', date: '11 Sep 2025', author: 'Bradley Pena', tags: ['street-photography'] },
-  { slug: 'designing-the-future', title: 'Designing the Future: Innovation in Modern Architecture', image: 'https://images.unsplash.com/photo-1487958449943-2429e8be8625?w=800&h=600&fit=crop', category: 'Architecture & Interiors', date: '11 Sep 2025', author: 'Bradley Pena', tags: ['architecture-interiors'] },
-  { slug: 'modern-architecture-meets-nature', title: 'Modern Architecture Meets Nature: Inspiring Interior Designs', image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?w=800&h=600&fit=crop', category: 'Architecture & Interiors', date: '11 Sep 2025', author: 'Bradley Pena', tags: ['architecture-interiors','nature'] },
-  { slug: 'mindful-minutes', title: 'Mindful Minutes: A Guide to Cultivating Inner Peace', image: 'https://images.unsplash.com/photo-1506126613408-eca07ce68773?w=800&h=600&fit=crop', category: 'Podcast', date: '11 Sep 2025', author: 'Bradley Pena', tags: ['podcast'] },
-  { slug: 'art-of-observation', title: "The Art of Observation: A Street Photographer's Perspective", image: 'https://images.unsplash.com/photo-1449824913935-59a10b8d2000?w=800&h=600&fit=crop', category: 'Street Photography', date: '11 Sep 2025', author: 'Bradley Pena', tags: ['street-photography'] },
-  { slug: 'capturing-changing-seasons', title: "Capturing the Changing Seasons: A Photographer's Guide", image: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&h=600&fit=crop', category: 'Nature', date: '11 Sep 2025', author: 'Alfie Palmer', tags: ['nature'] },
-])
-
+// UI state
 const search = ref('')
 const selectedTag = ref<string | null>(null)
 
 const filteredTags = computed(() => {
   const q = search.value.trim().toLowerCase()
   if (!q) return tags.value
-  return tags.value.filter(t => t.name.toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q))
+  return tags.value.filter(t => t.name.toLowerCase().includes(q) || (t.category || '').toLowerCase().includes(q))
+})
+
+const tagCounts = computed<Record<string, number>>(() => {
+  const counts: Record<string, number> = {}
+  posts.value.forEach(p => {
+    p.tags?.forEach(t => {
+      counts[t.name] = (counts[t.name] || 0) + 1
+    })
+  })
+  return counts
 })
 
 const visiblePosts = computed(() => {
   if (!selectedTag.value) return posts.value
-  return posts.value.filter(p => p.tags.includes(selectedTag.value as string))
+  return posts.value.filter(p => p.tags?.some(t => t.name === selectedTag.value))
 })
 
-function selectTag(slug: string | null) {
-  selectedTag.value = slug
+function colorForTag(name: string) {
+  let hash = 0
+  for (let i = 0; i < name.length; i++) hash = name.charCodeAt(i) + ((hash << 5) - hash)
+  const hue = Math.abs(hash) % 360
+  return `hsl(${hue} 80% 85%)`
+}
+
+function selectTag(name: string | null) {
+  selectedTag.value = name
 }
 </script>
 

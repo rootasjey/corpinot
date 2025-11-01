@@ -1,6 +1,7 @@
 // auth.d.ts
 declare module '#auth-utils' {
   interface User {
+    avatar: string
     biography: string
     created_at: string;
     id: number
