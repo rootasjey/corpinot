@@ -1,4 +1,4 @@
-// DELETE /api/posts/:slug
+// DELETE /api/posts/:identifier
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const db = hubDatabase()
@@ -24,10 +24,15 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  await db
-  .prepare(`DELETE FROM posts WHERE slug = ?`)
-  .bind(apiPost.slug)
+  // Delete by numeric id (safer) — `getPostByIdentifier` already resolved the post
+  const deleteResult = await db
+  .prepare(`DELETE FROM posts WHERE id = ? AND user_id = ?`)
+  .bind(apiPost.id, userId)
   .run()
+
+  if (!deleteResult.success) {
+    throw createError({ statusCode: 500, message: 'Failed to delete post' })
+  }
 
   return {
     message: "Post deleted successfully",

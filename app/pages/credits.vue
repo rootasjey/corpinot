@@ -83,6 +83,10 @@
               <a href="https://color-mode.nuxtjs.org/" target="_blank" rel="noopener" class="font-600 hover:underline decoration-offset-4 hover:text-primary-600">@nuxtjs/color-mode</a>
               <span class="color-gray-400"> — light/dark theme</span>
             </li>
+            <li>
+              <a href="https://woords.trexthemes.dev/" target="_blank" rel="noopener" class="font-600 hover:underline decoration-offset-4 hover:text-primary-600">Woords template</a>
+              <span class="color-gray-400"> — layout inspiration</span>
+            </li>
           </ul>
         </div>
       </NCard>
@@ -218,6 +222,30 @@ const pexelsAttributions: Attribution[] = [
     src: 'https://images.pexels.com/photos/168866/pexels-photo-168866.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=120&h=120',
     alt: 'Photo de Markus Spiske',
     caption: 'Photo by Markus Spiske — Pexels',
+  },
+  {
+    href: 'https://www.pexels.com/fr-fr/photo/2157805/',
+    src: 'https://images.pexels.com/photos/2157805/pexels-photo-2157805.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=120&h=120',
+    alt: 'Photo de byMALENS',
+    caption: 'Photo de byMALENS — Pexels',
+  },
+  {
+    href: 'https://www.pexels.com/fr-fr/photo/abstrait-de-mur-avec-ornement-geometrique-3695238/',
+    src: 'https://images.pexels.com/photos/3695238/pexels-photo-3695238.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=120&h=120',
+    alt: 'Photo de Damir Mijailovic',
+    caption: 'Photo de Damir Mijailovic — Pexels',
+  },
+  {
+    href: 'https://www.pexels.com/fr-fr/photo/creatif-texture-colore-orange-4202952/',
+    src: 'https://images.pexels.com/photos/4202952/pexels-photo-4202952.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=120&h=120',
+    alt: 'Photo de Karola G',
+    caption: 'Photo de Karola G — Pexels',
+  },
+  {
+    href: 'https://www.pexels.com/fr-fr/photo/avion-commercial-dans-un-ciel-bleu-clair-33260741/',
+    src: 'https://images.pexels.com/photos/33260741/pexels-photo-33260741.jpeg?auto=compress&cs=tinysrgb&fit=crop&w=120&h=120',
+    alt: 'Photo de Jr  Satilite',
+    caption: 'Photo de Jr  Satilite — Pexels',
   },
 ]
 

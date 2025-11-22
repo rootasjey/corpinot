@@ -12,7 +12,13 @@ export default defineEventHandler(async (event) => {
   post = post as ApiPost
 
   try {
-    const prefix = post.image_src as string
+    // image_src now stores a full file path like "/posts/1/cover/original.jpeg"
+    // We want to delete the whole cover folder. Strip filename and leading slash.
+    const imageSrc = (post.image_src || '').toString()
+    const folderPrefix = imageSrc
+      .replace(/^\/+/, '')           // remove leading '/'
+      .replace(/\/[^\/]+$/, '')     // remove trailing filename
+    const prefix = folderPrefix
     const blobList = await hubBlob().list({ prefix })
     
     for (const blobItem of blobList.blobs) {

@@ -1,4 +1,5 @@
 // PUT /api/posts/[slug]/article
+import cleanupOrphanPostImages from '~~/server/utils/postImages'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -35,6 +36,12 @@ export default defineEventHandler(async (event) => {
     })
     
     await hubBlob().put(post.blob_path as string, articleBlob)
+
+    // Run cleanup asynchronously and don't block the article save if it fails
+    // Fire-and-forget — log failures but continue execution.
+    cleanupOrphanPostImages(db, post.id, body.article).catch((err) => {
+      console.warn('cleanupOrphanPostImages failed for post', post.id, err)
+    })
     
     await db
     .prepare(`

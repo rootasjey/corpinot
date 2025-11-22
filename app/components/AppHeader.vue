@@ -43,13 +43,18 @@
           >
             TAGS
           </NuxtLink>
-          <NuxtLink
-            to="/signin"
-            class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
-            @click="closeMobileMenu"
-          >
-            Sign in
-          </NuxtLink>
+          <template v-if="!isLoggedIn">
+            <NuxtLink
+              to="/signin"
+              class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
+              @click="closeMobileMenu"
+            >
+              Sign in
+            </NuxtLink>
+          </template>
+          <template v-else>
+            <button @click="() => { handleLogout(); closeMobileMenu(); }" class="w-full text-left block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors">Logout</button>
+          </template>
           <NuxtLink
             to="/signup"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
@@ -163,9 +168,20 @@
 
           <!-- Right: Auth + Search + Theme -->
           <div class="flex items-center gap-3">
-            <NuxtLink to="/signin" class="text-sm font-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
-              Sign in
-            </NuxtLink>
+            <template v-if="!isLoggedIn">
+              <NuxtLink to="/signin" class="text-sm font-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
+                Sign in
+              </NuxtLink>
+            </template>
+
+            <template v-else>
+              <NDropdownMenu :items="dropdownItems">
+                <NButton btn="~" rounded="full" class="min-w-0 p-0">
+                  <img v-if="currentUser.value?.avatar" :src="currentUser.value.avatar" alt="avatar" class="w-8 h-8 rounded-full" />
+                  <NAvatar v-else :label="userInitial" avatar="solid-black" size="sm" class="important:font-600 font-title" />
+                </NButton>
+              </NDropdownMenu>
+            </template>
             <NuxtLink to="/subscribe" class="px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
               SUBSCRIBE
             </NuxtLink>
@@ -176,8 +192,10 @@
               @click="toggleTheme" 
               class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
             >
-              <div v-if="colorMode.value === 'light'" class="i-ph-moon-bold"></div>
-              <div v-else class="i-ph-sun-bold"></div>
+              <!-- SSR friendly: render both icons and toggle with CSS `dark:` utilities.
+                   Avoids class mismatch between server and client by keeping DOM the same. -->
+              <div class="i-ph-moon-bold block dark:hidden"></div>
+              <div class="i-ph-sun-bold hidden dark:block"></div>
             </button>
           </div>
         </div>
@@ -195,7 +213,7 @@
 
         <!-- Center: Logo -->
         <NuxtLink to="/" class="absolute left-1/2 transform -translate-x-1/2">
-          <span class="text-2xl font-title font-bold text-black dark:text-white">Woords®</span>
+          <span class="text-2xl font-title font-bold text-black dark:text-white">constellate*</span>
         </NuxtLink>
 
         <!-- Right: Search + Theme -->
@@ -207,8 +225,9 @@
             @click="toggleTheme" 
             class="p-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
           >
-            <div v-if="colorMode.value === 'light'" class="i-ph-moon w-5 h-5"></div>
-            <div v-else class="i-ph-sun w-5 h-5"></div>
+            <!-- Mobile: same SSR-safe approach -->
+            <div class="i-ph-moon w-5 h-5 block dark:hidden"></div>
+            <div class="i-ph-sun w-5 h-5 hidden dark:block"></div>
           </button>
         </div>
       </div>
@@ -217,10 +236,35 @@
 </template>
 
 <script setup lang="ts">
+const { user, loggedIn, fetch: refreshSession, clear: clearSession } = useUserSession()
+import { useRouter } from 'vue-router'
+const router = useRouter()
+
+import { computed, isRef } from 'vue'
+const isLoggedIn = computed(() => (typeof loggedIn === 'boolean' ? loggedIn : loggedIn.value))
+const currentUser = computed(() => (isRef(user) ? (user.value as any) : user as any))
+const userInitial = computed(() => (currentUser.value?.name ? currentUser.value.name.charAt(0).toUpperCase() : ''))
+
 const isMobileMenuOpen = ref(false)
 const colorMode = useColorMode()
 import { useHeaderScroll } from '../composables/useHeaderScroll'
 const { isScrolled } = useHeaderScroll({ threshold: 12 })
+
+async function handleLogout() {
+  try {
+    await $fetch('/api/logout', { method: 'POST' })
+    await clearSession()
+    await refreshSession()
+    router.push('/')
+  } catch (err) {
+    console.error('Logout failed', err)
+  }
+}
+
+const dropdownItems = computed(() => [
+  { label: 'Profile', onSelect: () => router.push('/profile') },
+  { label: 'Logout', onSelect: async () => { await handleLogout() } }
+])
 
 function toggleMobileMenu() {
   isMobileMenuOpen.value = !isMobileMenuOpen.value

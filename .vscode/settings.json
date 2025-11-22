@@ -1,0 +1,7 @@
+{
+  // Silence CSS/SCSS/LESS language server warnings about unknown at-rules
+  // (eg. `@apply`) which are used by utility-first engines like Tailwind / UnoCSS.
+  "css.lint.unknownAtRules": "ignore",
+  "scss.lint.unknownAtRules": "ignore",
+  "less.lint.unknownAtRules": "ignore"
+}

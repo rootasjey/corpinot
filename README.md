@@ -73,3 +73,11 @@ bun run preview
 ```
 
 Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+
+## Editor linting & @apply warnings
+
+If your editor shows warnings like `Unknown at rule @apply (css(unknownAtRules))`, this is the CSS language server / stylelint complaining about framework-specific at-rules used by utility-first engines (Tailwind / UnoCSS).
+
+This repo includes a project-level `.stylelintrc.cjs` which whitelists common utility at-rules (eg. `apply`, `layer`, `screen`) so stylelint doesn't raise false positives. There's also a `.vscode/settings.json` which silences the CSS language server's unknown at-rule warnings in the workspace.
+
+If you rely on an alternative editor/IDE or different lint setup, add those same ignores to your stylelint config or workspace settings.

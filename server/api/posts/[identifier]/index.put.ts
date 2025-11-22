@@ -19,19 +19,10 @@ export default defineEventHandler(async (event) => {
   const identifier = decodeURIComponent(getRouterParam(event, 'identifier') ?? '')
   const db = hubDatabase()
 
-  const isNumericId = typeof identifier === "number" || /^\d+$/.test(String(identifier))
-
   if (!identifier) {
     throw createError({
       statusCode: 400,
       message: 'Post identifier is required',
-    })
-  }
-
-  if (!isNumericId) {
-    throw createError({
-      statusCode: 400,
-      message: `Post identifier must be a numeric ID for this endpoint, received: ${identifier}`,
     })
   }
 

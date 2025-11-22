@@ -2,7 +2,7 @@
   <div class="min-h-screen py-12 md:py-16">
     <div class="container mx-auto px-4 md:px-8">
       <!-- Page Header -->
-      <div class="text-center mb-12 md:mb-16">
+      <div v-if="(posts?.length || 0) > 0" class="text-center mb-12 md:mb-16">
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
           Latest Posts
         </h1>
@@ -80,9 +80,31 @@
         <p class="text-muted">Loading posts...</p>
       </div>
 
-      <!-- Empty state -->
+      <!-- Empty state (styled like error page) -->
       <div v-else class="text-center py-12">
-        <p class="text-muted">No posts found.</p>
+        <div class="mb-6">
+          <!-- Large glyph to mirror `app/error.vue` style (indicates empty state)
+               Using '0' here to indicate zero posts — purely stylistic. -->
+          <p class="error-code text-8xl md:text-size-54 font-extrabold leading-none">0</p>
+        </div>
+
+        <h2 class="text-3xl md:text-4xl lg:text-5xl font-serif font-800 mb-4">No posts yet</h2>
+
+        <p class="font-body font-500 text-base md:text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto mb-8">
+          There are no posts to display right now — yet. Create the first article, or explore other sections of the site.
+        </p>
+
+        <div class="flex flex-col sm:flex-row gap-6 justify-center mb-12">
+          <NuxtLink to="/" class="px-6 py-5 bg-black dark:bg-white text-white dark:text-black text-sm font-500 uppercase tracking-wide rounded hover:bg-gray-800 dark:hover:bg-gray-200 transition flex items-center gap-2">
+            <div class="i-ph-house-bold w-4 h-4"></div>
+            Go Home
+          </NuxtLink>
+
+          <NuxtLink to="/credits" class="px-6 py-5 border border-gray-300 dark:border-gray-700 text-sm font-500 uppercase tracking-wide rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition flex items-center gap-2">
+            <div class="i-ph-arrow-left-bold w-4 h-4"></div>
+            Browse Credits
+          </NuxtLink>
+        </div>
       </div>
     </div>
   </div>
@@ -109,3 +131,46 @@ useHead({
   ]
 })
 </script>
+
+<style scoped>
+.error-code {
+  color: transparent;
+  -webkit-text-stroke: 2px #F5E5E1;
+  cursor: default;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.dark .error-code {
+  -webkit-text-stroke: 2px #374151;
+}
+
+.error-code:hover {
+  -webkit-text-stroke: 3px #FF8F8F;
+  transform: scale(0.99);
+  animation: stroke-rainbow 3s linear infinite;
+}
+
+.dark .error-code:hover {
+  -webkit-text-stroke: 3px #FF8F8F;
+}
+
+@keyframes stroke-pulse {
+  0%, 100% {
+    -webkit-text-stroke-width: 3px;
+    filter: drop-shadow(0 0 0px #FF8F8F);
+  }
+  50% {
+    -webkit-text-stroke-width: 4px;
+    filter: drop-shadow(0 0 20px rgba(234, 179, 8, 0.6));
+  }
+}
+
+@keyframes stroke-rainbow {
+  0% { -webkit-text-stroke-color: #FF8F8F; }
+  25% { -webkit-text-stroke-color: #FFF1CB; }
+  50% { -webkit-text-stroke-color: #C2E2FA; }
+  75% { -webkit-text-stroke-color: #B7A3E3; }
+  100% { -webkit-text-stroke-color: #FF8F8F; }
+}
+</style>

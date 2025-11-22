@@ -95,18 +95,21 @@ export default defineEventHandler(async (event) => {
     })
   }
 
+  // Persist the canonical image path (point to the original variant)
+  const originalPath = `/${originalBlob.pathname.replace(/^\/+/, '')}`
+
   await db.prepare(`
     UPDATE posts 
     SET image_src = ?, image_alt = ?, image_ext = ?, updated_at = CURRENT_TIMESTAMP
     WHERE id = ?
   `)
-  .bind(coverFolder, fileName, extension, post.id)
+  .bind(originalPath, fileName, extension, post.id)
   .run()
 
   return { 
     image: {
       alt: fileName,
-      src: coverFolder,
+      src: originalPath,
     },
     success: true, 
   }

@@ -45,6 +45,7 @@
     <!-- Featured Image -->
     <div v-if="post.image?.src" class="w-full px-4">
       <NuxtImg
+        provider="hubblob"
         :src="post.image.src" 
         :alt="post.image.alt || post.name"
         class="w-full h-auto max-h-[90vh] object-cover rounded-2xl"

@@ -2,39 +2,47 @@
 // Body: { tagIds: number[] }
 
 export default defineEventHandler(async (event) => {
+  const session = await requireUserSession(event)
+  const userId = session.user.id
+  const db = hubDatabase()
   const identifier = getRouterParam(event, 'identifier') || ''
-  const isNumericId = typeof identifier === "number" || /^\d+$/.test(String(identifier))
 
   if (!identifier) {
-    throw createError({ statusCode: 400, statusMessage: 'Post identifier (id) is required' })
-  }
-  
-  if (!isNumericId && typeof identifier !== 'string') {
-    throw createError({ statusCode: 400, statusMessage: `Invalid post identifier format: ${identifier}` })
+    throw createError({ statusCode: 400, statusMessage: 'Post identifier (id or slug) is required' })
   }
 
   const body = await readBody(event)
-  
-  if (!identifier || !Array.isArray(body?.tagIds)) {
-    throw createError({ statusCode: 400, statusMessage: 'Post id and tagIds are required' })
+
+  if (!Array.isArray(body?.tagIds)) {
+    throw createError({ statusCode: 400, statusMessage: 'tagIds is required' })
   }
-  
-  // Remove all existing tags for this post
-  await hubDatabase().prepare('DELETE FROM post_tags WHERE post_id = ?1').bind(identifier).run()
-  
+
+  // Resolve post by numeric id or slug
+  const post: ApiPost | null = await getPostByIdentifier(db, identifier)
+  if (!post) {
+    throw createError({ statusCode: 404, statusMessage: 'Post not found' })
+  }
+
+  if (post.user_id !== userId) {
+    throw createError({ statusCode: 403, statusMessage: 'You are not authorized to modify tags on this post' })
+  }
+
+  // Remove all existing tags for this post (use numeric post id)
+  await db.prepare('DELETE FROM post_tags WHERE post_id = ?1').bind(post.id).run()
+
   // Insert new tags
   for (const tagId of body.tagIds) {
-    await hubDatabase().prepare('INSERT INTO post_tags (post_id, tag_id) VALUES (?1, ?2)').bind(identifier, tagId).run()
+    await db.prepare('INSERT INTO post_tags (post_id, tag_id) VALUES (?1, ?2)').bind(post.id, tagId).run()
   }
-  
+
   // Return updated tags
   const sql = `SELECT t.* FROM tags t
     INNER JOIN post_tags pt ON pt.tag_id = t.id
     WHERE pt.post_id = ?1
     ORDER BY t.name ASC`
-  
-    const stmt = hubDatabase().prepare(sql).bind(identifier)
-  
-    const tags = await stmt.all()
+
+  const stmt = db.prepare(sql).bind(post.id)
+
+  const tags = await stmt.all()
   return tags.results
 })

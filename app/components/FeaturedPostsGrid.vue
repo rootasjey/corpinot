@@ -90,6 +90,7 @@
           </NuxtLink>
         </article>
       </div>
+      
       <!-- Empty: dummy layout matching final UI -->
       <div v-else>
         <!-- Top spotlight article placeholder -->
@@ -130,17 +131,21 @@
 
         <!-- Below: 4 placeholders -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <article v-for="i in 4" :key="i" class="group flex flex-col">
+          <article v-for="post in placeholderPosts" :key="post.slug" class="group flex flex-col">
             <div class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4 bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
-              <div class="i-ph-image-duotone text-3xl text-gray-400" />
+              <NuxtImg
+                :src="post.image.src"
+                :alt="post.image.alt || 'Placeholder image'"
+                class="w-full h-full object-cover"
+              />
             </div>
             <div class="space-y-3 flex-1 flex flex-col">
-              <span class="inline-block w-fit px-3 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase">Tag</span>
-              <h3 class="text-lg md:text-xl font-serif font-bold leading-snug line-clamp-2 flex-1">A featured post title goes here</h3>
+              <span class="inline-block w-fit px-3 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase">{{ post.tags?.length ? post.tags[0]?.name : 'Tag' }}</span>
+              <h3 class="text-lg md:text-xl font-serif font-bold leading-snug line-clamp-2 flex-1">{{ post.name }}</h3>
               <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-auto">
-                <time>{{ today }}</time>
+                <time>{{ post.formattedDate || today }}</time>
                 <span>—</span>
-                <span>Author</span>
+                <span>{{ post.user?.name || 'Author' }}</span>
               </div>
             </div>
           </article>
@@ -159,4 +164,54 @@ const { data, pending, error } = await useFetch<Post[]>('/api/posts')
 const featuredPosts = computed(() => (data.value ?? []).slice(0, 5).map(p => enhancePost(p)))
 
 const today = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
+
+// Placeholder posts used when there are no featured posts available from the API.
+// These provide realistic titles, tags, dates and authors for UI/UX preview.
+// Use a flexible shape for placeholder posts since helpers add derived fields like formattedDate
+const placeholderPosts: Array<Record<string, any>> = [
+  {
+    slug: 'getting-started-nuxt',
+    name: 'Getting Started with Nuxt',
+    image: {
+      src: 'https://images.pexels.com/photos/2157805/pexels-photo-2157805.jpeg',
+      alt: 'Getting Started with Nuxt'
+    },
+    tags: [{ name: 'Nuxt' } as any],
+    formattedDate: 'Sep 25, 2025',
+    user: { name: 'Ava' }
+  },
+  {
+    slug: 'all-the-necessary-parts',
+    name: 'All the necessary parts',
+    image: {
+      src: 'https://images.pexels.com/photos/3695238/pexels-photo-3695238.jpeg',
+      alt: 'All the necessary parts'
+    },
+    tags: [{ name: 'Design' } as any],
+    formattedDate: 'Oct 01, 2025',
+    user: { name: 'Leo' }
+  },
+  {
+    slug: 'customize-your-experience',
+    name: 'Customize Your Experience',
+    image: {
+      src: 'https://images.pexels.com/photos/4202952/pexels-photo-4202952.jpeg',
+      alt: 'Customize Your Experience'
+    },
+    tags: [{ name: 'Productivity' } as any],
+    formattedDate: 'Aug 07, 2025',
+    user: { name: 'Chris' }
+  },
+  {
+    slug: 'deploying-with-hub',
+    name: 'Deploying with Nuxt Hub',
+    image: {
+      src: 'https://images.pexels.com/photos/33260741/pexels-photo-33260741.jpeg',
+      alt: 'Deploying with Nuxt Hub'
+    },
+    tags: [{ name: 'Deploy' } as any],
+    formattedDate: 'Nov 01, 2025',
+    user: { name: 'Root' }
+  }
+]
 </script>
