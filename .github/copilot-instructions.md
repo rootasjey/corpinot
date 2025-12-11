@@ -106,6 +106,7 @@ Migrations: All schema changes must be done via SQL migrations in server/databas
    - `NButton` still accepts `size`, `color`, `icon` etc. as usual.
    - If you're trying to theme or theme-variant a component, prefer `btn`, `input`, and `badge` for Una UI components.
 - Drawer components: When creating drawer/modal components, always use placement="bottom" for NDrawer and use the #body slot (not #default). Match the pattern from existing drawers like FrenchydexCardEditorDrawer.vue.
+- Don't use `muted-text` class for small/help text; it has poor contrast. Use `text-sm text-slate-500 dark:text-slate-400` instead for better readability.
 
 ## Auth types extension
 - `shared/types/auth.d.ts` augments `#auth-utils` `User` fields used across the app. Extend here for additional user/session types to keep types in sync.

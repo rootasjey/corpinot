@@ -4,9 +4,9 @@
     <div class="sticky top-0 z-30 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div class="container mx-auto px-4 md:px-8 py-3">
         <div class="flex items-center justify-between gap-2">
-          <NuxtLink to="/posts" class="text-sm hover:text-foreground flex items-center gap-2">
-            <span class="i-lucide-arrow-left" /> Back
-          </NuxtLink>
+          <NButton link to="/posts" btn="ghost-gray" size="xs">
+            <span class="i-ph-arrow-bend-down-left-bold" /> All Posts
+          </NButton>
           <div class="flex items-center gap-2">
             <NTooltip :content="undoTooltip">
               <NButton

@@ -1,24 +1,53 @@
 <template>
   <div class="min-h-screen py-12 md:py-16">
     <div class="container mx-auto px-4 md:px-8">
-      <!-- Admin Toolbar -->
-      <div v-if="isAdmin" class="flex flex-wrap items-center gap-3 mb-10 justify-between">
-        <div class="flex items-center gap-2 flex-wrap">
-          <NButton :to="'/posts/new'" btn="soft-gray" size="sm" leading="i-ph-plus-bold">New Post</NButton>
-          <NButton @click="toggleDrafts" btn="ghost-gray" size="sm" :leading="showDrafts ? 'i-ph-eye-slash' : 'i-ph-eye'">
-            {{ showDrafts ? 'Hide Drafts' : 'Show Drafts' }}
-          </NButton>
-          <NButton @click="toggleArchived" btn="ghost-gray" size="sm" :leading="showArchived ? 'i-ph-eye-slash' : 'i-ph-eye'">
-            {{ showArchived ? 'Hide Archived' : 'Show Archived' }}
-          </NButton>
-        </div>
-        <div class="text-xs opacity-60" v-if="draftsPending || archivedPending">
-          <span v-if="draftsPending" class="flex items-center gap-1"><span class="i-lucide-loader animate-spin" />Loading drafts…</span>
-          <span v-if="archivedPending" class="flex items-center gap-1 ml-3"><span class="i-lucide-loader animate-spin" />Loading archived…</span>
+      <!-- Admin Toolbar (sticky top) -->
+      <div v-if="isAdmin" class="sticky top-4 z-40 mb-10">
+        <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
+          <div class="flex items-center gap-2">
+            <NButton :to="'/posts/new'" btn="soft-gray" size="sm" leading="i-ph-plus-bold">New Post</NButton>
+          </div>
+
+          <!-- Tabs (icons-only) aligned to the end/right -->
+          <div class="ml-auto flex items-center gap-2">
+            <NButton
+              aria-label="Published"
+              :btn="activeTab === 'published' ? 'soft' : 'ghost-gray'"
+              size="sm"
+              @click="setTab('published')"
+              class="w-9 h-9 flex items-center justify-center"
+              >
+              <span class="i-ph-newspaper" />
+            </NButton>
+
+            <NButton
+              aria-label="Drafts"
+              :btn="activeTab === 'drafts' ? 'soft' : 'ghost-gray'"
+              size="sm"
+              @click="setTab('drafts')"
+              class="w-9 h-9 flex items-center justify-center"
+            >
+              <span class="i-ph-file-text" />
+            </NButton>
+
+            <NButton
+              aria-label="Archived"
+              :btn="activeTab === 'archived' ? 'soft' : 'ghost-gray'"
+              size="sm"
+              @click="setTab('archived')"
+              class="w-9 h-9 flex items-center justify-center"
+            >
+              <span class="i-ph-archive" />
+            </NButton>
+
+            <div class="text-xs opacity-60 ml-3" v-if="draftsPending || archivedPending">
+              <span v-if="draftsPending" class="flex items-center gap-1"><span class="i-lucide-loader animate-spin" />Loading…</span>
+            </div>
+          </div>
         </div>
       </div>
       <!-- Page Header -->
-      <div v-if="(posts?.length || 0) > 0" class="text-center mb-12 md:mb-16">
+      <div v-if="(posts?.length || 0) > 0 && activeTab === 'published'" class="text-center mb-12 md:mb-16">
         <h1 class="text-4xl md:text-5xl lg:text-6xl font-bold mb-4">
           Latest Posts
         </h1>
@@ -27,26 +56,26 @@
         </p>
       </div>
 
-      <!-- Published Posts Grid -->
-      <div v-if="posts && posts.length > 0" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+      <!-- Posts list (horizontal stacked cards) -->
+      <div v-if="activeTab === 'published' && posts && posts.length > 0" class="max-w-7xl mx-auto flex flex-col divide-y divide-border rounded-xl overflow-hidden">
         <NuxtLink
           v-for="post in enhancedPosts"
           :key="post.slug"
           :to="`/posts/${post.slug}`"
           class="group"
         >
-          <article class="h-full flex flex-col bg-background rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
+          <article class="w-full flex flex-col md:flex-row items-stretch bg-background border border-border hover:shadow-xl transition-all duration-300">
             <!-- Image -->
-            <div v-if="post.image?.src" class="aspect-[16/10] overflow-hidden">
-              <img 
-                :src="post.image.src" 
+            <div v-if="post.image?.src" class="w-full md:w-48 overflow-hidden flex-shrink-0">
+              <img
+                :src="post.image.src"
                 :alt="post.image.alt || post.name"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                class="w-full h-full object-cover aspect-[16/10] transition-transform duration-500 group-hover:scale-110"
               />
             </div>
-            
+
             <!-- Content -->
-            <div class="flex-1 flex flex-col p-6">
+            <div class="flex-1 p-6 flex flex-col">
               <!-- Tags -->
               <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
                 <NButton
@@ -70,11 +99,11 @@
               </p>
 
               <!-- Meta -->
-              <div class="flex items-center justify-between pt-4 border-t border-border">
+              <div class="flex items-center justify-between pt-4 border-t border-border mt-4">
                 <div v-if="post.user" class="flex items-center gap-3">
-                  <img 
+                  <img
                     v-if="post.user.avatar"
-                    :src="post.user.avatar" 
+                    :src="post.user.avatar"
                     :alt="post.user.name || 'User'"
                     class="w-8 h-8 rounded-full"
                   />
@@ -92,12 +121,12 @@
       </div>
 
       <!-- Loading state -->
-      <div v-else-if="pending" class="text-center py-12">
+      <div v-else-if="isLoadingVisible" class="text-center py-12">
         <p class="text-muted">Loading posts...</p>
       </div>
 
       <!-- Empty state (styled like error page) -->
-      <div v-else class="text-center py-12">
+      <div v-else-if="!hasVisiblePosts && !isLoadingVisible" class="text-center py-12">
         <div class="mb-6">
           <!-- Large glyph to mirror `app/error.vue` style (indicates empty state)
                Using '0' here to indicate zero posts — purely stylistic. -->
@@ -123,16 +152,16 @@
         </div>
       </div>
 
-      <!-- Drafts Section -->
-      <div v-if="isAdmin && showDrafts && drafts?.length" class="mt-16">
+      <!-- Drafts (admin tab) -->
+      <div v-if="isAdmin && activeTab === 'drafts'" class="mt-6 max-w-7xl mx-auto">
         <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><span class="i-ph-file-text" />Drafts</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div v-if="enhancedDrafts.length > 0" class="flex flex-col divide-y divide-border rounded-xl overflow-hidden bg-background border border-border">
           <NuxtLink v-for="post in enhancedDrafts" :key="post.slug" :to="`/posts/${post.slug}`" class="group">
-            <article class="h-full flex flex-col bg-background rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2">
-              <div v-if="post.image?.src" class="aspect-[16/10] overflow-hidden">
-                <img :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            <article class="w-full flex flex-col md:flex-row items-stretch hover:shadow-lg transition-shadow duration-200">
+              <div v-if="post.image?.src" class="w-full md:w-48 overflow-hidden flex-shrink-0">
+                <img :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover aspect-[16/10] transition-transform duration-500 group-hover:scale-110" />
               </div>
-              <div class="flex-1 flex flex-col p-6">
+              <div class="flex-1 p-6 flex flex-col">
                 <div class="flex items-center gap-2 mb-2"><NBadge badge="soft" color="gray">Draft</NBadge></div>
                 <h3 class="text-xl font-semibold mb-2 line-clamp-2">{{ post.name }}</h3>
                 <p v-if="post.description" class="text-muted mb-4 line-clamp-2 flex-1">{{ post.description }}</p>
@@ -146,16 +175,16 @@
         </div>
       </div>
 
-      <!-- Archived Section -->
-      <div v-if="isAdmin && showArchived && archived?.length" class="mt-16">
+      <!-- Archived (admin tab) -->
+      <div v-if="isAdmin && activeTab === 'archived'" class="mt-6 max-w-7xl mx-auto">
         <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><span class="i-ph-archive" />Archived</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+        <div v-if="enhancedArchived.length > 0" class="flex flex-col divide-y divide-border rounded-xl overflow-hidden bg-background border border-border">
           <NuxtLink v-for="post in enhancedArchived" :key="post.slug" :to="`/posts/${post.slug}`" class="group">
-            <article class="h-full flex flex-col bg-background rounded-xl overflow-hidden shadow-sm hover:shadow-xl transition-all duration-300 transform hover:-translate-y-2 opacity-80">
-              <div v-if="post.image?.src" class="aspect-[16/10] overflow-hidden grayscale">
-                <img :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110" />
+            <article class="w-full flex flex-col md:flex-row items-stretch hover:shadow-lg transition-shadow duration-200 opacity-80">
+              <div v-if="post.image?.src" class="w-full md:w-48 overflow-hidden flex-shrink-0 grayscale">
+                <img :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover aspect-[16/10] transition-transform duration-500 group-hover:scale-110" />
               </div>
-              <div class="flex-1 flex flex-col p-6">
+              <div class="flex-1 p-6 flex flex-col">
                 <div class="flex items-center gap-2 mb-2"><NBadge badge="soft" color="gray">Archived</NBadge></div>
                 <h3 class="text-xl font-semibold mb-2 line-clamp-2">{{ post.name }}</h3>
                 <p v-if="post.description" class="text-muted mb-4 line-clamp-2 flex-1">{{ post.description }}</p>
@@ -184,23 +213,38 @@ const { data: posts, pending, error } = await useFetch<Post[]>('/api/posts')
 const { data: drafts, pending: draftsPending, execute: fetchDrafts } = useFetch<Post[]>('/api/posts/drafts', { immediate: false })
 const { data: archived, pending: archivedPending, execute: fetchArchived } = useFetch<Post[]>('/api/posts/archived', { immediate: false })
 
-const showDrafts = ref(false)
-const showArchived = ref(false)
+// previously used toggles: replaced by admin tab (`activeTab`) and setTab()
+// Admin tab state – controls which list is shown for admins (published/drafts/archived)
+const activeTab = ref<'published'|'drafts'|'archived'>('published')
+
+function setTab(tab: 'published'|'drafts'|'archived') {
+  activeTab.value = tab
+  if (tab === 'drafts' && !drafts.value) fetchDrafts()
+  if (tab === 'archived' && !archived.value) fetchArchived()
+}
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
 
-function toggleDrafts() {
-  showDrafts.value = !showDrafts.value
-  if (showDrafts.value && !drafts.value) fetchDrafts()
-}
-function toggleArchived() {
-  showArchived.value = !showArchived.value
-  if (showArchived.value && !archived.value) fetchArchived()
-}
+// toggleDrafts / toggleArchived removed — use `setTab('drafts'|'archived')` instead
 
 // Enhance posts with computed properties
 const enhancedPosts = computed(() => posts.value ? posts.value.map(p => enhancePost(p)) : [])
 const enhancedDrafts = computed(() => drafts.value ? drafts.value.map(p => enhancePost(p)) : [])
 const enhancedArchived = computed(() => archived.value ? archived.value.map(p => enhancePost(p)) : [])
+
+// Whether currently visible content contains any posts (used for empty-state logic)
+const hasVisiblePosts = computed(() => {
+  if (activeTab.value === 'published') return enhancedPosts.value.length > 0
+  if (activeTab.value === 'drafts') return enhancedDrafts.value.length > 0
+  if (activeTab.value === 'archived') return enhancedArchived.value.length > 0
+  return false
+})
+
+const isLoadingVisible = computed(() => {
+  if (activeTab.value === 'published') return pending.value
+  if (activeTab.value === 'drafts') return draftsPending.value
+  if (activeTab.value === 'archived') return archivedPending.value
+  return false
+})
 
 useHead({
   title: 'Posts - Woords',
