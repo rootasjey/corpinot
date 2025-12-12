@@ -50,6 +50,8 @@ export default defineEventHandler(async (event) => {
   const post = convertApiToPost(apiPost, {
     tags: tagRows.map((row: any) => row.tag),
     article,
+    userAvatar: (apiPost as any).user_avatar,
+    userName: (apiPost as any).user_name,
   })
 
   try {

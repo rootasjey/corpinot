@@ -33,6 +33,12 @@
             <NButton :to="`/posts/${post.slug}`" btn="soft-gray" size="xs" target="_blank">
               <span class="i-lucide-external-link mr-2" />Preview
             </NButton>
+            <NDropdownMenu :items="exportMenuItems" placement="bottom">
+              <NButton btn="soft-gray" size="xs">
+                <NIcon :name="exportingZip ? 'i-lucide-loader' : 'i-ph-download-simple'" :class="{ 'animate-spin': exportingZip }" />
+                <span class="ml-2">Export</span>
+              </NButton>
+            </NDropdownMenu>
             <NButton @click="saveAll" btn="soft-gray" size="xs" :disabled="saving || !name || !slug">
               <NIcon :name="saving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': saving }" />
             </NButton>
@@ -182,6 +188,7 @@ const successMessage = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 const uploadingCover = ref(false)
 const uploadProgress = ref(0)
+const exportingZip = ref(false)
 
 const name = ref('')
 const description = ref('')
@@ -460,6 +467,7 @@ const menuItems = computed(() => {
     },
     { label: 'Edit Slug', onSelect: openSlugDialog, },
     { label: 'Delete Post', onSelect: deletePost, },
+    { label: 'Export (ZIP)', onSelect: exportPostZip, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
     {
       label: 'Cover Image',
       items: [
@@ -475,6 +483,11 @@ const menuItems = computed(() => {
 
   return items
 })
+
+const exportMenuItems = computed(() => [
+  { label: 'Export JSON', onSelect: exportPost, leading: 'i-ph-file-json' },
+  { label: 'Export ZIP (with assets)', onSelect: exportPostZip, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
+])
 
 const fetchPost = async () => {
   loading.value = true
@@ -641,6 +654,87 @@ const deletePost = async () => {
   } catch (e: any) {
     error.value = e.data?.message || 'Failed to delete post'
     console.error('Failed to delete post:', e)
+  }
+}
+
+const exportPost = async () => {
+  if (!post.value) return
+
+  try {
+    // Prefer the latest article content from the editor, falling back to post.article
+    const exportData = {
+      exportedAt: new Date().toISOString(),
+      post: {
+        ...post.value,
+        article: articleContent.value ?? post.value.article ?? {},
+      },
+    }
+
+    const json = JSON.stringify(exportData, null, 2)
+    const blob = new Blob([json], { type: 'application/json' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    const filenameSlug = slug.value || post.value.slug || `post-${post.value.id || 'export'}`
+    a.download = `${filenameSlug}.json`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+
+    successMessage.value = 'Post exported'
+    setTimeout(() => (successMessage.value = ''), 3000)
+  } catch (e: any) {
+    error.value = e?.message || 'Failed to export post'
+    console.error('Failed to export post:', e)
+  }
+}
+
+// Recursively find image URLs in article JSON
+const collectImageUrls = (obj: any, out = new Set<string>()) => {
+  if (!obj || typeof obj !== 'object') return out
+  for (const key of Object.keys(obj)) {
+    const val = obj[key]
+    if (typeof val === 'string') {
+      // Heuristic: include strings that look like image URLs
+      if (/\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(val) || val.startsWith('/') || val.startsWith('http')) {
+        out.add(val)
+      }
+    } else if (Array.isArray(val)) {
+      for (const v of val) collectImageUrls(v, out)
+    } else if (typeof val === 'object') {
+      collectImageUrls(val, out)
+    }
+  }
+  return out
+}
+
+const exportPostZip = async () => {
+  if (!post.value) return
+  exportingZip.value = true
+  try {
+    const res = await fetch(`/api/posts/${identifier.value}/export`, { credentials: 'include' })
+    if (!res.ok) {
+      const text = await res.text()
+      throw new Error(text || 'Failed to export post (server error)')
+    }
+    const blobRes = await res.blob()
+    const url = URL.createObjectURL(blobRes)
+    const a = document.createElement('a')
+    a.href = url
+    const filenameSlug = slug.value || post.value.slug || `post-${post.value.id || 'export'}`
+    a.download = `${filenameSlug}.zip`
+    document.body.appendChild(a)
+    a.click()
+    a.remove()
+    URL.revokeObjectURL(url)
+    successMessage.value = 'Post exported (ZIP)'
+    setTimeout(() => (successMessage.value = ''), 3000)
+  } catch (e: any) {
+    error.value = e?.message || 'Failed to export ZIP'
+    console.error('Failed to export ZIP:', e)
+  } finally {
+    exportingZip.value = false
   }
 }
 

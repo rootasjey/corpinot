@@ -1,4 +1,5 @@
-import { sql } from 'drizzle-orm'
+import { sql, eq } from 'drizzle-orm'
+import { schema } from 'hub:db'
 import { ApiPost, Post } from "~~/shared/types/post"
 
 /**
@@ -57,20 +58,26 @@ export const createArticle = () => {
  */
 export async function getPostByIdentifier(db: any, identifier: string | number) {
   const isNumericId = typeof identifier === "number" || /^\d+$/.test(String(identifier))
-  const condition = isNumericId
-    ? sql`p.id = ${Number(identifier)}`
-    : sql`p.slug = ${identifier}`
+  const whereClause = isNumericId
+    ? eq(schema.posts.id, Number(identifier))
+    : eq(schema.posts.slug, String(identifier))
 
-  const result = await db.execute(sql`
-    SELECT p.*, u.avatar as user_avatar, u.name as user_name
-    FROM posts p
-    JOIN users u ON p.user_id = u.id
-    WHERE ${condition}
-    LIMIT 1
-  `)
+  const rows = await db
+    .select({ post: schema.posts, user_avatar: schema.users.avatar, user_name: schema.users.name })
+    .from(schema.posts)
+    .innerJoin(schema.users, eq(schema.users.id, schema.posts.user_id))
+    .where(whereClause)
+    .limit(1)
 
-  const rows = (result as any)?.rows ?? (result as any)?.results
-  return (rows?.[0] as ApiPost | undefined) ?? null
+  const row = (rows as any[])[0]
+  if (!row) return null
+
+  // Merge post fields with optional user info to match previous shape
+  return {
+    ...(row.post as ApiPost),
+    user_avatar: row.user_avatar,
+    user_name: row.user_name,
+  }
 }
 
 /**
@@ -128,4 +135,25 @@ export function convertApiToPost(
       name: options?.userName ?? "",
     },
   }
+}
+
+/**
+ * Generate a unique slug by appending a numeric suffix if needed.
+ * e.g. "my-slug", "my-slug-1", "my-slug-2"
+ */
+export async function generateUniqueSlug(db: any, baseSlug: string) {
+  const rows = await db.select({ slug: schema.posts.slug }).from(schema.posts).where(sql`${schema.posts.slug} LIKE ${baseSlug + '%'} `)
+  const existing = new Set<string>((rows as any[]).map((r: any) => String(r.slug)))
+  if (!existing.has(baseSlug)) return baseSlug
+
+  let max = 0
+  for (const s of existing) {
+    if (s === baseSlug) continue
+    const m = s.match(new RegExp(`^${baseSlug.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')}-([0-9]+)$`))
+    if (m) {
+      const n = Number(m[1])
+      if (!Number.isNaN(n) && n > max) max = n
+    }
+  }
+  return `${baseSlug}-${max + 1}`
 }

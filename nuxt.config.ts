@@ -91,6 +91,15 @@ export default defineNuxtConfig({
           800: '#2E3E93',
           900: '#161F70',
         },
+        // Colors used by generated "wrapper-43" utilities (checkbox shortcuts)
+        'wrapper-43': {
+          50: '#eff6ff',
+          200: '#bfdbfe',
+          500: '#3b82f6',
+          600: '#2563eb',
+          800: '#1e3a8a',
+          900: '#172554',
+        },
       },
     },
   },

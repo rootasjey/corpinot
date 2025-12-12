@@ -5,7 +5,7 @@ import { eq } from 'drizzle-orm'
 import { z } from 'zod'
 import type { ApiTag } from '~~/shared/types/tags'
 import { ApiPost } from '~~/shared/types/post'
-import { convertApiToPost, createArticle, createPostData } from '~~/server/utils/post'
+import { convertApiToPost, createArticle, createPostData, generateUniqueSlug } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
 
 const createPostSchema = z.object({
@@ -24,6 +24,8 @@ export default defineEventHandler(async (event) => {
 
   const userId = session.user.id
   const postData = createPostData(body, userId)
+  // Ensure slug is unique to avoid DB constraint errors
+  postData.slug = await generateUniqueSlug(db, postData.slug)
 
   // Insert post without blob_path first
   const result = await db.insert(schema.posts).values({

@@ -42,7 +42,7 @@
 .post-content .ProseMirror a { @apply text-primary hover:text-primary/80 underline decoration-2 underline-offset-2 transition-colors; }
 .post-content .ProseMirror strong { @apply font-800 text-foreground; }
 .post-content .ProseMirror em { @apply italic; }
-.post-content .ProseMirror blockquote { @apply border-l-4 border-primary/40 pl-6 py-4 my-8 italic text-lg md:text-xl text-muted bg-muted/20 rounded-r-lg; }
+.post-content .ProseMirror blockquote { @apply border-l-4 border-primary/40 pl-6 py-4 my-8 italic text-lg md:text-xl text-slate-500 dark:text-slate-400 bg-muted/20 rounded-r-lg; }
 .post-content .ProseMirror blockquote p { @apply mb-0; }
 .post-content .ProseMirror ul, .post-content .ProseMirror ol { @apply my-6 pl-6 space-y-2; }
 .post-content .ProseMirror ul { @apply list-disc; }

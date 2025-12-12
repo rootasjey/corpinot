@@ -182,8 +182,8 @@
                 </NButton>
               </NDropdownMenu>
             </template>
-            <NuxtLink to="/subscribe" class="px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
-              SUBSCRIBE
+            <NuxtLink to="/donate" class="uppercase px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
+              Donate
             </NuxtLink>
             <button class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
               <div class="i-ph-magnifying-glass-bold"></div>
