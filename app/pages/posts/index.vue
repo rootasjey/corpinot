@@ -2,55 +2,72 @@
   <div class="min-h-screen py-6">
     <div class="container mx-auto px-4 md:px-8">
       <!-- Admin Toolbar (sticky top) -->
-      <div v-if="isAdmin" class="sticky top-4 z-12 mb-10">
-        <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
-          <div class="flex items-center gap-2">
-            <NButton @click="isNewDrawerOpen = true" btn="soft-gray" size="sm" leading="i-ph-plus-bold">New Post</NButton>
-            <NButton @click="triggerImportFile" btn="soft-gray" size="sm" leading="i-ph-file-arrow-up">Import</NButton>
-            <ClientOnly>
+      <ClientOnly>
+        <div v-if="isAdmin" class="sticky top-4 z-12 mb-10">
+          <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-2">
+              <NButton @click="isNewDrawerOpen = true" btn="outline-gray" size="xs" rounded="2" leading="i-ph-plus-bold">New Post</NButton>
+              <NButton @click="triggerImportFile" btn="outline-gray" size="xs"  rounded="2" leading="i-ph-file-arrow-up">Import</NButton>
+              <template v-if="selectionMode">
+                <span>•</span>
+                <NDropdownMenu :items="exportDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'start' }">
+                  <NButton btn="outline-gray" size="xs" rounded="2" :disabled="!hasSelection" :loading="exporting">
+                    <NIcon :name="exporting ? 'i-lucide-loader' : 'i-ph-download-simple'" :class="{ 'animate-spin': exporting }" />
+                    <span class="ml-2">Export</span>
+                  </NButton>
+                </NDropdownMenu>
+                <NBadge badge="soft" color="primary">{{ selectedCount }}</NBadge>
+                <NButton @click="toggleSelectAllVisible" btn="outline-gray" size="xs" rounded="2" 
+                  :leading="allVisibleSelected ? 'i-ph-square-duotone' : 'i-ph-list-checks'">
+                  {{ allVisibleSelected ? 'Clear all' : 'Select all' }}
+                </NButton>
+                <NTooltip content="Exit selection mode">
+                  <NButton btn="ghost-gray" icon label="i-ph-x" size="xs" @click="exitSelectionMode" />
+                </NTooltip>
+              </template>
               <input ref="fileInput" type="file" accept=".zip,application/zip,application/json,application/*" class="hidden" @change="onImportFileSelected" />
               <NewPostDrawer v-model="isNewDrawerOpen" @created="onPostCreated" />
-            </ClientOnly>
-          </div>
+            </div>
 
-          <!-- Tabs (icons-only) aligned to the end/right -->
-          <div class="ml-auto flex items-center gap-2">
-            <NButton
-              aria-label="Published"
-              :btn="activeTab === 'published' ? 'soft' : 'ghost-gray'"
-              size="sm"
-              icon
-              label="i-ph-newspaper"
-              @click="setTab('published')"
-              class="w-9 h-9 flex items-center justify-center"
-            />
-            
-            <NButton
-              aria-label="Drafts"
-              :btn="activeTab === 'drafts' ? 'soft' : 'ghost-gray'"
-              size="sm"
-              icon
-              label="i-ph-file-text"
-              @click="setTab('drafts')"
-              class="w-9 h-9 flex items-center justify-center"
-            />
+            <!-- Tabs (icons-only) aligned to the end/right -->
+            <div class="ml-auto flex items-center gap-2">
+              <NButton
+                aria-label="Published"
+                :btn="activeTab === 'published' ? 'soft' : 'ghost-gray'"
+                size="sm"
+                icon
+                label="i-ph-newspaper"
+                @click="setTab('published')"
+                class="w-9 h-9 flex items-center justify-center"
+              />
+              
+              <NButton
+                aria-label="Drafts"
+                :btn="activeTab === 'drafts' ? 'soft' : 'ghost-gray'"
+                size="sm"
+                icon
+                label="i-ph-file-text"
+                @click="setTab('drafts')"
+                class="w-9 h-9 flex items-center justify-center"
+              />
 
-            <NButton
-              aria-label="Archived"
-              :btn="activeTab === 'archived' ? 'soft' : 'ghost-gray'"
-              size="sm"
-              icon
-              label="i-ph-archive"
-              @click="setTab('archived')"
-              class="w-9 h-9 flex items-center justify-center"
-            />
+              <NButton
+                aria-label="Archived"
+                :btn="activeTab === 'archived' ? 'soft' : 'ghost-gray'"
+                size="sm"
+                icon
+                label="i-ph-archive"
+                @click="setTab('archived')"
+                class="w-9 h-9 flex items-center justify-center"
+              />
 
-            <div class="text-xs opacity-60 ml-3" v-if="draftsPending || archivedPending">
-              <span v-if="draftsPending" class="flex items-center gap-1"><span class="i-lucide-loader animate-spin" />Loading…</span>
+              <div class="text-xs opacity-60 ml-3" v-if="draftsPending || archivedPending">
+                <span v-if="draftsPending" class="flex items-center gap-1"><span class="i-lucide-loader animate-spin" />Loading…</span>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </ClientOnly>
       
       <!-- Page Header -->
       <div v-if="(posts?.length || 0) > 0 && activeTab === 'published'" class="mb-12 md:mb-16">
@@ -64,9 +81,15 @@
 
       <!-- Posts list (grid cards) -->
       <div v-if="activeTab === 'published' && posts && posts.length > 0" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="post in enhancedPosts" :key="post.slug" class="relative">
-          <NuxtLink
+        <div v-for="post in enhancedPosts" :key="post.slug" class="relative" @pointerdown="startLongPress(post.slug)" @pointerup="cancelLongPress" @pointercancel="cancelLongPress" @mouseleave="cancelLongPress">
+          <ClientOnly>
+            <div v-if="isAdmin && selectionMode" class="absolute right-12 top-5 z-2">
+              <NCheckbox :model-value="selectedSlugs.has(post.slug)" @update:model-value="toggleSelected(post.slug)" />
+            </div>
+          </ClientOnly>
+          <NLink
             :to="`/posts/${post.slug}`"
+            @click="(e: MouseEvent) => onPostCardClick(e, post)"
             :class="[
               'group block bg-background border border-border rounded-lg overflow-hidden hover:shadow-xl transition-all duration-300 transform hover:scale-101 active:scale-99',
               { 
@@ -94,18 +117,6 @@
               <div class="flex items-center gap-2 mb-2" v-if="duplicatingPosts.has(post.slug)">
                 <NBadge badge="soft" color="warning">Duplicating…</NBadge>
               </div>
-              <!-- Tags -->
-              <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
-                <NButton
-                  v-for="tag in post.tags.slice(0, 3)"
-                  :key="tag.id"
-                  size="xs"
-                  variant="soft"
-                >
-                  {{ tag.name }}
-                </NButton>
-              </div>
-
               <!-- Title -->
               <h2 class="text-2xl font-bold mb-3 line-clamp-2 group-hover:text-primary transition-colors">
                 {{ post.name }}
@@ -115,6 +126,18 @@
               <p v-if="post.description" class="text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 flex-1">
                 {{ post.description }}
               </p>
+
+              <!-- Tags -->
+              <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
+                <NBadge
+                  v-for="tag in post.tags.slice(0, 3)"
+                  :key="tag.id"
+                  size="xs"
+                  badge="soft-gray"
+                >
+                  {{ tag.name }}
+                </NBadge>
+              </div>
 
               <!-- Meta -->
               <div class="flex items-center justify-between pt-4 border-t border-border mt-4">
@@ -135,19 +158,21 @@
               </div>
             </div>
           </article>
-          </NuxtLink>
+          </NLink>
 
           <!-- Admin controls outside the link so overlay can block link but not menu -->
                 <!-- Admin dropdown control is rendered outside the link to avoid being blocked by overlay -->
-          <div v-if="isAdmin" class="absolute right-3 top-3 z-10">
-            <NDropdownMenu :items="menuItemsForPost(post)">
-              <template #default>
-                <NButton :disabled="duplicatingPosts.has(post.slug)" icon btn="ghost" size="xs" @click.stop.prevent>
-                  <NIcon name="i-ph-dots-three-vertical" />
-                </NButton>
-              </template>
-            </NDropdownMenu>
-          </div>
+          <ClientOnly>
+            <div v-if="isAdmin" class="absolute right-3 top-3 z-10">
+              <NDropdownMenu :items="menuItemsForPost(post)">
+                <template #default>
+                  <NButton :disabled="duplicatingPosts.has(post.slug)" icon btn="ghost" size="xs" @click.stop.prevent>
+                    <NIcon name="i-ph-dots-three-vertical" />
+                  </NButton>
+                </template>
+              </NDropdownMenu>
+            </div>
+          </ClientOnly>
           <div v-if="duplicatingPosts.has(post.slug)" class="absolute inset-0 pointer-events-auto duplicate-overlay z-0" aria-hidden="true" />
         </div>
       </div>
@@ -185,20 +210,25 @@
       </div>
 
       <!-- Drafts (admin tab) -->
-      <div v-if="isAdmin && activeTab === 'drafts'" class="mt-6 max-w-7xl mx-auto">
+      <ClientOnly>
+        <div v-if="isAdmin && activeTab === 'drafts'" class="mt-6 max-w-7xl mx-auto">
         <div class="mb-12">
           <h2 class="font-title text-size-24 font-bold line-height-24">
             Drafts
           </h2>
-
-        <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
-          These posts are not visible to the public
-        </p>
+          <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
+            These posts are not visible to the public
+          </p>
         </div>
+
         <div v-if="enhancedDrafts.length > 0" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          <div v-for="post in enhancedDrafts" :key="post.slug" class="relative">
-            <NuxtLink
+          <div v-for="post in enhancedDrafts" :key="post.slug" class="relative" @pointerdown="startLongPress(post.slug)" @pointerup="cancelLongPress" @pointercancel="cancelLongPress" @mouseleave="cancelLongPress">
+            <div v-if="isAdmin && selectionMode" class="absolute right-12 top-5 z-2">
+              <NCheckbox :model-value="selectedSlugs.has(post.slug)" @update:model-value="toggleSelected(post.slug)" />
+            </div>
+            <NLink
               :to="`/posts/edit/${post.slug}`"
+              @click="(e: MouseEvent) => onPostCardClick(e, post)"
               :class="[
                 'group block bg-background border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 transform hover:scale-101 active:scale-99', 
                 { 
@@ -227,9 +257,10 @@
                 </div>
               </div>
               </article>
-            </NuxtLink>
+            </NLink>
 
-            <div v-if="isAdmin" class="absolute right-3 top-3 z-10">
+            <ClientOnly>
+              <div v-if="isAdmin" class="absolute right-3 top-3 z-10">
               <NDropdownMenu :items="menuItemsForPost(post)">
                 <template #default>
                   <NButton :disabled="duplicatingPosts.has(post.slug)" icon btn="ghost" size="xs" @click.stop.prevent>
@@ -237,18 +268,24 @@
                   </NButton>
                 </template>
               </NDropdownMenu>
-            </div>
+              </div>
+            </ClientOnly>
             
             <div v-if="duplicatingPosts.has(post.slug)" class="absolute inset-0 pointer-events-auto duplicate-overlay z-0" aria-hidden="true" />
           </div>
         </div>
       </div>
+      </ClientOnly>
 
-      <div v-if="isAdmin && activeTab === 'archived'" class="mt-6 max-w-7xl mx-auto">
+      <ClientOnly>
+        <div v-if="isAdmin && activeTab === 'archived'" class="mt-6 max-w-7xl mx-auto">
         <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><span class="i-ph-archive" />Archived</h2>
         <div v-if="enhancedArchived.length > 0" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <div v-for="post in enhancedArchived" :key="post.slug" class="relative">
-              <NuxtLink :to="`/posts/${post.slug}`" :class="['group block bg-background border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 opacity-80 relative transform hover:scale-101 active:scale-99', { 'scale-90 pointer-events-none opacity-70': duplicatingPosts.has(post.slug) }]" :aria-busy="duplicatingPosts.has(post.slug)">
+            <div v-for="post in enhancedArchived" :key="post.slug" class="relative" @pointerdown="startLongPress(post.slug)" @pointerup="cancelLongPress" @pointercancel="cancelLongPress" @mouseleave="cancelLongPress">
+              <div v-if="isAdmin && selectionMode" class="absolute right-12 top-5 z-2">
+                <NCheckbox :model-value="selectedSlugs.has(post.slug)" @update:model-value="toggleSelected(post.slug)" />
+              </div>
+              <NLink :to="`/posts/${post.slug}`" @click="(e: MouseEvent) => onPostCardClick(e, post)" :class="['group block bg-background border border-border rounded-lg overflow-hidden hover:shadow-lg transition-all duration-200 opacity-80 relative transform hover:scale-101 active:scale-99', { 'scale-90 pointer-events-none opacity-70': duplicatingPosts.has(post.slug) }]" :aria-busy="duplicatingPosts.has(post.slug)">
                 <article class="h-full flex flex-col items-stretch">
                   <div v-if="post.image?.src" class="w-full overflow-hidden grayscale">
                     <img :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover aspect-[16/10] transition-transform duration-500 group-hover:scale-110" />
@@ -268,8 +305,9 @@
                     </div>
                   </div>
                 </article>
-              </NuxtLink>
-              <div v-if="isAdmin" class="absolute right-3 top-3 z-10">
+              </NLink>
+              <ClientOnly>
+                <div v-if="isAdmin" class="absolute right-3 top-3 z-10">
                 <NDropdownMenu :items="menuItemsForPost(post)">
                   <template #default>
                     <NButton :disabled="duplicatingPosts.has(post.slug)" icon btn="ghost" size="xs" @click.stop.prevent>
@@ -277,10 +315,12 @@
                     </NButton>
                   </template>
                 </NDropdownMenu>
-              </div>
+                </div>
+              </ClientOnly>
             </div>
         </div>
-      </div>
+        </div>
+      </ClientOnly>
     </div>
   </div>
 
@@ -306,13 +346,18 @@
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
-import { onMounted } from 'vue'
+import { onMounted, onUnmounted } from 'vue'
 import { useStorage } from '@vueuse/core'
+
 const router = useRouter()
 const confirmDialogOpen = ref(false)
 const postPendingDelete = ref<Post | null>(null)
 const deleting = ref(false)
 const duplicatingPosts = ref(new Set<string | number>())
+const selectedSlugs = ref(new Set<string>())
+const exporting = ref(false)
+const selectionMode = ref(false)
+let longPressTimer: ReturnType<typeof setTimeout> | null = null
 
 const { enhancePost } = usePost()
 const { user, loggedIn } = useUserSession()
@@ -349,13 +394,13 @@ async function onImportFileSelected(e: Event) {
           console.debug('Import JSON file parsed:', parsed)
           try {
             const created: any = await $fetch('/api/posts/import', { method: 'POST' as any, body: parsed })
-            if (created?.slug) {
-              // Navigate to edit page for the imported post so user can review
-              router.push(`/posts/edit/${created.slug}`)
+            const importedPosts = Array.isArray(created?.posts) ? created.posts : (created ? [created] : [])
+            if (importedPosts.length === 1) {
+              router.push(`/posts/edit/${importedPosts[0].slug}`)
               return
             }
             await refreshAllLists()
-            alert('Import completed')
+            alert(`Import completed (${importedPosts.length || 0} posts)`)           
           } catch (err) {
             console.warn('Import endpoint failed', err)
             alert('Import failed: ' + String(err))
@@ -368,10 +413,13 @@ async function onImportFileSelected(e: Event) {
             const res = await fetch('/api/posts/import', { method: 'POST', body: fd })
             if (!res.ok) throw new Error(await res.text())
             const created = await res.json()
-            if (created?.slug) router.push(`/posts/edit/${created.slug}`)
+            const importedPosts = Array.isArray(created?.posts) ? created.posts : (created ? [created] : [])
+            if (importedPosts.length === 1) {
+              router.push(`/posts/edit/${importedPosts[0].slug}`)
+            }
             else {
               await refreshAllLists()
-              alert('Import completed')
+              alert(`Import completed (${importedPosts.length || 0} posts)`)          
             }
           } catch (err) {
             console.error('ZIP import failed', err)
@@ -403,19 +451,35 @@ function setTab(tab: 'published'|'drafts'|'archived') {
   if (tab === 'drafts' && !drafts.value) fetchDrafts()
   if (tab === 'archived' && !archived.value) fetchArchived()
 }
+
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
 
-// toggleDrafts / toggleArchived removed — use `setTab('drafts'|'archived')` instead
-
-// Enhance posts with computed properties
 const enhancedPosts = computed(() => posts.value ? posts.value.map(p => enhancePost(p)) : [])
 const enhancedDrafts = computed(() => drafts.value ? drafts.value.map(p => enhancePost(p)) : [])
 const enhancedArchived = computed(() => archived.value ? archived.value.map(p => enhancePost(p)) : [])
+
+const visiblePosts = computed(() => {
+  if (activeTab.value === 'published') return enhancedPosts.value
+  if (activeTab.value === 'drafts') return enhancedDrafts.value
+  if (activeTab.value === 'archived') return enhancedArchived.value
+  return [] as Post[]
+})
+
+const selectedCount = computed(() => selectedSlugs.value.size)
+const hasSelection = computed(() => selectedSlugs.value.size > 0)
+const allVisibleSelected = computed(() => {
+  if (!visiblePosts.value.length) return false
+  return visiblePosts.value.every((p) => selectedSlugs.value.has(p.slug))
+})
 
 // If a persisted tab is drafts/archived, fetch them on page load so the UI matches stored state
 onMounted(() => {
   if (activeTab.value === 'drafts' && !drafts.value) fetchDrafts()
   if (activeTab.value === 'archived' && !archived.value) fetchArchived()
+})
+
+onUnmounted(() => {
+  cancelLongPress()
 })
 
 // Whether currently visible content contains any posts (used for empty-state logic)
@@ -439,6 +503,108 @@ useHead({
     { name: 'description', content: 'Explore our latest articles on travel, culture, and lifestyle.' }
   ]
 })
+
+function toggleSelected(slug: string) {
+  const next = new Set(selectedSlugs.value)
+  if (next.has(slug)) next.delete(slug)
+  else next.add(slug)
+  selectedSlugs.value = next
+}
+
+function clearSelection() {
+  selectedSlugs.value = new Set()
+}
+
+function toggleSelectAllVisible() {
+  if (!visiblePosts.value.length) return
+  const next = new Set(selectedSlugs.value)
+  if (allVisibleSelected.value) {
+    for (const p of visiblePosts.value) next.delete(p.slug)
+  } else {
+    for (const p of visiblePosts.value) next.add(p.slug)
+  }
+  selectedSlugs.value = next
+}
+
+function startLongPress(slug: string) {
+  // If already in selection mode, do nothing special
+  if (selectionMode.value) return
+  cancelLongPress()
+  longPressTimer = setTimeout(() => {
+    selectionMode.value = true
+    // const next = new Set(selectedSlugs.value)
+    // next.add(slug)
+    // selectedSlugs.value = next
+  }, 600)
+}
+
+function cancelLongPress() {
+  if (longPressTimer) {
+    clearTimeout(longPressTimer)
+    longPressTimer = null
+  }
+}
+
+function exitSelectionMode() {
+  selectionMode.value = false
+  selectedSlugs.value = new Set()
+}
+
+function exportFileName(extension: string, ids: string[]) {
+  if (ids.length === 1) return `${ids[0]}-export.${extension}`
+  return `posts-export-${new Date().toISOString().replace(/[:.]/g, '-')}.${extension}`
+}
+
+async function exportPosts(format: 'zip' | 'json', includeAssets: boolean, idsOverride?: string[]) {
+  const ids = idsOverride ?? Array.from(selectedSlugs.value)
+  if (!ids.length) return
+  exporting.value = true
+  try {
+    if (format === 'zip') {
+      const res = await fetch('/api/posts/export', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ identifiers: ids, format: 'zip', includeAssets }),
+        credentials: 'include',
+      })
+      if (!res.ok) throw new Error(await res.text())
+      const blobRes = await res.blob()
+      const url = URL.createObjectURL(blobRes)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = exportFileName('zip', ids)
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    } else {
+      const data = await $fetch('/api/posts/export', {
+        method: 'POST' as any,
+        body: { identifiers: ids, format: 'json', includeAssets: false },
+      })
+      const jsonBlob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(jsonBlob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = exportFileName('json', ids)
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      URL.revokeObjectURL(url)
+    }
+  } catch (err) {
+    console.error('Failed to export posts', err)
+    alert('Export failed: ' + String(err))
+  } finally {
+    exporting.value = false
+  }
+}
+
+const exportDropdownItems = computed(() => [
+  { label: `Export ${selectedCount.value || 0} as ZIP (with assets)`, onSelect: () => exportPosts('zip', true), leading: exporting.value ? 'i-lucide-loader animate-spin' : 'i-ph-download-simple', disabled: !hasSelection.value },
+  { label: 'Clear selection', onSelect: clearSelection, leading: 'i-ph-x', disabled: !hasSelection.value },
+  { label: 'Done', onSelect: exitSelectionMode, leading: 'i-ph-check', disabled: false },
+])
 
 // Router + post management actions (admin only)
 async function refreshAllLists() {
@@ -489,6 +655,8 @@ function menuItemsForPost(post: Post) {
       ]
     },
     { label: 'Preview', onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
+    { label: 'Select', onSelect: () => (selectionMode.value = true, toggleSelected(post.slug)), leading: 'i-ph-check', disabled: isDup },
+    { label: 'Export ZIP', onSelect: () => exportPosts('zip', true, [post.slug]), leading: 'i-ph-download-simple', disabled: isDup },
     { label: 'Edit', onSelect: () => !isDup && editPost(post), leading: 'i-ph-pencil', disabled: isDup },
     { label: 'Duplicate', onSelect: () => !isDup && duplicatePost(post), leading: 'i-ph-copy', disabled: isDup },
     { label: 'Delete Post', onSelect: () => !isDup && (postPendingDelete.value = post, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger', disabled: isDup },
@@ -531,6 +699,13 @@ async function duplicatePost(post: Post) {
     duplicatingPosts.value = s
   }
 }
+
+function onPostCardClick(evt: MouseEvent, post: Post) {
+  if (selectionMode.value) {
+    evt.preventDefault()
+    toggleSelected(post.slug)
+  }
+}
 </script>
 
 <style scoped>
@@ -562,6 +737,29 @@ async function duplicatePost(post: Post) {
   -webkit-text-stroke: 3px #FF8F8F;
   transform: scale(0.99);
   animation: stroke-rainbow 3s linear infinite;
+}
+
+.select-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.6rem;
+  border-radius: 9999px;
+  border: 1px solid var(--border-color, #e5e7eb);
+  background-color: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.select-checkbox {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--una-color-primary, #111827);
+}
+
+:global(.dark) .select-pill {
+  background-color: rgba(15, 23, 42, 0.82);
+  border-color: rgba(255, 255, 255, 0.08);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.25);
 }
 
 .dark .error-code:hover {

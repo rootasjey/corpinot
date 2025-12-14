@@ -2,16 +2,16 @@
   <div class="min-h-screen py-6">
     <div class="container mx-auto px-4 md:px-8">
       <!-- Admin Toolbar (sticky top) -->
-      <div v-if="isAdmin" class="sticky top-4 z-12 mb-10">
-        <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
-          <div class="flex items-center gap-2">
-            <NButton @click="isNewDrawerOpen = true" btn="soft-gray" size="sm" leading="i-ph-plus-bold">New Post</NButton>
-            <ClientOnly>
+      <ClientOnly>
+        <div v-if="isAdmin" class="sticky top-4 z-12 mb-10">
+          <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
+            <div class="flex items-center gap-2">
+              <NButton @click="isNewDrawerOpen = true" btn="soft-gray" size="sm" leading="i-ph-plus-bold">New Post</NButton>
               <NewPostDrawer v-model="isNewDrawerOpen" @created="onPostCreated" defaultTag="project" />
-            </ClientOnly>
+            </div>
           </div>
         </div>
-      </div>
+      </ClientOnly>
 
       <!-- Page Header -->
       <div v-if="(posts?.length || 0) > 0" class="mb-12 md:mb-16">
@@ -97,7 +97,8 @@
           </article>
           </NuxtLink>
 
-          <div v-if="isAdmin" class="absolute right-3 top-3 z-10">
+          <ClientOnly>
+            <div v-if="isAdmin" class="absolute right-3 top-3 z-10">
             <NDropdownMenu :items="menuItemsForPost(post)">
               <template #default>
                 <NButton :disabled="duplicatingPosts.has(post.slug)" icon btn="ghost" size="xs" @click.stop.prevent>
@@ -105,7 +106,8 @@
                 </NButton>
               </template>
             </NDropdownMenu>
-          </div>
+            </div>
+          </ClientOnly>
           <div v-if="duplicatingPosts.has(post.slug)" class="absolute inset-0 pointer-events-auto duplicate-overlay z-0" aria-hidden="true" />
         </div>
       </div>

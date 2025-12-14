@@ -185,7 +185,7 @@
             <NuxtLink to="/donate" class="uppercase px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
               Donate
             </NuxtLink>
-            <button class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+            <button @click="openSearch" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" aria-label="Open search">
               <div class="i-ph-magnifying-glass-bold"></div>
             </button>
             <button 
@@ -218,7 +218,7 @@
 
         <!-- Right: Search + Theme -->
         <div class="flex items-center gap-2">
-          <button class="p-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
+          <button @click="openSearch" class="p-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" aria-label="Open search">
             <div class="i-ph-magnifying-glass w-5 h-5"></div>
           </button>
           <button 
@@ -249,6 +249,11 @@ const isMobileMenuOpen = ref(false)
 const colorMode = useColorMode()
 import { useHeaderScroll } from '../composables/useHeaderScroll'
 const { isScrolled } = useHeaderScroll({ threshold: 12 })
+
+// Global search modal
+import useGlobalSearch from '~/composables/useGlobalSearch'
+const { open: openSearchModal } = useGlobalSearch()
+function openSearch() { openSearchModal() }
 
 async function handleLogout() {
   try {

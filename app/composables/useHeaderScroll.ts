@@ -24,9 +24,10 @@ export function useHeaderScroll(options?: { threshold?: number }) {
   }
 
   onMounted(() => {
-    lastY = window.scrollY || 0
-    isScrolled.value = lastY > threshold
+    // Initialize to current scroll position on mount (client-side only)
     if (typeof window !== 'undefined') {
+      lastY = window.scrollY || 0
+      isScrolled.value = lastY > threshold
       window.addEventListener('scroll', handleScroll, { passive: true })
     }
   })

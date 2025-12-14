@@ -1,5 +1,7 @@
 import type { ApiTag, Tag } from "./tags"
 
+export type PostStatus = 'draft' | 'published' | 'archived'
+
 /**
  * Post structure used in the application.
  * This type is used for displaying posts in the UI.
@@ -30,7 +32,7 @@ export type Post = {
   name: string
   publishedAt?: string
   slug: string
-  status: 'draft' | 'published' | 'archived'
+  status: PostStatus
   tags: ApiTag[]
   updatedAt: string
   user?: {
@@ -64,7 +66,7 @@ export type ApiPost = {
   name: string
   published_at: string | null
   slug: string
-  status: 'draft' | 'published' | 'archived'
+  status: PostStatus
   updated_at: string
   user_id: number
 }
@@ -76,7 +78,7 @@ export type ApiPost = {
 export type CreatePostPayload = {
   description: string
   name: string
-  status?: 'draft' | 'published' | 'archived'
+  status?: PostStatus
   tags?: Tag[]
 }
 
@@ -85,6 +87,6 @@ export type UpdatePostPayload = {
   id: number
   name: string
   slug?: string
-  status?: 'draft' | 'published' | 'archived'
+  status?: PostStatus
   tags?: Tag[]
 }

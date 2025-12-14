@@ -4,26 +4,55 @@
     <div class="container mx-auto px-10">
       <div class="flex items-center justify-between mb-2">
         <h2 class="text-sm md:text-sm font-text font-600 uppercase">Trending tags</h2>
-        <div class="flex">
-          <NButton
-            @click="scrollTags('left')"
-            btn="ghost-gray"
-            class="p-2"
+        <div class="flex items-center gap-2">
+          <div
+            class="tag-btn-wrapper"
+            @click.stop.prevent="handleArrowClick('left')"
+            :aria-hidden="false"
+            :class="{ 'group': true }"
+            role="button"
+            tabindex="0"
+            @keydown.enter.prevent="handleArrowClick('left')"
+            @keydown.space.prevent="handleArrowClick('left')"
           >
-            <div class="i-ph-arrow-left-bold"></div>
-          </NButton>
-          <NButton
-            @click="scrollTags('right')"
-            btn="ghost-gray"
-            class="p-2"
+            <NButton
+              @click="() => {}"
+              btn="ghost-gray"
+              class="p-2"
+              :disabled="mounted && !canScrollLeft"
+              :class="{ 'opacity-60': mounted && !canScrollLeft, 'afforded': leftAfforded }"
+              aria-label="Previous"
+            >
+              <div class="i-ph-arrow-left-bold"></div>
+            </NButton>
+          </div>
+
+          <div
+            class="tag-btn-wrapper"
+            @click.stop.prevent="handleArrowClick('right')"
+            :aria-hidden="false"
+            :class="{ 'group': true }"
+            role="button"
+            tabindex="0"
+            @keydown.enter.prevent="handleArrowClick('right')"
+            @keydown.space.prevent="handleArrowClick('right')"
           >
-            <div class="i-ph-arrow-right-bold"></div>
-          </NButton>
+            <NButton
+              @click="() => {}"
+              btn="ghost-gray"
+              class="p-2"
+              :disabled="mounted && !canScrollRight"
+              :class="{ 'opacity-60': mounted && !canScrollRight, 'afforded': rightAfforded }"
+              aria-label="Next"
+            >
+              <div class="i-ph-arrow-right-bold"></div>
+            </NButton>
+          </div>
         </div>
       </div>
 
       <!-- Loading -->
-      <div v-if="pending" class="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-2">
+      <div v-if="pending" :ref="setTagsContainer" class="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-2">
         <div v-for="i in 6" :key="i" class="flex-shrink-0 w-72 md:w-80 p-5 md:p-6 rounded-2xl bg-gray-100 dark:bg-gray-900 animate-pulse">
           <div class="h-5 bg-gray-200 dark:bg-gray-800 rounded w-1/2 mb-3"></div>
           <div class="space-y-2">
@@ -45,6 +74,7 @@
       <!-- Empty: dummy tags that match final UI -->
       <div
         v-else-if="trendingTags.length === 0"
+        :ref="setTagsContainer"
         class="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide pb-2"
         style="scrollbar-width: none; -ms-overflow-style: none"
       >
@@ -72,17 +102,17 @@
 
       <div
         v-else
-        ref="tagsContainer"
-        class="flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
+        :ref="setTagsContainer"
+        class="relative flex gap-4 md:gap-6 overflow-x-auto scrollbar-hide scroll-smooth pb-2"
         style="scrollbar-width: none; -ms-overflow-style: none"
       >
-        <div
+          <div
           v-for="tag in trendingTags"
           :key="tag.id"
           class="flex-shrink-0 w-72 md:w-80"
         >
           <NuxtLink
-            to="/tags"
+            :to="{ path: '/tags', query: { ...(route.query || {}), tag: tag.name } }"
             class="flex flex-col h-full p-5 md:p-6 rounded-2xl transition-all hover:shadow-md"
             :style="{ backgroundColor: colorForTag(tag.name) }"
           >
@@ -103,17 +133,121 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
 import type { ApiTag } from '~~/shared/types/tags'
 
-const tagsContainer = ref<HTMLElement>()
+const tagsContainer = ref<HTMLElement | null>(null)
+const route = useRoute()
+const mounted = ref(false)
+function setTagsContainer(el: Element | ComponentPublicInstance | null) {
+  tagsContainer.value = el as HTMLElement | null
+  // debug log removed
+}
 
 function scrollTags(direction: 'left' | 'right') {
   if (!tagsContainer.value) return
+  // debug log removed
+  // Avoid scrolling if content fits in container
+  if (tagsContainer.value.scrollWidth <= tagsContainer.value.clientWidth) return
   const scrollAmount = 400
   const scrollDirection = direction === 'left' ? -scrollAmount : scrollAmount
   tagsContainer.value.scrollBy({ left: scrollDirection, behavior: 'smooth' })
 }
+
+function handleArrowClick(direction: 'left' | 'right') {
+  if (direction === 'left' && canScrollLeft.value) {
+    scrollTags(direction)
+    return
+  }
+  if (direction === 'right' && canScrollRight.value) {
+    scrollTags(direction)
+    return
+  }
+
+  // show affordance animation for the clicked direction
+  if (direction === 'left') {
+    leftAfforded.value = true
+    setTimeout(() => (leftAfforded.value = false), 240)
+  } else {
+    rightAfforded.value = true
+    setTimeout(() => (rightAfforded.value = false), 240)
+  }
+}
+
+// Detect whether the container is scrollable so we can hide/disable controls
+const isScrollable = ref(false)
+const leftAfforded = ref(false)
+const rightAfforded = ref(false)
+const canScrollLeft = ref(false)
+const canScrollRight = ref(false)
+let resizeObserver: ResizeObserver | null = null
+let mutationObserver: MutationObserver | null = null
+
+function updateIsScrollable() {
+  if (!tagsContainer.value) {
+    isScrollable.value = false
+    canScrollLeft.value = false
+    canScrollRight.value = false
+    return
+  }
+  const sw = tagsContainer.value.scrollWidth
+  const cw = tagsContainer.value.clientWidth
+  const sl = tagsContainer.value.scrollLeft
+  isScrollable.value = sw > cw
+  canScrollLeft.value = sl > 0
+  // use a small epsilon to avoid rounding issues
+  canScrollRight.value = sl + cw < sw - 1
+  // debug log removed
+}
+
+onMounted(() => {
+  // Update after first render
+  nextTick(updateIsScrollable)
+  window.addEventListener('resize', updateIsScrollable)
+  mounted.value = true
+})
+
+// Reattach observes when the underlying scroll container changes
+watch(tagsContainer, (el, oldEl) => {
+  // disconnect previous observers if any
+  if (resizeObserver && oldEl) resizeObserver.disconnect()
+  if (mutationObserver && oldEl) mutationObserver.disconnect()
+
+  if (!el) return
+
+  // ResizeObserver to detect container size changes
+  if (typeof ResizeObserver !== 'undefined') {
+    if (!resizeObserver) resizeObserver = new ResizeObserver(() => updateIsScrollable())
+    resizeObserver.observe(el)
+  }
+
+  // MutationObserver to detect content changes
+  if (typeof MutationObserver !== 'undefined') {
+    if (!mutationObserver) mutationObserver = new MutationObserver(() => setTimeout(updateIsScrollable, 60))
+    mutationObserver.observe(el, { childList: true, subtree: true })
+  }
+  // Also attach a scroll event listener to update left/right states while users scroll.
+  if (el) el.addEventListener('scroll', updateIsScrollable)
+  if (oldEl) oldEl.removeEventListener('scroll', updateIsScrollable)
+  // Initial check for the new element
+  nextTick(updateIsScrollable)
+}, { immediate: true })
+
+onBeforeUnmount(() => {
+  window.removeEventListener('resize', updateIsScrollable)
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+    resizeObserver = null
+  }
+  if (mutationObserver) {
+    mutationObserver.disconnect()
+    mutationObserver = null
+  }
+})
+
+// Recompute when tags change
+// Recompute when tags change
 
 // Fetch tags
 const tagStore = useTagStore()
@@ -129,6 +263,11 @@ try {
 }
 
 const trendingTags = computed<ApiTag[]>(() => tagStore.allTags.slice(0, 6))
+
+// Recompute when tags change
+watch(() => trendingTags.value.length, () => {
+  nextTick(updateIsScrollable)
+})
 
 const placeholderTags = ['Getting Started', 'Nuxt', 'Design', 'Tips', 'Guides', 'Announcements']
 
@@ -155,5 +294,28 @@ function descriptionForTag(tag: ApiTag) {
 .scrollbar-hide {
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
+}
+
+/* Button wrapper */
+.tag-btn-wrapper {
+  display: inline-flex;
+  align-items: center;
+}
+
+/* Small affordance animation */
+.afforded {
+  animation: afford 240ms ease;
+}
+
+@keyframes afford {
+  0% { transform: none }
+  30% { transform: translateY(-6px) scale(1.02) }
+  100% { transform: none }
+}
+
+/* Overlay for inactive scroller */
+.overlay-inactive {
+  transition: opacity .18s ease;
+  opacity: .85;
 }
 </style>

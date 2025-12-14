@@ -8,6 +8,7 @@ export default defineEventHandler(async (event) => {
   const query = getQuery(event)
   const search = query.search as string
   const tag = query.tag as string
+  const author = query.author as string
   // Pagination
   const pageRaw = query.page as string
   const limitRaw = query.limit as string
@@ -43,11 +44,27 @@ export default defineEventHandler(async (event) => {
     ? and(...conditions, sql`LOWER(${schema.tags.name}) = LOWER(${tag!.trim()})`)
     : and(...conditions)
 
-  const results = await withJoins
-    .where(where)
-    .orderBy(desc(schema.posts.created_at))
-    .limit(limit)
-    .offset(offset)
+  // Filter by author: either numeric id or name
+  const a = author && author.trim()
+  let finalQuery: any = withJoins
+  let finalWhere = where
+  if (a) {
+    if (/^\d+$/.test(a)) {
+      // filter by user id
+      finalWhere = and(where, eq(schema.posts.user_id, Number(a)))
+    } else {
+      // join users table and filter by name (case-insensitive)
+      finalQuery = (finalQuery as any).innerJoin(schema.users, eq(schema.users.id, schema.posts.user_id))
+      finalWhere = and(where, sql`LOWER(${schema.users.name}) = LOWER(${a})`)
+    }
+  }
+
+  // Use finalQuery and finalWhere for selection
+   const results = await finalQuery
+     .where(finalWhere)
+     .orderBy(desc(schema.posts.created_at))
+     .limit(limit)
+     .offset(offset)
 
   const rows = results.map((row: any) => row.post as ApiPost)
   const posts: Post[] = []

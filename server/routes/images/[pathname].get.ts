@@ -9,7 +9,7 @@ export default eventHandler(async (event) => {
   let imagePathname = pathname
   const query = getQuery(event)
 
-  if (typeof query.relatedTo === 'string') {
+  if (typeof query.relatedTo === 'string' && typeof query.slug === 'string') {
     imagePathname = `${query.relatedTo}/${query.slug}/${imagePathname}`
   }
 

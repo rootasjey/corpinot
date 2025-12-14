@@ -56,8 +56,7 @@ postellar/
   - `bun run generate` – SSG output (if used).
   - `bun run preview` – preview a build.
   - `postinstall` runs `nuxt prepare`.
-- Runtime config: the image provider uses `useRuntimeConfig().public.siteUrl` when `baseURL` isn’t provided. Set `NUXT_PUBLIC_SITE_URL` in env for correct absolute image URLs in dev/prod.
-
+- Runtime config: the image provider uses `useRuntimeConfig().public.siteUrl` when `baseURL` isn’t provided. Set `NUXT_PUBLIC_SITE_URL` in env for correct absolute image URLs in dev/prod.- **Terminal management:** Never run commands (e.g., `curl`, tests, builds) in a terminal that already has a background process like `bun run dev`. These will fail or hang. Instead, always open a separate terminal for concurrent commands. Only use the dev server terminal to stop the process if needed.
 ## Images flow (important)
 - Frontend uses @nuxt/image with a custom provider (`providers/hubblob.ts`).
   - If `src` starts with `/projects/` or `/posts/`, the provider rewrites to the internal route: `/images/:filename?relatedTo=:category&slug=:slug[&modifiers...]`.

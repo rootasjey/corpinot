@@ -33,7 +33,7 @@
             <NButton :to="`/posts/${post.slug}`" btn="soft-gray" size="xs" target="_blank">
               <span class="i-lucide-external-link mr-2" />Preview
             </NButton>
-            <NDropdownMenu :items="exportMenuItems" placement="bottom">
+            <NDropdownMenu :items="exportMenuItems" :_dropdownMenuContent="{ side: 'bottom' }">
               <NButton btn="soft-gray" size="xs">
                 <NIcon :name="exportingZip ? 'i-lucide-loader' : 'i-ph-download-simple'" :class="{ 'animate-spin': exportingZip }" />
                 <span class="ml-2">Export</span>
@@ -91,6 +91,41 @@
             @input="autoResizeDescription"
             @focus="autoResizeDescription"
           />
+
+          <!-- Tags editor -->
+          <div class="mt-4 max-w-3xl mx-auto">
+            <div class="relative mt-3">
+              <div class="flex justify-center items-center gap-2 flex-wrap">
+                <span v-for="tag in postTags" :key="tag.id" class="inline-flex items-center gap-2 px-3 py-1 text-sm bg-blue dark:bg-black dark:border rounded-full">
+                  <span class="uppercase font-semibold text-xs">{{ tag.name }}</span>
+                  <button aria-label="Remove tag" @click="removeTag(tag.id)" :disabled="isAssigningTags" class="text-xs opacity-70 hover:opacity-100">✕</button>
+                </span>
+
+                <div v-if="editingTagActive" class="inline-flex items-center gap-2 px-3 py-1 text-sm bg-blue dark:bg-black rounded-full">
+                  <input
+                    ref="editingInputRef"
+                    v-model="editingTagName"
+                    @keydown.enter.prevent="addTagByName(editingTagName)"
+                    @keydown.esc.prevent="cancelNewTag"
+                    @blur="editingTagName ? addTagByName(editingTagName) : cancelNewTag"
+                    class="bg-transparent outline-none px-2 py-0 text-sm"
+                    placeholder="Tag name"
+                  />
+                  <button @click="cancelNewTag" class="text-xs opacity-70 hover:opacity-100">✕</button>
+                </div>
+                <div v-else>
+                  <NButton icon size="xs" btn="ghost-gray" @click="startNewTag" aria-label="Add tag">
+                    <NIcon name="i-ph-plus" />
+                  </NButton>
+                </div>
+              </div>
+              <ul v-if="filteredTagSuggestions.length && editingTagActive && editingTagName" class="absolute z-20 w-full mt-1 bg-background border border-border rounded-md max-h-40 overflow-auto">
+                <li v-for="s in filteredTagSuggestions" :key="s.id">
+                  <button class="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-black/10" @click.prevent="addTag(s)">{{ s.name }}</button>
+                </li>
+              </ul>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -168,6 +203,8 @@ const router = useRouter()
 const identifier = computed(() => route.params.identifier as string)
 
 const { user } = useUserSession()
+import { useTagStore } from '~/stores/tags'
+import type { ApiTag } from '~~/shared/types/tags'
 const { enhancePost, formatPostDate } = usePost()
 
 const post = ref<Post | null>(null)
@@ -196,6 +233,13 @@ const descriptionInput = ref<any | null>(null)
 const slug = ref('')
 const status = ref<'draft' | 'published' | 'archived'>('draft')
 const articleContent = ref({})
+// Tags
+const tagStore = useTagStore()
+const postTags = ref<ApiTag[]>([])
+const editingTagActive = ref(false)
+const editingTagName = ref('')
+const editingInputRef = ref<HTMLInputElement | null>(null)
+const isAssigningTags = ref(false)
 const enhancedPost = computed(() => post.value ? enhancePost(post.value) : ({ readingTime: '—' } as any))
 
 const statusLabel = computed(() => {
@@ -434,6 +478,7 @@ const saveSlug = async () => {
     if (res && typeof res === 'object' && 'post' in res) {
       post.value = res.post
       slug.value = res.post.slug
+      postTags.value = res.post.tags ?? postTags.value
     } else {
       slug.value = slugCandidate.value
     }
@@ -513,6 +558,9 @@ const fetchPost = async () => {
     slug.value = data.slug
     status.value = data.status
     articleContent.value = data.article || {}
+    // Initialize tags for the post and ensure general tag cache
+    postTags.value = data.tags ?? []
+    tagStore.fetchTags().catch(() => {})
   } catch (e: any) {
     error.value = e.data?.message || 'Failed to load post'
     console.error('Failed to load post:', e)
@@ -542,6 +590,7 @@ const saveMetadata = async () => {
     if (res && typeof res === 'object' && 'post' in res) {
       post.value = res.post
       slug.value = res.post.slug
+      postTags.value = res.post.tags ?? postTags.value
       // If this edit used a slug identifier, navigate to the canonical read URL
       if (!isNumericIdentifier.value && post.value?.slug) {
         await router.replace(`/posts/${post.value.slug}`)
@@ -764,6 +813,74 @@ const debouncedSaveArticle = useDebounceFn(saveArticle, 700)
 
 const onEditorUpdate = (json: object) => {
   debouncedSaveArticle(json)
+}
+
+// Tag helpers
+const filteredTagSuggestions = computed(() => {
+  const query = (editingTagName.value || '').trim()
+  if (!query) return tagStore.allTags.filter(t => !postTags.value.some(pt => pt.id === t.id))
+  return tagStore.searchTags(query).filter(t => !postTags.value.some(pt => pt.id === t.id))
+})
+
+const addTagByName = async (name: string) => {
+  if (!post.value || !name) return
+  isAssigningTags.value = true
+  try {
+    let tag = tagStore.findTagByName(name)
+    if (!tag) {
+      const created = await tagStore.createTag(name)
+      if (!created) throw new Error('Failed to create tag')
+      tag = created
+    }
+    const tagIds = Array.from(new Set([...postTags.value.map(t => t.id), tag.id]))
+    const assigned = await tagStore.assignPostTags(post.value.id as number, tagIds)
+    postTags.value = assigned
+    if (post.value) post.value.tags = assigned
+    editingTagActive.value = false
+    editingTagName.value = ''
+  } finally {
+    isAssigningTags.value = false
+  }
+}
+
+const addTag = async (tag: ApiTag | undefined | null) => {
+  if (!post.value || !tag) return
+  isAssigningTags.value = true
+  try {
+    const tagIds = Array.from(new Set([...postTags.value.map(t => t.id), tag.id]))
+    const assigned = await tagStore.assignPostTags(post.value.id as number, tagIds)
+    postTags.value = assigned
+    if (post.value) post.value.tags = assigned
+  } finally {
+    isAssigningTags.value = false
+    editingTagActive.value = false
+    editingTagName.value = ''
+  }
+}
+
+const removeTag = async (tagId: number) => {
+  if (!post.value) return
+  isAssigningTags.value = true
+  try {
+    const tagIds = postTags.value.filter(t => t.id !== tagId).map(t => t.id)
+    const assigned = await tagStore.assignPostTags(post.value.id as number, tagIds)
+    postTags.value = assigned
+    if (post.value) post.value.tags = assigned
+  } finally {
+    isAssigningTags.value = false
+  }
+}
+
+const startNewTag = async () => {
+  editingTagActive.value = true
+  editingTagName.value = ''
+  await nextTick()
+  editingInputRef.value?.focus()
+}
+
+const cancelNewTag = () => {
+  editingTagActive.value = false
+  editingTagName.value = ''
 }
 
 // Autosize title textarea
