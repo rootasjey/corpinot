@@ -297,6 +297,19 @@ const onKeydown = (e: KeyboardEvent) => {
 const onSelect = (item: FloatingAction, idx: number) => {
   closeAiMenu()
   if (item.label === 'Image' && props.onInsertImages) {
+    // If there's a leading '/' (that opened the slash menu), remove it
+    const ed = props.editor
+    if (ed) {
+      try {
+        const pos = ed.state.selection.from
+        const charBefore = ed.state.doc.textBetween(pos - 1, pos, '', '\n')
+        if (charBefore === '/') {
+          const tr = ed.state.tr.delete(pos - 1, pos)
+          ed.view.dispatch(tr)
+          ed.chain().focus().setTextSelection(pos - 1).run()
+        }
+      } catch {}
+    }
     // Trigger hidden file input for image selection
     fileInput.value?.click()
     return

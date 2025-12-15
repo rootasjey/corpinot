@@ -37,6 +37,17 @@
             >
               {{ tag.name }}
             </div>
+            <NTooltip v-if="isAdmin" content="Edit post">
+                <NButton
+                size="xs"
+                icon
+                label="i-ph-pencil"
+                rounded="full"
+                btn="soft-gray"
+                :to="`/posts/edit/${post.slug || post.id}`"
+                class="hover:scale-110 active:scale-99 transition-transform"
+              />
+            </NTooltip>
           </div>
         </div>
       </div>
@@ -109,7 +120,10 @@
     <!-- Article Content -->
     <article class="py-12 md:py-16 bg-background">
       <div class="container mx-auto px-4 md:px-8">
-        <div class="max-w-3xl mx-auto">
+        <div
+          class="max-w-3xl mx-auto"
+          @click="handleContentClick"
+        >
           <!-- Tiptap Content Renderer -->
           <PostContent v-if="post.article" :content="post.article" />
         </div>
@@ -188,6 +202,26 @@
         </div>
       </div>
     </section> -->
+
+    <transition :css="false" @enter="handleLightboxEnter" @leave="handleLightboxLeave">
+      <div
+        v-if="lightboxImage"
+        class="lightbox-backdrop"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Expanded post image"
+        @click.self="closeLightbox"
+      >
+        <div class="lightbox-image-frame">
+          <img
+            :src="lightboxImage.src"
+            :alt="lightboxImage.alt || post.name"
+            class="lightbox-image"
+            :style="lightboxImageStyle"
+          />
+        </div>
+      </div>
+    </transition>
   </div>
 </template>
 
@@ -197,6 +231,9 @@ import type { Post } from '~~/shared/types/post'
 const route = useRoute()
 const slug = route.params.slug as string
 const { enhancePost, formatPostDate } = usePost()
+const { loggedIn, user } = useUserSession()
+
+const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
 
 // Fetch post data from API
 const { data: post, error } = await useFetch<Post>(`/api/posts/${slug}`)
@@ -209,6 +246,183 @@ if (error.value || !post.value) {
 
 // Enhance post with computed properties
 const enhancedPost = computed(() => enhancePost(post.value!))
+
+type LightboxImage = {
+  src: string
+  alt?: string
+}
+
+const lightboxImage = ref<LightboxImage | null>(null)
+const lastImageOrigin = ref<{ x: number; y: number } | null>(null)
+const lastImageRect = ref<DOMRect | null>(null)
+let listenersAttached = false
+
+const closeLightbox = () => {
+  lightboxImage.value = null
+  lastImageOrigin.value = null
+}
+
+const handleContentClick = (event: MouseEvent) => {
+  const target = event.target as HTMLElement | null
+  if (!target || target.tagName !== 'IMG') return
+
+  const image = target as HTMLImageElement
+  const src =
+    image.currentSrc ||
+    image.getAttribute('src') ||
+    (image.dataset as Record<string, string | undefined>)['src'] ||
+    (image.dataset as Record<string, string | undefined>)['lazySrc']
+
+  if (!src) return
+  event.preventDefault()
+
+  if (import.meta.client) {
+    const rect = image.getBoundingClientRect()
+    lastImageOrigin.value = {
+      x: Math.round(((rect.left + rect.width / 2) / window.innerWidth) * 100),
+      y: Math.round(((rect.top + rect.height / 2) / window.innerHeight) * 100),
+    }
+    lastImageRect.value = rect
+  } else {
+    lastImageOrigin.value = null
+    lastImageRect.value = null
+  }
+
+  lightboxImage.value = {
+    src,
+    alt: image.alt || undefined,
+  }
+}
+
+const lightboxImageStyle = computed(() => {
+  if (!lastImageOrigin.value) {
+    return { transformOrigin: 'center center' }
+  }
+  return {
+    transformOrigin: `${lastImageOrigin.value.x}% ${lastImageOrigin.value.y}%`,
+  }
+})
+
+const getTransitionParams = (img: HTMLImageElement | null) => {
+  if (!img || !lastImageRect.value || !import.meta.client) return null
+  const frame = img.closest('.lightbox-image-frame') as HTMLElement | null
+  const finalWidth = frame?.clientWidth || img.clientWidth || 1
+  const finalHeight = frame?.clientHeight || img.clientHeight || 1
+  const scaleX = lastImageRect.value.width / finalWidth
+  const scaleY = lastImageRect.value.height / finalHeight
+  const startScale = Math.max(Math.min(Math.min(scaleX, scaleY), 1.5), 0.35)
+  const deltaX = lastImageRect.value.left + lastImageRect.value.width / 2 - window.innerWidth / 2
+  const deltaY = lastImageRect.value.top + lastImageRect.value.height / 2 - window.innerHeight / 2
+  return { startScale, deltaX, deltaY }
+}
+
+const animateLightbox = (
+  img: HTMLImageElement | null,
+  from: { scale: number; deltaX: number; deltaY: number },
+  to: { scale: number; deltaX: number; deltaY: number },
+  done: () => void
+) => {
+  if (!img) {
+    done()
+    return
+  }
+
+  // Pre-set the starting transform so there is no blank frame before WA kicks in
+  img.style.transform = `translate(${from.deltaX}px, ${from.deltaY}px) scale(${from.scale})`
+  img.style.opacity = '1'
+
+  const animation = img.animate(
+    [
+      {
+        transform: `translate(${from.deltaX}px, ${from.deltaY}px) scale(${from.scale})`,
+        opacity: 1,
+      },
+      {
+        transform: `translate(${to.deltaX}px, ${to.deltaY}px) scale(${to.scale})`,
+        opacity: 1,
+      },
+    ],
+    {
+      duration: 280,
+      easing: 'cubic-bezier(0.4, 0, 0.2, 1)',
+      fill: 'forwards',
+    }
+  )
+  animation.onfinish = done
+  animation.oncancel = done
+}
+
+const handleLightboxEnter = (el: Element, done: () => void) => {
+  const img = el.querySelector<HTMLImageElement>('.lightbox-image')
+  const params = getTransitionParams(img)
+  if (!params) {
+    done()
+    return
+  }
+  animateLightbox(
+    img,
+    { scale: params.startScale, deltaX: params.deltaX, deltaY: params.deltaY },
+    { scale: 1, deltaX: 0, deltaY: 0 },
+    done
+  )
+}
+
+const handleLightboxLeave = (el: Element, done: () => void) => {
+  const img = el.querySelector<HTMLImageElement>('.lightbox-image')
+  const params = getTransitionParams(img)
+  if (!params) {
+    done()
+    return
+  }
+  animateLightbox(
+    img,
+    { scale: 1, deltaX: 0, deltaY: 0 },
+    { scale: params.startScale, deltaX: params.deltaX, deltaY: params.deltaY },
+    () => {
+      lastImageRect.value = null
+      done()
+    }
+  )
+}
+
+const handleDocumentScroll = () => {
+  if (!lightboxImage.value) return
+  closeLightbox()
+}
+
+const handleEscape = (event: KeyboardEvent) => {
+  if (event.key === 'Escape') {
+    closeLightbox()
+  }
+}
+
+const addLightboxListeners = () => {
+  if (listenersAttached || !import.meta.client) return
+  listenersAttached = true
+  window.addEventListener('scroll', handleDocumentScroll, { passive: true })
+  window.addEventListener('wheel', handleDocumentScroll, { passive: true })
+  window.addEventListener('touchmove', handleDocumentScroll, { passive: true })
+  window.addEventListener('keyup', handleEscape)
+}
+
+const removeLightboxListeners = () => {
+  if (!listenersAttached || !import.meta.client) return
+  window.removeEventListener('scroll', handleDocumentScroll)
+  window.removeEventListener('wheel', handleDocumentScroll)
+  window.removeEventListener('touchmove', handleDocumentScroll)
+  window.removeEventListener('keyup', handleEscape)
+  listenersAttached = false
+}
+
+watch(lightboxImage, (value) => {
+  if (!import.meta.client) return
+  if (value) addLightboxListeners()
+  else removeLightboxListeners()
+})
+
+onBeforeUnmount(() => {
+  removeLightboxListeners()
+})
 
 useHead({
   title: post.value.name,
@@ -229,4 +443,31 @@ useHead({
 .social-btn:hover {
   transform: translateY(-2px);
 }
+
+.lightbox-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 6, 6, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 60;
+  padding: 1.5rem;
+}
+
+.lightbox-image-frame {
+  width: min(90vw, 1200px);
+  max-height: 90vh;
+  overflow: hidden;
+  border-radius: 1.5rem;
+  box-shadow: 0 25px 75px rgba(0, 0, 0, 0.45);
+}
+
+.lightbox-image {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+}
+
 </style>

@@ -52,7 +52,7 @@
 .post-content .ProseMirror code { @apply bg-muted px-2 py-1 rounded text-sm font-mono text-primary; }
 .post-content .ProseMirror pre { @apply bg-muted p-4 rounded-lg overflow-x-auto my-6; }
 .post-content .ProseMirror pre code { @apply bg-transparent p-0 text-foreground; }
-.post-content .ProseMirror img { @apply w-full h-auto rounded-xl my-8 shadow-lg; }
+.post-content .ProseMirror img { @apply w-full h-auto rounded-xl my-8 shadow-lg cursor-pointer; }
 
 /* Highlight selected image node */
 .post-content img.ProseMirror-selectednode {
