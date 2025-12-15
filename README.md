@@ -81,3 +81,9 @@ If your editor shows warnings like `Unknown at rule @apply (css(unknownAtRules))
 This repo includes a project-level `.stylelintrc.cjs` which whitelists common utility at-rules (eg. `apply`, `layer`, `screen`) so stylelint doesn't raise false positives. There's also a `.vscode/settings.json` which silences the CSS language server's unknown at-rule warnings in the workspace.
 
 If you rely on an alternative editor/IDE or different lint setup, add those same ignores to your stylelint config or workspace settings.
+
+## AI writer (Cloudflare Workers AI)
+
+- Set `NUXT_AI_CLOUDFLARE_ACCOUNT_ID` and `NUXT_AI_CLOUDFLARE_KEY` in your environment (see `.env.example`).
+- Enable the UI with `NUXT_PUBLIC_FEATURE_AI_WRITER=true`.
+- The server streams via the Vercel AI SDK + `workers-ai-provider` using model `@cf/openai/gpt-oss-120b`.

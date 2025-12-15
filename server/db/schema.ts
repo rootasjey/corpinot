@@ -77,3 +77,13 @@ export const post_images = sqliteTable('post_images', {
   in_use: integer('in_use', { mode: 'boolean' }).notNull().default(false),
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
+
+export const ai_requests = sqliteTable('ai_requests', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  user_id: integer('user_id').notNull(),
+  post_id: integer('post_id'),
+  action: text('action').notNull(),
+  tokens_input: integer('tokens_input'),
+  tokens_output: integer('tokens_output'),
+  created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+})

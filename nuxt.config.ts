@@ -55,6 +55,10 @@ export default defineNuxtConfig({
   runtimeConfig: {
     // Private keys (only available on server-side)
     authSecret: process.env.NUXT_AUTH_SECRET,
+    ai: {
+      cloudflareKey: process.env.NUXT_AI_CLOUDFLARE_KEY || '',
+      cloudflareAccountId: process.env.NUXT_AI_CLOUDFLARE_ACCOUNT_ID || ''
+    },
 
     // Public keys (exposed to client-side)
     public: {
@@ -63,7 +67,10 @@ export default defineNuxtConfig({
       appVersion: computeVersion(),
       siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
       // Bump to invalidate all previously rendered OG images
-      ogStyleVersion: process.env.NUXT_PUBLIC_OG_STYLE_VERSION || '1'
+      ogStyleVersion: process.env.NUXT_PUBLIC_OG_STYLE_VERSION || '1',
+      features: {
+        aiWriter: process.env.NUXT_PUBLIC_FEATURE_AI_WRITER === 'true'
+      }
     }
   },
   

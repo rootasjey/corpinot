@@ -171,7 +171,15 @@
     <article class="py-12 md:py-16 bg-background">
       <div class="container mx-auto px-8 md:px-12">
         <div class="max-w-xl md:max-w-3xl mx-auto">
-          <PostContent :content="articleContent" :editable="true" @update:content="onEditorUpdate" @editor-ready="onEditorReady" />
+          <PostContent
+            :content="articleContent"
+            :editable="true"
+            :ai-enabled="aiEnabled"
+            :ai-loading="aiLoading"
+            :on-ai-command="startAI"
+            @update:content="onEditorUpdate"
+            @editor-ready="onEditorReady"
+          />
           <div class="mt-2 text-xs text-gray-500 flex justify-end items-center gap-2">
             <span v-if="savingArticle" class="i-lucide-loader animate-spin text-sm" aria-hidden />
             <span v-if="savingArticle">Autosaving…</span>
@@ -180,6 +188,71 @@
         </div>
       </div>
     </article>
+
+    <p v-if="aiError" class="text-sm text-red-500 text-center mt-4">{{ aiError }}</p>
+
+    <transition name="fade">
+      <div v-if="aiSession" class="fixed bottom-5 right-5 z-40 w-[320px] rounded-xl border border-border bg-background/95 shadow-lg backdrop-blur">
+        <div class="flex items-center justify-between px-4 pt-3">
+          <div class="flex items-center gap-2 font-semibold text-sm">
+            <span class="i-lucide-sparkles text-primary" />
+            <span>{{ aiStatus === 'streaming' ? 'AI writing…' : 'AI suggestion ready' }}</span>
+          </div>
+          <NBadge badge="soft" color="primary">{{ aiStatus === 'streaming' ? 'Streaming' : 'Preview' }}</NBadge>
+        </div>
+        <p v-if="aiError" class="px-4 mt-2 text-xs text-red-500">{{ aiError }}</p>
+        <div class="flex justify-end gap-2 px-4 py-3">
+          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="retryAI">Retry</NButton>
+          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="revertAI">Revert</NButton>
+          <NButton btn="primary" size="xs" :disabled="aiLoading || aiStatus === 'streaming'" @click="commitAiDraft">Apply changes</NButton>
+        </div>
+      </div>
+    </transition>
+
+    <NDialog v-model:open="translateDialogOpen">
+      <NDialogOverlay />
+      <NDialogContent class="max-w-md">
+        <NDialogHeader>
+          <NDialogTitle>Translate selection</NDialogTitle>
+        </NDialogHeader>
+
+        <NDialogDescription>
+          <p class="text-sm text-slate-600 dark:text-slate-300">Select the target language for translation. Source language defaults to the post language.</p>
+        </NDialogDescription>
+
+        <div class="mt-4 space-y-3">
+          <div class="text-sm font-semibold flex items-center gap-2">
+            <span class="i-lucide-languages" />
+            <span>Source language</span>
+          </div>
+          <div class="text-sm text-slate-600 dark:text-slate-400">{{ sourceLanguageLabel }} (from post)</div>
+
+          <label class="text-sm font-semibold flex items-center gap-2" for="translate-target">
+            <span class="i-lucide-flag" />
+            <span>Target language</span>
+          </label>
+          <select
+            id="translate-target"
+            v-model="translateTargetLanguage"
+            class="w-full rounded-md border border-border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary/60"
+          >
+            <option
+              v-for="opt in languageOptions"
+              :key="opt.value"
+              :value="opt.value"
+              :disabled="opt.value === sourceLanguage"
+            >
+              {{ opt.label }}
+            </option>
+          </select>
+        </div>
+
+        <NDialogFooter class="flex items-center gap-2 justify-end mt-5">
+          <NButton btn="ghost-gray" size="sm" :disabled="aiLoading" @click="cancelTranslateDialog">Cancel</NButton>
+          <NButton btn="primary" size="sm" :disabled="aiLoading" @click="confirmTranslate">Translate</NButton>
+        </NDialogFooter>
+      </NDialogContent>
+    </NDialog>
 
     <!-- Hidden file input for cover image -->
     <input
@@ -196,6 +269,7 @@
 import type { Post } from '~~/shared/types/post'
 import { watchDebounced, useDebounceFn, useTimeAgo } from '@vueuse/core'
 import { nextTick } from 'vue'
+import type { AIAction, AILength, AICommand } from '~/composables/useAIWriter'
 import PostContent from '~/components/PostContent.vue'
 
 const route = useRoute()
@@ -233,6 +307,40 @@ const descriptionInput = ref<any | null>(null)
 const slug = ref('')
 const status = ref<'draft' | 'published' | 'archived'>('draft')
 const articleContent = ref({})
+const aiLoading = ref(false)
+const aiError = ref('')
+const aiLength = ref<AILength>('medium')
+type NormalizedAICommand = { action: AIAction; targetLanguage?: string; sourceLanguage?: string; prompt?: string }
+type AISession = {
+  action: AIAction
+  from: number
+  to: number
+  insertionFrom: number
+  hasSelection: boolean
+  originalDoc: any
+  originalSelection: { from: number; to: number }
+  currentText: string
+  targetLanguage?: string
+  sourceLanguage?: string
+  prompt?: string
+}
+const aiSession = ref<AISession | null>(null)
+const aiStatus = ref<'idle' | 'streaming' | 'ready'>('idle')
+const runtimeConfig = useRuntimeConfig()
+const aiEnabled = computed(() => runtimeConfig.public?.features?.aiWriter === true)
+const { streamSuggestion, cancel } = useAIWriter()
+const languageOptions = [
+  { value: 'en', label: 'English' },
+  { value: 'fr', label: 'French' },
+  { value: 'es', label: 'Spanish' },
+  { value: 'de', label: 'German' },
+  { value: 'it', label: 'Italian' },
+]
+const sourceLanguage = computed(() => post.value?.language || 'en')
+const sourceLanguageLabel = computed(() => languageOptions.find(o => o.value === sourceLanguage.value)?.label || sourceLanguage.value)
+const translateDialogOpen = ref(false)
+const translateTargetLanguage = ref('en')
+const pendingAICommand = ref<NormalizedAICommand | null>(null)
 // Tags
 const tagStore = useTagStore()
 const postTags = ref<ApiTag[]>([])
@@ -282,6 +390,223 @@ const redoEditor = () => {
   } catch (e) {
     console.warn('Redo not available', e)
   }
+}
+
+function normalizeAiCommand(command: AICommand): NormalizedAICommand {
+  if (typeof command === 'string') return { action: command }
+
+  // Narrow the union so TypeScript knows which properties are present.
+  if (command.action === 'ask' && 'prompt' in command) {
+    return { action: 'ask', prompt: command.prompt }
+  }
+
+  // At this point the command is an object and not an `ask` command, so
+  // `targetLanguage` / `sourceLanguage` are safe to access.
+  return {
+    action: command.action,
+    targetLanguage: (command as { targetLanguage?: string }).targetLanguage,
+    sourceLanguage: (command as { sourceLanguage?: string }).sourceLanguage,
+  }
+}
+
+function guessTargetLanguage() {
+  const alt = languageOptions.find(o => o.value !== sourceLanguage.value)
+  return alt?.value || 'en'
+}
+
+async function startAI(command: AICommand) {
+  const payload = normalizeAiCommand(command)
+  const normalizedSource = payload.sourceLanguage || sourceLanguage.value
+
+  if (!aiEnabled.value || !editor.value) return
+
+  if (payload.action === 'ask') {
+    const prompt = payload.prompt?.trim() || ''
+    if (!prompt) {
+      aiError.value = 'Add a question before asking the AI.'
+      aiStatus.value = 'idle'
+      return
+    }
+    payload.prompt = prompt
+  }
+
+  if (payload.action === 'translate' && !payload.targetLanguage) {
+    pendingAICommand.value = { ...payload, sourceLanguage: normalizedSource }
+    translateTargetLanguage.value = guessTargetLanguage()
+    translateDialogOpen.value = true
+    return
+  }
+
+  await runAI({ ...payload, sourceLanguage: normalizedSource })
+}
+
+async function runAI(payload: NormalizedAICommand) {
+  if (!aiEnabled.value || !editor.value) return
+  if (aiLoading.value) {
+    await cancelAI()
+  }
+
+  pendingAICommand.value = null
+  translateDialogOpen.value = false
+
+  const action = payload.action
+  const ed = editor.value
+  const sel = ed.state.selection
+  const hasSelection = sel && !sel.empty
+  const isAsk = action === 'ask'
+  const from = hasSelection ? sel.from : 0
+  const to = hasSelection ? sel.to : editor.value.state.doc.content.size
+  const insertionFrom = (action === 'continue' || isAsk) ? (sel?.to ?? editor.value.state.doc.content.size) : from
+  const content = isAsk
+    ? (payload.prompt || '')
+    : hasSelection
+      ? ed.state.doc.textBetween(from, to, '', '\n')
+      : ed.getText()
+
+  if (isAsk && !content.trim()) {
+    aiError.value = 'Add a question before asking the AI.'
+    aiSession.value = null
+    aiStatus.value = 'idle'
+    aiLoading.value = false
+    return
+  }
+
+  if (action === 'summarize' && !hasSelection) {
+    aiError.value = 'Select text to summarize.'
+    aiSession.value = null
+    aiStatus.value = 'idle'
+    return
+  }
+
+  aiError.value = ''
+  aiLoading.value = true
+  aiStatus.value = 'streaming'
+  aiSession.value = {
+    action,
+    from,
+    to,
+    insertionFrom,
+    hasSelection: !!hasSelection,
+    originalDoc: ed.getJSON(),
+    originalSelection: { from, to },
+    currentText: '',
+    targetLanguage: payload.targetLanguage,
+    sourceLanguage: payload.sourceLanguage,
+    prompt: payload.prompt,
+  }
+
+  if (action !== 'continue' && action !== 'ask' && to > from) {
+    ed.chain().focus().deleteRange({ from, to }).run()
+  }
+
+  try {
+    const iterator = await streamSuggestion({
+      action,
+      content,
+      length: action === 'translate' ? undefined : aiLength.value,
+      postIdentifier: identifier.value,
+      targetLanguage: payload.targetLanguage,
+      sourceLanguage: payload.sourceLanguage,
+    })
+
+    for await (const { text } of iterator) {
+      applyAiDraft(text)
+    }
+
+    aiStatus.value = 'ready'
+  } catch (err: any) {
+    aiError.value = err?.message || 'AI request failed'
+    await revertAI()
+  } finally {
+    aiLoading.value = false
+  }
+}
+
+async function confirmTranslate() {
+  if (!pendingAICommand.value) {
+    translateDialogOpen.value = false
+    return
+  }
+
+  const payload = {
+    ...pendingAICommand.value,
+    targetLanguage: translateTargetLanguage.value,
+    sourceLanguage: pendingAICommand.value.sourceLanguage || sourceLanguage.value,
+  }
+  translateDialogOpen.value = false
+  pendingAICommand.value = null
+  await runAI(payload)
+}
+
+function cancelTranslateDialog() {
+  translateDialogOpen.value = false
+  pendingAICommand.value = null
+}
+
+function applyAiDraft(text: string) {
+  const session = aiSession.value
+  if (!session || !editor.value) return
+
+  const ed = editor.value
+  const from = session.insertionFrom
+  const to = session.insertionFrom + session.currentText.length
+  session.currentText = text
+
+  // Replace the working range as the stream arrives so the user previews inline changes.
+  ed.chain().focus().insertContentAt({ from, to }, text).setTextSelection(from + text.length).run()
+  session.to = from + text.length
+}
+
+async function revertAI() {
+  if (!aiSession.value || !editor.value) return
+  const snapshot = aiSession.value
+  editor.value.commands.setContent(snapshot.originalDoc)
+  editor.value.commands.focus()
+  const { from, to } = snapshot.originalSelection
+  editor.value.commands.setTextSelection({ from, to })
+  articleContent.value = snapshot.originalDoc
+  aiSession.value = null
+  aiStatus.value = 'idle'
+  aiLoading.value = false
+  await nextTick()
+}
+
+function commitAiDraft() {
+  aiSession.value = null
+  aiStatus.value = 'idle'
+  aiError.value = ''
+  if (articleContent.value) {
+    debouncedSaveArticle(articleContent.value as object)
+  }
+}
+
+async function retryAI() {
+  const snapshot = aiSession.value
+  if (!snapshot) return
+  await revertAI()
+  await nextTick()
+  if (editor.value) {
+    editor.value.commands.setTextSelection({ from: snapshot.originalSelection.from, to: snapshot.originalSelection.to })
+  }
+  
+  // Ensure we pass a properly-typed `AICommand` ("ask" must be an object with a prompt)
+  const aiCommand: AICommand = snapshot.action === 'ask' 
+    ? { action: 'ask', prompt: snapshot.prompt ?? '' } 
+    : snapshot.action
+  
+  startAI(aiCommand)
+}
+
+async function cancelAI() {
+  cancel()
+  translateDialogOpen.value = false
+  pendingAICommand.value = null
+  if (!aiSession.value) {
+    aiLoading.value = false
+    aiStatus.value = 'idle'
+    return
+  }
+  await revertAI()
 }
 
 // Tooltip text for undo/redo — show a hint when there is nothing to undo/redo
@@ -812,6 +1137,8 @@ onMounted(() => {
 const debouncedSaveArticle = useDebounceFn(saveArticle, 700)
 
 const onEditorUpdate = (json: object) => {
+  articleContent.value = json
+  if (aiStatus.value === 'streaming') return
   debouncedSaveArticle(json)
 }
 

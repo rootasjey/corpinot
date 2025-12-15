@@ -43,6 +43,17 @@
         </NButton>
       </NDropdownMenu>
 
+      <NDropdownMenu
+        v-if="aiEnabled"
+        :items="aiDropdownItems"
+        :_dropdown-menu-content="blockDropDownMenuContent"
+      >
+        <NButton btn="primary" size="xs" :disabled="aiLoading">
+          <NIcon :name="aiLoading ? 'i-lucide-loader' : 'i-lucide-sparkles'" :class="{ 'animate-spin': aiLoading }" />
+          <span class="ml-2">AI</span>
+        </NButton>
+      </NDropdownMenu>
+
       <div class="divider" />
 
       <button @click="editor.chain().focus().toggleBold().run()" :class="{ 'is-active': editor.isActive('bold') }" type="button">
@@ -115,6 +126,7 @@ import { useRoute } from '#imports'
 import type { BetterSelection } from '~~/shared/types/nodes'
 import type { Editor } from '@tiptap/vue-3'
 import type { Editor as TiptapEditor } from '@tiptap/core'
+import type { AICommand } from '~/composables/useAIWriter'
 
 interface BlockType {
   label: string
@@ -123,8 +135,19 @@ interface BlockType {
   action: () => void
 }
 
-interface Props { editor: Editor | null; blockTypes: BlockType[]; identifier?: string }
-const props = defineProps<Props>()
+interface Props {
+  editor: Editor | null
+  blockTypes: BlockType[]
+  identifier?: string
+  aiEnabled?: boolean
+  aiLoading?: boolean
+  onAiCommand?: (action: AICommand) => void
+}
+const props = withDefaults(defineProps<Props>(), {
+  aiEnabled: false,
+  aiLoading: false,
+  onAiCommand: undefined,
+})
 
 const currentBlockType = computed(() => props.blockTypes.find(t => t.isActive()) || props.blockTypes[0])
 
@@ -133,6 +156,14 @@ const blockDropdownItems = computed(() => {
   const otherGroup = props.blockTypes.slice(4).map(t => ({ label: t.label, leading: t.icon, trailing: t.isActive() ? 'i-ph-check' : undefined, onSelect: () => t.action() }))
   return [ { label: 'Turn Into', items: textGroup }, { label: 'Format', items: otherGroup } ]
 })
+
+const aiDropdownItems = computed(() => [
+  { label: 'Fix grammar', leading: 'i-lucide-sparkles', onSelect: () => triggerAi('fix') },
+  { label: 'Continue writing', leading: 'i-lucide-pen', onSelect: () => triggerAi('continue') },
+  { label: 'Make shorter', leading: 'i-lucide-scissors', onSelect: () => triggerAi('shorten') },
+  { label: 'Summarize', leading: 'i-lucide-notebook-text', onSelect: () => triggerAi('summarize') },
+  { label: 'Translate', leading: 'i-lucide-languages', onSelect: () => triggerAi({ action: 'translate' }) },
+])
 
 /**
  * Prevent the editor from losing focus when clicking inside the bubble menu.
@@ -179,6 +210,11 @@ const copied = ref(false)
 // Upload helpers (shared composable state)
 const { addUploading, updateUploading, removeUploading, uploadFileWithProgress } = useEditorImages()
 const currentRoute = useRoute()
+
+function triggerAi(action: AICommand) {
+  if (!props.onAiCommand || !props.aiEnabled || props.aiLoading) return
+  props.onAiCommand(action)
+}
 
 const linkVisible = computed(() => props.editor?.isActive('link') && (manualLinkOpen.value || !props.editor?.state.selection.empty))
 

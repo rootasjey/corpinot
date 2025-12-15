@@ -3,6 +3,9 @@
   "name": "poststellar",
   "main": "./.output/server/index.mjs",
   "compatibility_date": "2025-07-15",
+  "ai": {
+    "binding": "AI"
+  },
   "d1_databases": [
     {
       "binding": "DB",

@@ -19,7 +19,15 @@
       </div>
     </div>
 
-    <EditorBubbleMenu v-if="editor" :editor="editor" :block-types="blockTypes" :identifier="String(routeForUpload.params.identifier || '')" />
+    <EditorBubbleMenu
+      v-if="editor"
+      :editor="editor"
+      :block-types="blockTypes"
+      :identifier="String(routeForUpload.params.identifier || '')"
+      :ai-enabled="aiEnabled"
+      :ai-loading="aiLoading"
+      :on-ai-command="onAiCommand"
+    />
 
     <FloatingSlashMenu
       v-if="editor"
@@ -59,9 +67,19 @@ import EditorBubbleMenu from './EditorBubbleMenu.vue'
 import { useRoute } from '#imports'
 import type { EditorState } from '@tiptap/pm/state'
 import type { BlockType } from '~~/shared/types/nodes'
+import type { AICommand } from '~/composables/useAIWriter'
 
-interface Props { content: string | object }
-const props = defineProps<Props>()
+interface Props {
+  content: string | object
+  aiEnabled?: boolean
+  aiLoading?: boolean
+  onAiCommand?: (action: AICommand) => void
+}
+const props = withDefaults(defineProps<Props>(), {
+  aiEnabled: false,
+  aiLoading: false,
+  onAiCommand: undefined,
+})
 
 const emit = defineEmits<{ 'update:content': [json: object]; 'editor-ready': [editor: any] }>()
 
@@ -99,6 +117,8 @@ function normalizeEditorContent(input: string | object) {
     return { type: 'doc', content: [{ type: 'paragraph' }] }
   }
 }
+
+let suppressNextContentSync = false
 
 const editor = useEditor({
   content: normalizeEditorContent(props.content),
@@ -138,7 +158,10 @@ const editor = useEditor({
     TableCell,
   ],
   editorProps: { attributes: { class: 'prose prose-lg max-w-none focus:outline-none' } },
-  onUpdate: ({ editor }) => emit('update:content', editor.getJSON()),
+  onUpdate: ({ editor }) => {
+    suppressNextContentSync = true
+    emit('update:content', editor.getJSON())
+  },
 })
 
 // Expose editor when ready
@@ -194,20 +217,33 @@ const blockTypes: BlockType[] = [
   { label: 'Code Block', icon: 'i-lucide-code-2', isActive: () => editor.value?.isActive('codeBlock'), action: () => editor.value?.chain().focus().toggleCodeBlock().run() },
 ]
 
-interface FloatingAction { label: string; icon?: string; isActive?: () => boolean; action: () => void | Promise<void> }
-const floatingActions: FloatingAction[] = [
-  { label: 'H1', icon: 'i-lucide-heading-1', isActive: () => editor.value?.isActive('heading', { level: 1 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 1 }).run() },
-  { label: 'H2', icon: 'i-lucide-heading-2', isActive: () => editor.value?.isActive('heading', { level: 2 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 2 }).run() },
-  { label: 'H3', icon: 'i-lucide-heading-3', isActive: () => editor.value?.isActive('heading', { level: 3 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 3 }).run() },
-  { label: 'Bulleted', icon: 'i-lucide-list', isActive: () => editor.value?.isActive('bulletList') ?? false, action: () => toggleBulletListWithEnter() },
-  { label: 'Numbered', icon: 'i-lucide-list-ordered', isActive: () => editor.value?.isActive('orderedList') ?? false, action: () => editor.value?.chain().focus().toggleOrderedList().run() },
-  { label: 'Code Block', icon: 'i-lucide-code-2', isActive: () => editor.value?.isActive('codeBlock') ?? false, action: () => editor.value?.chain().focus().toggleCodeBlock().run() },
-  { label: 'To-do', icon: 'i-lucide-check-square', isActive: () => editor.value?.isActive('taskList') ?? false, action: () => editor.value?.chain().focus().toggleTaskList().run() },
-  { label: 'Blockquote', icon: 'i-lucide-quote', isActive: () => editor.value?.isActive('blockquote') ?? false, action: () => editor.value?.chain().focus().toggleBlockquote().run() },
-  { label: 'Image', icon: 'i-lucide-image', action: () => addImage() },
-  { label: 'Separator', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator' }).run() },
-  { label: 'Dashed', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator', attrs: { dashed: true } }).run() },
-]
+interface FloatingAction { label: string; icon?: string; isActive?: () => boolean; action: () => void | Promise<void>; ask?: (prompt: string) => void | Promise<void> }
+const floatingActions = computed<FloatingAction[]>(() => {
+  const actions: FloatingAction[] = [
+    { label: 'H1', icon: 'i-lucide-heading-1', isActive: () => editor.value?.isActive('heading', { level: 1 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 1 }).run() },
+    { label: 'H2', icon: 'i-lucide-heading-2', isActive: () => editor.value?.isActive('heading', { level: 2 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 2 }).run() },
+    { label: 'H3', icon: 'i-lucide-heading-3', isActive: () => editor.value?.isActive('heading', { level: 3 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 3 }).run() },
+    { label: 'Bulleted', icon: 'i-lucide-list', isActive: () => editor.value?.isActive('bulletList') ?? false, action: () => toggleBulletListWithEnter() },
+    { label: 'Numbered', icon: 'i-lucide-list-ordered', isActive: () => editor.value?.isActive('orderedList') ?? false, action: () => editor.value?.chain().focus().toggleOrderedList().run() },
+    { label: 'Code Block', icon: 'i-lucide-code-2', isActive: () => editor.value?.isActive('codeBlock') ?? false, action: () => editor.value?.chain().focus().toggleCodeBlock().run() },
+    { label: 'To-do', icon: 'i-lucide-check-square', isActive: () => editor.value?.isActive('taskList') ?? false, action: () => editor.value?.chain().focus().toggleTaskList().run() },
+    { label: 'Blockquote', icon: 'i-lucide-quote', isActive: () => editor.value?.isActive('blockquote') ?? false, action: () => editor.value?.chain().focus().toggleBlockquote().run() },
+    { label: 'Image', icon: 'i-lucide-image', action: () => addImage() },
+    { label: 'Separator', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator' }).run() },
+    { label: 'Dashed', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator', attrs: { dashed: true } }).run() },
+  ]
+
+  if (props.aiEnabled && props.onAiCommand) {
+    actions.unshift({
+      label: 'AI',
+      icon: 'i-lucide-sparkles',
+      action: () => props.onAiCommand?.('continue'),
+      ask: (prompt: string) => props.onAiCommand?.({ action: 'ask', prompt }),
+    })
+  }
+
+  return actions
+})
 
 function deleteSlashIfPresent() {
   const ed = editor.value; if (!ed) return
@@ -261,6 +297,7 @@ function onInsertImages(files: FileList) {
 // `Unknown node type: undefined` errors deep in its parsing logic.
 watch(() => props.content, (newContent) => {
   if (!editor.value || !newContent) return
+  if (suppressNextContentSync) { suppressNextContentSync = false; return }
   const normalized = normalizeEditorContent(newContent)
   // If the incoming value was a string, only update when different
   if (typeof newContent === 'string') {
