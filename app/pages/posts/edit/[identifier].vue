@@ -108,14 +108,15 @@
                     @keydown.enter.prevent="addTagByName(editingTagName)"
                     @keydown.esc.prevent="cancelNewTag"
                     @blur="editingTagName ? addTagByName(editingTagName) : cancelNewTag"
-                    class="bg-transparent outline-none px-2 py-0 text-sm"
+                    class="bg-transparent outline-none border px-2 py-1 rounded-full text-sm"
                     placeholder="Tag name"
                   />
                   <button @click="cancelNewTag" class="text-xs opacity-70 hover:opacity-100">✕</button>
                 </div>
                 <div v-else>
-                  <NButton icon size="xs" btn="ghost-gray" @click="startNewTag" aria-label="Add tag">
+                  <NButton :icon="postTags.length > 0" size="xs" btn="ghost-gray" class="border b-dashed" @click="startNewTag" aria-label="Add tag">
                     <NIcon name="i-ph-plus" />
+                    <span v-if="postTags.length === 0">Add tag</span>
                   </NButton>
                 </div>
               </div>

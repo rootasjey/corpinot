@@ -47,10 +47,13 @@
         v-if="aiEnabled"
         :items="aiDropdownItems"
         :_dropdown-menu-content="blockDropDownMenuContent"
+        :_dropdown-menu-item="{
+          class: 'px-6 py-2 dark:focus:bg-#18181A focus:bg-#F5F5F5 dark:focus:text-blue',
+        }"
       >
-        <NButton btn="primary" size="xs" :disabled="aiLoading">
+        <NButton btn="ghost-gray" size="xs" class="px-4!" :disabled="aiLoading">
           <NIcon :name="aiLoading ? 'i-lucide-loader' : 'i-lucide-sparkles'" :class="{ 'animate-spin': aiLoading }" />
-          <span class="ml-2">AI</span>
+          <span>AI</span>
         </NButton>
       </NDropdownMenu>
 
@@ -157,13 +160,13 @@ const blockDropdownItems = computed(() => {
   return [ { label: 'Turn Into', items: textGroup }, { label: 'Format', items: otherGroup } ]
 })
 
-const aiDropdownItems = computed(() => [
+const aiDropdownItems = [
   { label: 'Fix grammar', leading: 'i-lucide-sparkles', onSelect: () => triggerAi('fix') },
   { label: 'Continue writing', leading: 'i-lucide-pen', onSelect: () => triggerAi('continue') },
   { label: 'Make shorter', leading: 'i-lucide-scissors', onSelect: () => triggerAi('shorten') },
   { label: 'Summarize', leading: 'i-lucide-notebook-text', onSelect: () => triggerAi('summarize') },
   { label: 'Translate', leading: 'i-lucide-languages', onSelect: () => triggerAi({ action: 'translate' }) },
-])
+]
 
 /**
  * Prevent the editor from losing focus when clicking inside the bubble menu.
@@ -178,7 +181,7 @@ function onBubbleMenuPointerDown(e: PointerEvent) {
 }
 
 const blockDropDownMenuContent = { 
-  class: 'py-1 px-0 w-auto rounded-4',
+  class: 'py-0 px-0 w-auto bg-white dark:bg-black shadow-lg',
   onInteractOutside: onInteractOutside,
 }
 
