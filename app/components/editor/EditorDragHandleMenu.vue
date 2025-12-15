@@ -20,6 +20,7 @@
           <span class="i-lucide-plus" />
         </button>
 
+
         <NDropdownMenu :items="dragMenuItems" class="drag-handle-dropdown">
           <template #default>
             <NButton icon btn="ghost" size="xs" :title="'Block options'" aria-label="Block options">
@@ -49,16 +50,24 @@ import DragHandle from '@tiptap/extension-drag-handle-vue-3'
 import { textPalette, backgroundPalette, colorLabelMap, backgroundLabelMap } from './palette'
 import { useRoute } from '#imports'
 import type { BlockType } from '~~/shared/types/nodes'
+import type { AICommand } from '~/composables/useAIWriter'
 const routeForUpload = useRoute()
 const { addUploading, updateUploading, removeUploading, uploadFileWithProgress } = useEditorImages()
 
-const props = defineProps<{
-  editor: Editor | Ref<Editor | null> | null, 
-  blockTypes: BlockType[], 
-  identifier?: string
-}>()
+const props = withDefaults(defineProps<{
+  editor: Editor | Ref<Editor | null> | null,
+  blockTypes: BlockType[],
+  identifier?: string,
+  aiEnabled?: boolean,
+  aiLoading?: boolean,
+  onAiCommand?: (action: AICommand) => void,
+}>(), {
+  aiEnabled: false,
+  aiLoading: false,
+  onAiCommand: undefined,
+})
 
-const { editor, blockTypes = [], identifier = '' } = props
+const { editor, blockTypes = [], identifier = '', aiEnabled = false, aiLoading = false, onAiCommand = undefined } = props
 const fileInput = ref<HTMLInputElement | null>(null)
 const wrapperEl = ref<HTMLElement | null>(null)
 
@@ -291,6 +300,42 @@ const imageMenuItems = [
   { label: 'Replace', onSelect: triggerReplace, leading: 'i-lucide-refresh-ccw' }
 ]
 
+const aiDropdownItems = [
+  { label: 'Fix grammar', leading: 'i-lucide-sparkles', onSelect: () => triggerAi('fix') },
+  { label: 'Continue writing', leading: 'i-lucide-pen', onSelect: () => triggerAi('continue') },
+  { label: 'Make shorter', leading: 'i-lucide-scissors', onSelect: () => triggerAi('shorten') },
+  { label: 'Summarize', leading: 'i-lucide-notebook-text', onSelect: () => triggerAi('summarize') },
+  { label: 'Translate', leading: 'i-lucide-languages', onSelect: () => triggerAi({ action: 'translate' }) },
+]
+
+function triggerAi(action: AICommand) {
+  if (!onAiCommand || !aiEnabled || aiLoading) return
+
+  const ed = unref(editor)
+
+  // If the drag handle is attached to a text-like node, set a temporary
+  // text selection for the node's content so the AI action operates on the
+  // block next to the handle instead of the whole document.
+  if (ed && nodePos.value !== null && dragHandleNode.value && dragHandleNode.value.type?.name !== 'image') {
+    const pos = nodePos.value
+    const node = dragHandleNode.value
+    const from = pos + 1
+    const to = pos + node.nodeSize - 1
+
+    // For `continue` we want the caret at the end of the node so new text
+    // is inserted after the block; for other actions select the block text.
+    const actionName = typeof action === 'string' ? action : (action as any).action
+    if (actionName === 'continue') {
+      const insertPos = pos + node.nodeSize
+      ed.chain().focus().setTextSelection({ from: insertPos, to: insertPos }).run()
+    } else {
+      if (to > from) ed.chain().focus().setTextSelection({ from, to }).run()
+    }
+  }
+
+  onAiCommand(action)
+}
+
 // Helper functions for building menu items
 const sanitizeColorClass = (c: string) => {
   const sanitized = c.replace(/[^a-z0-9]+/ig, '-').replace(/(^-|-$)/g, '').toLowerCase()
@@ -344,6 +389,8 @@ const dragMenuItems = [
   // Text-only items (hidden for image blocks via CSS)
   { label: 'Color', items: colorItems, leading: 'i-ph-paint-brush', class: 'text-only-item' },
   { label: 'Background', items: backgroundItems, leading: 'i-ph-paint-bucket', class: 'text-only-item' },
+  { class: 'text-only-item', _dropdownMenuSeparator: { class: 'text-only-item' } }, // separator
+  { label: 'AI', items: aiDropdownItems, leading: 'i-lucide-sparkles', class: 'text-only-item' },
   { class: 'text-only-item', _dropdownMenuSeparator: { class: 'text-only-item' } }, // separator
   { label: 'Reset formatting', onSelect: resetFormatting, leading: 'i-lucide-eraser', class: 'text-only-item' },
   { class: 'text-only-item', _dropdownMenuSeparator: { class: 'text-only-item' } }, // separator

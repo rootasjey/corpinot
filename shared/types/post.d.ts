@@ -7,6 +7,7 @@ export type PostStatus = 'draft' | 'published' | 'archived'
  * This type is used for displaying posts in the UI.
  */
 export type Post = {
+  [x: string]: {}
   /** Post article in JSON format. */
   article?: object
   /** Blob path to the article. */

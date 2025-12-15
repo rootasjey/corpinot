@@ -37,7 +37,7 @@ export function getPrompt(req: AIRequest) {
   }
   if (req.action === 'shorten') {
     const target = req.length === 'short' ? '80-120' : req.length === 'medium' ? '150-250' : '300-450'
-    return `Shorten the text while preserving core meaning and readability. Aim for ${target} words. Keep the author's voice.\n\nText:\n${req.content}`
+    return `Shorten the text while preserving core meaning and readability. Aim for ${target} words. Keep the author's voice. Return only the shortened text.\n\nText:\n${req.content}`
   }
   if (req.action === 'summarize') {
     const target = req.length === 'short' ? '2-3 sentences' : req.length === 'medium' ? '4-6 sentences' : '8-10 sentences'

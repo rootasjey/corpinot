@@ -61,75 +61,18 @@
       </div>
     </div>
 
-    <!-- Hero / Title / Meta (mirrors read page) -->
-    <div class="py-12 md:py-20">
-      <div class="container mx-auto px-4 md:px-8">
-        <div class="max-w-4xl mx-auto text-center">
-          <div class="font-600 text-md text-gray-400 flex items-center justify-center gap-3 mb-6">
-            <time>{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
-            <span>—</span>
-            <span>{{ enhancedPost.readingTime }}</span>
-          </div>
-          <!-- Editable Title styled as H1 -->
-          <textarea
-            v-model="name"
-            rows="1"
-            class="w-full resize-none overflow-hidden text-4xl md:text-5xl lg:text-4xl font-serif font-700 text-center leading-tight bg-transparent outline-none focus:outline-none focus:ring-0"
-            placeholder="Untitled"
-            @input="autoResize($event)"
-          />
-          
-          <!-- Editable description -->
-          <NInput
-            v-model="description"
-            type="textarea"
-            input="~"
-            placeholder="Write a short description…"
-            class="mt-4 max-w-3xl mx-auto text-center font-body font-600 color-gray-500 text-base md:text-lg leading-relaxed description-input"
-            :rows="-1"
-            ref="descriptionInput"
-            @input="autoResizeDescription"
-            @focus="autoResizeDescription"
-          />
-
-          <!-- Tags editor -->
-          <div class="mt-4 max-w-3xl mx-auto">
-            <div class="relative mt-3">
-              <div class="flex justify-center items-center gap-2 flex-wrap">
-                <span v-for="tag in postTags" :key="tag.id" class="inline-flex items-center gap-2 px-3 py-1 text-sm bg-blue dark:bg-black dark:border rounded-full">
-                  <span class="uppercase font-semibold text-xs">{{ tag.name }}</span>
-                  <button aria-label="Remove tag" @click="removeTag(tag.id)" :disabled="isAssigningTags" class="text-xs opacity-70 hover:opacity-100">✕</button>
-                </span>
-
-                <div v-if="editingTagActive" class="inline-flex items-center gap-2 px-3 py-1 text-sm bg-blue dark:bg-black rounded-full">
-                  <input
-                    ref="editingInputRef"
-                    v-model="editingTagName"
-                    @keydown.enter.prevent="addTagByName(editingTagName)"
-                    @keydown.esc.prevent="cancelNewTag"
-                    @blur="editingTagName ? addTagByName(editingTagName) : cancelNewTag"
-                    class="bg-transparent outline-none border px-2 py-1 rounded-full text-sm"
-                    placeholder="Tag name"
-                  />
-                  <button @click="cancelNewTag" class="text-xs opacity-70 hover:opacity-100">✕</button>
-                </div>
-                <div v-else>
-                  <NButton :icon="postTags.length > 0" size="xs" btn="ghost-gray" class="border b-dashed" @click="startNewTag" aria-label="Add tag">
-                    <NIcon name="i-ph-plus" />
-                    <span v-if="postTags.length === 0">Add tag</span>
-                  </NButton>
-                </div>
-              </div>
-              <ul v-if="filteredTagSuggestions.length && editingTagActive && editingTagName" class="absolute z-20 w-full mt-1 bg-background border border-border rounded-md max-h-40 overflow-auto">
-                <li v-for="s in filteredTagSuggestions" :key="s.id">
-                  <button class="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-black/10" @click.prevent="addTag(s)">{{ s.name }}</button>
-                </li>
-              </ul>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+    <!-- Hero / Title / Meta extracted to component -->
+    <PostMetadataEditor
+      :name="name"
+      :description="description"
+      :reading-time="enhancedPost.readingTime"
+      :date-label="formatPostDate(post.publishedAt || post.createdAt)"
+      :post-id="post?.id || null"
+      :tags="postTags"
+      @update:name="name = $event"
+      @update:description="description = $event"
+      @update:tags="onTagsUpdated"
+    />
 
     <!-- Featured Image (preview) -->
     <div v-if="post.image?.src" class="w-full px-4 relative group">
@@ -190,8 +133,6 @@
       </div>
     </article>
 
-    <p v-if="aiError" class="text-sm text-red-500 text-center mt-4">{{ aiError }}</p>
-
     <transition name="fade">
       <div v-if="aiSession" class="fixed bottom-5 right-5 z-40 w-[320px] rounded-xl border border-border bg-background/95 shadow-lg backdrop-blur">
         <div class="flex items-center justify-between px-4 pt-3">
@@ -201,7 +142,6 @@
           </div>
           <NBadge badge="soft" color="primary">{{ aiStatus === 'streaming' ? 'Streaming' : 'Preview' }}</NBadge>
         </div>
-        <p v-if="aiError" class="px-4 mt-2 text-xs text-red-500">{{ aiError }}</p>
         <div class="flex justify-end gap-2 px-4 py-3">
           <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="retryAI">Retry</NButton>
           <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="revertAI">Revert</NButton>
@@ -261,75 +201,100 @@
       type="file"
       accept="image/*"
       class="hidden"
-      @change="handleFileChange"
+      @change="onCoverFileChange"
     />
   </div>
 </template>
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
-import { watchDebounced, useDebounceFn, useTimeAgo } from '@vueuse/core'
-import { nextTick } from 'vue'
+import type { ApiTag } from '~~/shared/types/tags'
+import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { useDebounceFn, useTimeAgo } from '@vueuse/core'
 import type { AIAction, AILength, AICommand } from '~/composables/useAIWriter'
 import PostContent from '~/components/PostContent.vue'
+import PostMetadataEditor from '~/components/PostMetadataEditor.vue'
+import { usePost } from '~/composables/usePost'
+import { usePostsApi } from '~/composables/usePostsApi'
+import { usePostImages } from '~/composables/usePostImages'
+import { useSlugValidation } from '~/composables/useSlugValidation'
+import { usePostAI } from '~/composables/usePostAI'
+import { deriveSlugFromName } from '~/utils/slug'
+import { useTagStore } from '~/stores/tags'
+import { useAIWriter } from '~/composables/useAIWriter'
 
 const route = useRoute()
 const router = useRouter()
 const identifier = computed(() => route.params.identifier as string)
 
 const { user } = useUserSession()
-import { useTagStore } from '~/stores/tags'
-import type { ApiTag } from '~~/shared/types/tags'
 const { enhancePost, formatPostDate } = usePost()
+const tagStore = useTagStore()
+const { fetchPost: fetchPostApi, updatePost, updateArticle, deletePost: deletePostApi, exportPostZip } = usePostsApi()
+const { streamSuggestion, cancel } = useAIWriter()
 
 const post = ref<Post | null>(null)
+const postTags = ref<ApiTag[]>([])
 const loading = ref(true)
 const saving = ref(false)
-// Separate autosave state so frequent editor saves don't toggle the header
-// save button (which is used for manual / metadata saves).
 const savingArticle = ref(false)
 const lastArticleSavedAt = ref<number | null>(null)
-// Human-readable "time ago" text for last autosave. useTimeAgo doesn't accept
-// a nullable ref so we pass a computed fallback (0) and then hide the output
-// when there's no saved timestamp.
 const rawTimeAgo = useTimeAgo(computed(() => lastArticleSavedAt.value ?? 0))
 const timeAgo = computed(() => (lastArticleSavedAt.value ? rawTimeAgo.value : ''))
 let articleSpinnerTimer: ReturnType<typeof setTimeout> | null = null
 const error = ref('')
 const successMessage = ref('')
-const fileInput = ref<HTMLInputElement | null>(null)
-const uploadingCover = ref(false)
-const uploadProgress = ref(0)
 const exportingZip = ref(false)
 
 const name = ref('')
 const description = ref('')
-const descriptionInput = ref<any | null>(null)
 const slug = ref('')
 const status = ref<'draft' | 'published' | 'archived'>('draft')
 const articleContent = ref({})
-const aiLoading = ref(false)
-const aiError = ref('')
-const aiLength = ref<AILength>('medium')
-type NormalizedAICommand = { action: AIAction; targetLanguage?: string; sourceLanguage?: string; prompt?: string }
-type AISession = {
-  action: AIAction
-  from: number
-  to: number
-  insertionFrom: number
-  hasSelection: boolean
-  originalDoc: any
-  originalSelection: { from: number; to: number }
-  currentText: string
-  targetLanguage?: string
-  sourceLanguage?: string
-  prompt?: string
-}
-const aiSession = ref<AISession | null>(null)
-const aiStatus = ref<'idle' | 'streaming' | 'ready'>('idle')
+
 const runtimeConfig = useRuntimeConfig()
 const aiEnabled = computed(() => runtimeConfig.public?.features?.aiWriter === true)
-const { streamSuggestion, cancel } = useAIWriter()
+const aiLength = ref<AILength>('medium')
+
+const editor = ref<any | null>(null)
+
+async function saveArticle(content: object) {
+  if (!post.value) return
+
+  articleSpinnerTimer = setTimeout(() => {
+    savingArticle.value = true
+  }, 300)
+
+  error.value = ''
+  successMessage.value = ''
+
+  try {
+    await updateArticle(identifier.value, content)
+    lastArticleSavedAt.value = Date.now()
+    successMessage.value = 'Article content saved successfully'
+    setTimeout(() => (successMessage.value = ''), 3000)
+  } catch (e: any) {
+    error.value = e?.data?.message || 'Failed to save article content'
+    console.error('Failed to save article:', e)
+  } finally {
+    if (articleSpinnerTimer) {
+      clearTimeout(articleSpinnerTimer)
+      articleSpinnerTimer = null
+    }
+    setTimeout(() => (savingArticle.value = false), 120)
+  }
+}
+
+const debouncedSaveArticle = useDebounceFn(saveArticle, 700)
+
+const { fileInput, uploadingCover, uploadProgress, triggerFileInput, handleFileChange, deleteCoverImage } = usePostImages(
+  () => identifier.value,
+  () => post.value,
+)
+
+const enhancedPost = computed(() => (post.value ? enhancePost(post.value) : ({ readingTime: '—' } as any)))
+const isNumericIdentifier = computed(() => /^\d+$/.test(String(identifier.value)))
+
 const languageOptions = [
   { value: 'en', label: 'English' },
   { value: 'fr', label: 'French' },
@@ -341,35 +306,43 @@ const sourceLanguage = computed(() => post.value?.language || 'en')
 const sourceLanguageLabel = computed(() => languageOptions.find(o => o.value === sourceLanguage.value)?.label || sourceLanguage.value)
 const translateDialogOpen = ref(false)
 const translateTargetLanguage = ref('en')
-const pendingAICommand = ref<NormalizedAICommand | null>(null)
-// Tags
-const tagStore = useTagStore()
-const postTags = ref<ApiTag[]>([])
-const editingTagActive = ref(false)
-const editingTagName = ref('')
-const editingInputRef = ref<HTMLInputElement | null>(null)
-const isAssigningTags = ref(false)
-const enhancedPost = computed(() => post.value ? enhancePost(post.value) : ({ readingTime: '—' } as any))
+const pendingAICommand = ref<AICommand | null>(null)
 
-const statusLabel = computed(() => {
-  switch (status.value) {
-    case 'published':
-      return 'Published'
-    case 'archived':
-      return 'Archived'
-    default:
-      return 'Draft'
-  }
+const {
+  aiLoading,
+  aiError,
+  aiSession,
+  aiStatus,
+  startAI: startAIInternal,
+  commitAiDraft,
+  retryAI,
+  revertAI,
+  cancelAI,
+} = usePostAI({
+  editor,
+  identifier,
+  aiEnabled,
+  aiLength,
+  sourceLanguage,
+  streamSuggestion,
+  cancelStream: cancel,
+  articleContent,
+  onAutosave: (content) => debouncedSaveArticle(content as object),
+})
+
+const { 
+  slugCandidate, 
+  slugCheckLoading, 
+  slugTaken, 
+  slugCheckMessage, 
+  setSlugCandidate, 
+  reset: resetSlugValidation
+} = useSlugValidation({
+  currentSlug: () => slug.value,
+  postId: () => post.value?.id,
 })
 
 const isSlugDialogOpen = ref(false)
-const slugCandidate = ref('')
-const slugCheckLoading = ref(false)
-const slugTaken = ref(false)
-const slugCheckMessage = ref('')
-
-// Hold the tiptap editor instance once the PostContent emits it
-const editor = ref<any | null>(null)
 
 const onEditorReady = (ed: any) => {
   editor.value = ed
@@ -393,415 +366,77 @@ const redoEditor = () => {
   }
 }
 
-function normalizeAiCommand(command: AICommand): NormalizedAICommand {
-  if (typeof command === 'string') return { action: command }
-
-  // Narrow the union so TypeScript knows which properties are present.
-  if (command.action === 'ask' && 'prompt' in command) {
-    return { action: 'ask', prompt: command.prompt }
-  }
-
-  // At this point the command is an object and not an `ask` command, so
-  // `targetLanguage` / `sourceLanguage` are safe to access.
-  return {
-    action: command.action,
-    targetLanguage: (command as { targetLanguage?: string }).targetLanguage,
-    sourceLanguage: (command as { sourceLanguage?: string }).sourceLanguage,
-  }
-}
-
-function guessTargetLanguage() {
+const guessTargetLanguage = () => {
   const alt = languageOptions.find(o => o.value !== sourceLanguage.value)
   return alt?.value || 'en'
 }
 
-async function startAI(command: AICommand) {
-  const payload = normalizeAiCommand(command)
-  const normalizedSource = payload.sourceLanguage || sourceLanguage.value
-
-  if (!aiEnabled.value || !editor.value) return
-
-  if (payload.action === 'ask') {
-    const prompt = payload.prompt?.trim() || ''
-    if (!prompt) {
-      aiError.value = 'Add a question before asking the AI.'
-      aiStatus.value = 'idle'
-      return
-    }
-    payload.prompt = prompt
-  }
-
-  if (payload.action === 'translate' && !payload.targetLanguage) {
-    pendingAICommand.value = { ...payload, sourceLanguage: normalizedSource }
+const startAI = async (command: AICommand) => {
+  if (typeof command !== 'string' && command.action === 'translate' && !command.targetLanguage) {
+    pendingAICommand.value = command
     translateTargetLanguage.value = guessTargetLanguage()
     translateDialogOpen.value = true
     return
   }
 
-  await runAI({ ...payload, sourceLanguage: normalizedSource })
+  await startAIInternal(command)
 }
 
-async function runAI(payload: NormalizedAICommand) {
-  if (!aiEnabled.value || !editor.value) return
-  if (aiLoading.value) {
-    await cancelAI()
-  }
+watch(aiError, (msg) => {
+  if (!msg) return
+  useToast().toast({ title: 'AI error', description: msg, toast: 'danger' })
+})
 
-  pendingAICommand.value = null
-  translateDialogOpen.value = false
+const confirmTranslate = async () => {
+  const cmd = pendingAICommand.value
 
-  const action = payload.action
-  const ed = editor.value
-  const sel = ed.state.selection
-  const hasSelection = sel && !sel.empty
-  const isAsk = action === 'ask'
-  const from = hasSelection ? sel.from : 0
-  const to = hasSelection ? sel.to : editor.value.state.doc.content.size
-  const insertionFrom = (action === 'continue' || isAsk) ? (sel?.to ?? editor.value.state.doc.content.size) : from
-  const content = isAsk
-    ? (payload.prompt || '')
-    : hasSelection
-      ? ed.state.doc.textBetween(from, to, '', '\n')
-      : ed.getText()
-
-  if (isAsk && !content.trim()) {
-    aiError.value = 'Add a question before asking the AI.'
-    aiSession.value = null
-    aiStatus.value = 'idle'
-    aiLoading.value = false
-    return
-  }
-
-  if (action === 'summarize' && !hasSelection) {
-    aiError.value = 'Select text to summarize.'
-    aiSession.value = null
-    aiStatus.value = 'idle'
-    return
-  }
-
-  aiError.value = ''
-  aiLoading.value = true
-  aiStatus.value = 'streaming'
-  aiSession.value = {
-    action,
-    from,
-    to,
-    insertionFrom,
-    hasSelection: !!hasSelection,
-    originalDoc: ed.getJSON(),
-    originalSelection: { from, to },
-    currentText: '',
-    targetLanguage: payload.targetLanguage,
-    sourceLanguage: payload.sourceLanguage,
-    prompt: payload.prompt,
-  }
-
-  if (action !== 'continue' && action !== 'ask' && to > from) {
-    ed.chain().focus().deleteRange({ from, to }).run()
-  }
-
-  try {
-    const iterator = await streamSuggestion({
-      action,
-      content,
-      length: action === 'translate' ? undefined : aiLength.value,
-      postIdentifier: identifier.value,
-      targetLanguage: payload.targetLanguage,
-      sourceLanguage: payload.sourceLanguage,
-    })
-
-    for await (const { text } of iterator) {
-      applyAiDraft(text)
-    }
-
-    aiStatus.value = 'ready'
-  } catch (err: any) {
-    aiError.value = err?.message || 'AI request failed'
-    await revertAI()
-  } finally {
-    aiLoading.value = false
-  }
-}
-
-async function confirmTranslate() {
-  if (!pendingAICommand.value) {
+  // Ensure we have an object command (not a string literal) and it's a translate action
+  if (!cmd || typeof cmd === 'string' || cmd.action !== 'translate') {
     translateDialogOpen.value = false
+    pendingAICommand.value = null
     return
   }
 
-  const payload = {
-    ...pendingAICommand.value,
+  const payload: AICommand = {
+    action: 'translate',
     targetLanguage: translateTargetLanguage.value,
-    sourceLanguage: pendingAICommand.value.sourceLanguage || sourceLanguage.value,
+    sourceLanguage: cmd.sourceLanguage || sourceLanguage.value,
   }
+
   translateDialogOpen.value = false
   pendingAICommand.value = null
-  await runAI(payload)
+  await startAIInternal(payload)
 }
 
-function cancelTranslateDialog() {
+const cancelTranslateDialog = () => {
   translateDialogOpen.value = false
   pendingAICommand.value = null
 }
 
-function applyAiDraft(text: string) {
-  const session = aiSession.value
-  if (!session || !editor.value) return
-
-  const ed = editor.value
-  const from = session.insertionFrom
-  const to = session.insertionFrom + session.currentText.length
-  session.currentText = text
-
-  // Replace the working range as the stream arrives so the user previews inline changes.
-  ed.chain().focus().insertContentAt({ from, to }, text).setTextSelection(from + text.length).run()
-  session.to = from + text.length
-}
-
-async function revertAI() {
-  if (!aiSession.value || !editor.value) return
-  const snapshot = aiSession.value
-  editor.value.commands.setContent(snapshot.originalDoc)
-  editor.value.commands.focus()
-  const { from, to } = snapshot.originalSelection
-  editor.value.commands.setTextSelection({ from, to })
-  articleContent.value = snapshot.originalDoc
-  aiSession.value = null
-  aiStatus.value = 'idle'
-  aiLoading.value = false
-  await nextTick()
-}
-
-function commitAiDraft() {
-  aiSession.value = null
-  aiStatus.value = 'idle'
-  aiError.value = ''
-  if (articleContent.value) {
-    debouncedSaveArticle(articleContent.value as object)
-  }
-}
-
-async function retryAI() {
-  const snapshot = aiSession.value
-  if (!snapshot) return
-  await revertAI()
-  await nextTick()
-  if (editor.value) {
-    editor.value.commands.setTextSelection({ from: snapshot.originalSelection.from, to: snapshot.originalSelection.to })
-  }
-  
-  // Ensure we pass a properly-typed `AICommand` ("ask" must be an object with a prompt)
-  const aiCommand: AICommand = snapshot.action === 'ask' 
-    ? { action: 'ask', prompt: snapshot.prompt ?? '' } 
-    : snapshot.action
-  
-  startAI(aiCommand)
-}
-
-async function cancelAI() {
-  cancel()
-  translateDialogOpen.value = false
-  pendingAICommand.value = null
-  if (!aiSession.value) {
-    aiLoading.value = false
-    aiStatus.value = 'idle'
-    return
-  }
-  await revertAI()
-}
-
-// Tooltip text for undo/redo — show a hint when there is nothing to undo/redo
-const undoTooltip = computed(() => (editor?.value && editor.value.can().undo() ? 'Undo last editor action' : "Nothing to undo"))
-const redoTooltip = computed(() => (editor?.value && editor.value.can().redo() ? 'Redo last editor action' : "Nothing to redo"))
+const undoTooltip = computed(() => (editor?.value && editor.value.can().undo() ? 'Undo last editor action' : 'Nothing to undo'))
+const redoTooltip = computed(() => (editor?.value && editor.value.can().redo() ? 'Redo last editor action' : 'Nothing to redo'))
 
 const openSlugDialog = () => {
-  slugCandidate.value = slug.value || ''
+  setSlugCandidate(slug.value || '')
   isSlugDialogOpen.value = true
 }
 
-const triggerFileInput = () => {
-  fileInput.value?.click()
-}
-
-const uploadCover = (file: File) => {
-  return new Promise<any>((resolve, reject) => {
-    const xhr = new XMLHttpRequest()
-    xhr.open('POST', `/api/posts/${identifier.value}/cover`)
-    xhr.onreadystatechange = () => {
-      if (xhr.readyState === 4) {
-        try {
-          const json = JSON.parse(xhr.responseText || '{}')
-          if (xhr.status >= 200 && xhr.status < 300) resolve(json)
-          else reject(json)
-        } catch (e) {
-          reject(e)
-        }
-      }
-    }
-    xhr.upload.onprogress = (evt) => {
-      if (evt.lengthComputable) {
-        uploadProgress.value = Math.round((evt.loaded / evt.total) * 100)
-      }
-    }
-    xhr.onerror = () => reject(new Error('Network error'))
-    const formData = new FormData()
-    formData.append('file', file)
-    formData.append('fileName', file.name)
-    formData.append('type', file.type)
-    xhr.send(formData)
-  })
-}
-
-const handleFileChange = async (event: Event) => {
-  const input = event.target as HTMLInputElement
-  if (!input.files?.length || !post.value) return
-  const file = input.files[0]
-  if (!file) return
-  uploadingCover.value = true
-  uploadProgress.value = 0
-  error.value = ''
-  try {
-    const res: any = await uploadCover(file)
-    if (res.success && res.image) {
-      if (!post.value.image) post.value.image = {} as any
-      post.value.image.src = res.image.src
-      post.value.image.alt = res.image.alt
-      successMessage.value = 'Cover image uploaded successfully'
-      setTimeout(() => (successMessage.value = ''), 3000)
-    }
-  } catch (e: any) {
-    error.value = e?.message || e?.data?.message || 'Failed to upload cover image'
-    console.error('Failed to upload cover:', e)
-  } finally {
-    uploadingCover.value = false
-    input.value = ''
-    setTimeout(() => (uploadProgress.value = 0), 800)
-  }
-}
-
-const deleteCoverImage = async () => {
-  if (!post.value?.image?.src) return
-  if (!confirm('Are you sure you want to remove the cover image?')) return
-
-  uploadingCover.value = true
-  error.value = ''
-
-  try {
-    const res: any = await $fetch(`/api/posts/${identifier.value}/cover`, {
-      method: 'DELETE',
-    })
-
-    if (res.success) {
-      if (post.value.image) {
-        post.value.image.src = ''
-        post.value.image.alt = ''
-      }
-      successMessage.value = 'Cover image removed'
-      setTimeout(() => (successMessage.value = ''), 3000)
-    }
-  } catch (e: any) {
-    error.value = e.data?.message || 'Failed to remove cover image'
-    console.error('Failed to remove cover:', e)
-  } finally {
-    uploadingCover.value = false
-  }
-}
-
-// When the dialog closes, clear any pending checks and reset state.
 watch(isSlugDialogOpen, (open) => {
-  if (open) return
-  
-  // Cancel any in-flight slug validation and reset state
-  if (slugCheckAbortController) {
-    slugCheckAbortController.abort()
-    slugCheckAbortController = null
+  if (!open) {
+    resetSlugValidation()
+    error.value = ''
   }
-  slugCheckLoading.value = false
-  slugTaken.value = false
-  slugCheckMessage.value = ''
-  error.value = ''
 })
-
-const normalizeSlug = (value: string) => {
-  return value
-    .toLowerCase()
-    .replace(/[^a-z0-9\s-]/g, '')
-    .replace(/\s+/g, '-')
-    .replace(/-+/g, '-')
-    .trim()
-}
-
-watch(slugCandidate, (v, _ov) => {
-  // Ensure live normalization while editing the dialog input
-  if (!v) return
-  const normalized = normalizeSlug(v)
-  if (normalized !== v) slugCandidate.value = normalized
-})
-
-// We abort previous requests using AbortController to avoid stale results
-let slugCheckAbortController: AbortController | null = null
-const checkSlugUnique = async (value: string) => {
-  if (!value || value === slug.value) {
-    slugTaken.value = false
-    slugCheckMessage.value = ''
-    return
-  }
-
-  slugCheckLoading.value = true
-  slugTaken.value = false
-  slugCheckMessage.value = ''
-  try {
-    // Cancel previous in-flight request to avoid races and stale responses
-    const params: any = { slug: value }
-    if (post.value?.id) params.excludeId = post.value.id
-
-    // Make a new abort controller and cancel any previous request
-    if (slugCheckAbortController) slugCheckAbortController.abort()
-    slugCheckAbortController = new AbortController()
-
-    const res: any = await $fetch('/api/posts/slug/check', { params, signal: slugCheckAbortController.signal })
-    if (res?.exists) {
-      slugTaken.value = true
-      slugCheckMessage.value = 'That slug is already in use.'
-    }
-    else {
-      slugTaken.value = false
-      slugCheckMessage.value = 'That slug is available.'
-    }
-  } catch (e: any) {
-    // If request was aborted, ignore this response silently
-    if (e?.name === 'AbortError') return
-    // Non-blocking error
-    slugCheckMessage.value = e?.data?.message || 'Failed to validate slug'
-  } finally {
-    slugCheckLoading.value = false
-      // Clear controller when request is done so we don't attempt to abort a
-      // completed controller later
-      slugCheckAbortController = null
-  }
-}
-
-watchDebounced(slugCandidate, (value) => {
-  checkSlugUnique(value)
-}, { debounce: 450 })
-
-// Save only the slug via API and update local `slug` and `post`
-const isNumericIdentifier = computed(() => /^\d+$/.test(String(identifier.value)))
 
 const saveSlug = async () => {
-  if (!post.value) return
-  if (!slugCandidate.value) return
+  if (!post.value || !slugCandidate.value) return
 
   saving.value = true
   error.value = ''
   try {
-    const res: any = await $fetch(`/api/posts/${identifier.value}`, {
-      method: 'PUT' as any,
-      body: { slug: slugCandidate.value },
-    })
+    const res = await updatePost(identifier.value, { slug: slugCandidate.value })
 
-    // Update local state (post and slug)
-    if (res && typeof res === 'object' && 'post' in res) {
+    if (res?.post) {
       post.value = res.post
       slug.value = res.post.slug
       postTags.value = res.post.tags ?? postTags.value
@@ -813,13 +448,11 @@ const saveSlug = async () => {
     setTimeout(() => (successMessage.value = ''), 3000)
     isSlugDialogOpen.value = false
 
-    // If the edit page was opened with a slug identifier, update the route to
-    // the new slug-based read URL so users can share/copy the canonical URL.
     if (!isNumericIdentifier.value && post.value?.slug) {
       await router.replace(`/posts/${post.value.slug}`)
     }
   } catch (e: any) {
-    error.value = e.data?.message || 'Failed to update slug'
+    error.value = e?.data?.message || 'Failed to update slug'
     console.error('Failed to update slug:', e)
   } finally {
     saving.value = false
@@ -834,11 +467,11 @@ const menuItems = computed(() => {
         { label: 'Draft', trailing: status.value === 'draft' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'draft') },
         { label: 'Published', trailing: status.value === 'published' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'published') },
         { label: 'Archived', trailing: status.value === 'archived' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'archived') },
-      ]
+      ],
     },
-    { label: 'Edit Slug', onSelect: openSlugDialog, },
-    { label: 'Delete Post', onSelect: deletePost, },
-    { label: 'Export (ZIP)', onSelect: exportPostZip, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
+    { label: 'Edit Slug', onSelect: openSlugDialog },
+    { label: 'Delete Post', onSelect: deletePost },
+    { label: 'Export (ZIP)', onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
     {
       label: 'Cover Image',
       items: [
@@ -846,10 +479,10 @@ const menuItems = computed(() => {
           ? { label: 'Replace Cover Image', onSelect: triggerFileInput, leading: uploadingCover.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-image' }
           : { label: 'Add Cover Image', onSelect: triggerFileInput, leading: 'i-ph-image' },
         post.value?.image?.src
-          ? { label: 'Delete Cover Image', onSelect: deleteCoverImage, leading: 'i-ph-trash' }
+          ? { label: 'Delete Cover Image', onSelect: deleteCoverWithFeedback, leading: 'i-ph-trash' }
           : {},
-      ]
-    }
+      ],
+    },
   ]
 
   return items
@@ -857,140 +490,93 @@ const menuItems = computed(() => {
 
 const exportMenuItems = computed(() => [
   { label: 'Export JSON', onSelect: exportPost, leading: 'i-ph-file-json' },
-  { label: 'Export ZIP (with assets)', onSelect: exportPostZip, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
+  { label: 'Export ZIP (with assets)', onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
 ])
 
 const fetchPost = async () => {
   loading.value = true
   error.value = ''
-  
+
   try {
-    const data = await $fetch<Post>(`/api/posts/${identifier.value}`)
+    const data = await fetchPostApi(identifier.value)
     post.value = data
-    
-    // Check if user can edit
+
     if (data.user?.id !== user.value?.id) {
       error.value = 'You are not authorized to edit this post'
       router.push('/posts')
       return
     }
-    
-    // Populate form
+
     name.value = data.name
-    description.value = data.description
-    // Make sure the description field grows to fit initial content
-    await nextTick()
-    autoResizeDescription()
+    description.value = data.description || ''
     slug.value = data.slug
     status.value = data.status
     articleContent.value = data.article || {}
-    // Initialize tags for the post and ensure general tag cache
     postTags.value = data.tags ?? []
     tagStore.fetchTags().catch(() => {})
   } catch (e: any) {
-    error.value = e.data?.message || 'Failed to load post'
+    error.value = e?.data?.message || 'Failed to load post'
     console.error('Failed to load post:', e)
   } finally {
     loading.value = false
   }
 }
 
+const onTagsUpdated = (tags: ApiTag[]) => {
+  postTags.value = tags
+  if (post.value) post.value.tags = tags
+}
+
 const saveMetadata = async () => {
   if (!post.value) return
-  
+
   saving.value = true
   error.value = ''
   successMessage.value = ''
-  
+
   try {
-    const res: any = await $fetch(`/api/posts/${identifier.value}`, {
-      method: 'PUT' as any,
-      body: {
-        name: name.value,
-        description: description.value,
-        slug: slug.value,
-        status: status.value,
-      },
+    const res = await updatePost(identifier.value, {
+      name: name.value,
+      description: description.value,
+      slug: slug.value,
+      status: status.value,
     })
 
-    if (res && typeof res === 'object' && 'post' in res) {
+    if (res?.post) {
       post.value = res.post
       slug.value = res.post.slug
       postTags.value = res.post.tags ?? postTags.value
-      // If this edit used a slug identifier, navigate to the canonical read URL
       if (!isNumericIdentifier.value && post.value?.slug) {
         await router.replace(`/posts/${post.value.slug}`)
       }
     }
 
     successMessage.value = 'Post metadata updated successfully'
-    setTimeout(() => successMessage.value = '', 3000)
+    setTimeout(() => (successMessage.value = ''), 3000)
   } catch (e: any) {
-    error.value = e.data?.message || 'Failed to update post metadata'
+    error.value = e?.data?.message || 'Failed to update post metadata'
     console.error('Failed to update post:', e)
   } finally {
     saving.value = false
   }
 }
 
-const saveArticle = async (content: object) => {
-  if (!post.value) return
-
-  // Only show the autosave spinner if saving takes longer than this to avoid
-  // quick blinks for very fast saves.
-  articleSpinnerTimer = setTimeout(() => {
-    savingArticle.value = true
-  }, 300)
-
-  error.value = ''
-  successMessage.value = ''
-
-  try {
-    await $fetch(`/api/posts/${identifier.value}/article`, {
-      method: 'PUT',
-      body: {
-        article: content,
-      },
-    })
-
-    lastArticleSavedAt.value = Date.now()
-    successMessage.value = 'Article content saved successfully'
-    setTimeout(() => (successMessage.value = ''), 3000)
-  } catch (e: any) {
-    error.value = e.data?.message || 'Failed to save article content'
-    console.error('Failed to save article:', e)
-  } finally {
-    // Cancel spinner timer and hide spinner shortly after completion so UI
-    // doesn't flicker when saves are fast.
-    if (articleSpinnerTimer) {
-      clearTimeout(articleSpinnerTimer)
-      articleSpinnerTimer = null
-    }
-    setTimeout(() => (savingArticle.value = false), 120)
-  }
-}
-
-// Save both metadata and article
 const saveAll = async () => {
   if (!post.value) return
-  
+
   saving.value = true
   error.value = ''
   successMessage.value = ''
-  
+
   try {
-    // Save metadata first
-    const res: any = await $fetch(`/api/posts/${identifier.value}`, {
-      method: 'PUT' as any,
-      body: {
-        name: name.value,
-        description: description.value,
-        slug: slug.value,
-        status: status.value,
-      },
+    const res = await updatePost(identifier.value, {
+      name: name.value,
+      description: description.value,
+      slug: slug.value,
+      status: status.value,
     })
 
-    if (res && typeof res === 'object' && 'post' in res) {
+    if (res?.post) {
       post.value = res.post
       slug.value = res.post.slug
 
@@ -998,18 +584,13 @@ const saveAll = async () => {
         await router.replace(`/posts/${post.value.slug}`)
       }
     }
-    
-    await $fetch(`/api/posts/${identifier.value}/article`, {
-      method: 'PUT' as any,
-      body: {
-        article: articleContent.value,
-      },
-    })
-    
+
+    await updateArticle(identifier.value, articleContent.value)
+
     successMessage.value = 'Post saved successfully!'
-    setTimeout(() => successMessage.value = '', 3000)
+    setTimeout(() => (successMessage.value = ''), 3000)
   } catch (e: any) {
-    error.value = e.data?.message || 'Failed to save post'
+    error.value = e?.data?.message || 'Failed to save post'
     console.error('Failed to save:', e)
   } finally {
     saving.value = false
@@ -1019,15 +600,12 @@ const saveAll = async () => {
 const deletePost = async () => {
   if (!post.value) return
   if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) return
-  
+
   try {
-    await $fetch(`/api/posts/${identifier.value}`, {
-      method: 'DELETE' as any,
-    })
-    
+    await deletePostApi(identifier.value)
     router.push('/posts')
   } catch (e: any) {
-    error.value = e.data?.message || 'Failed to delete post'
+    error.value = e?.data?.message || 'Failed to delete post'
     console.error('Failed to delete post:', e)
   }
 }
@@ -1036,7 +614,6 @@ const exportPost = async () => {
   if (!post.value) return
 
   try {
-    // Prefer the latest article content from the editor, falling back to post.article
     const exportData = {
       exportedAt: new Date().toISOString(),
       post: {
@@ -1065,35 +642,11 @@ const exportPost = async () => {
   }
 }
 
-// Recursively find image URLs in article JSON
-const collectImageUrls = (obj: any, out = new Set<string>()) => {
-  if (!obj || typeof obj !== 'object') return out
-  for (const key of Object.keys(obj)) {
-    const val = obj[key]
-    if (typeof val === 'string') {
-      // Heuristic: include strings that look like image URLs
-      if (/\.(png|jpe?g|webp|gif|svg)(\?.*)?$/i.test(val) || val.startsWith('/') || val.startsWith('http')) {
-        out.add(val)
-      }
-    } else if (Array.isArray(val)) {
-      for (const v of val) collectImageUrls(v, out)
-    } else if (typeof val === 'object') {
-      collectImageUrls(val, out)
-    }
-  }
-  return out
-}
-
-const exportPostZip = async () => {
+const exportPostZipFile = async () => {
   if (!post.value) return
   exportingZip.value = true
   try {
-    const res = await fetch(`/api/posts/${identifier.value}/export`, { credentials: 'include' })
-    if (!res.ok) {
-      const text = await res.text()
-      throw new Error(text || 'Failed to export post (server error)')
-    }
-    const blobRes = await res.blob()
+    const blobRes = await exportPostZip(identifier.value)
     const url = URL.createObjectURL(blobRes)
     const a = document.createElement('a')
     a.href = url
@@ -1113,29 +666,11 @@ const exportPostZip = async () => {
   }
 }
 
-// Auto-generate slug from name
 watch(name, (newName) => {
   if (!slug.value || slug.value === post.value?.slug) {
-    slug.value = newName.toLowerCase()
-      .replace(/[^a-z0-9\s-]/g, '')
-      .replace(/\s+/g, '-')
-      .replace(/-+/g, '-')
-      .trim()
+    slug.value = deriveSlugFromName(newName)
   }
 })
-
-// Auto-resize the NInput textarea when the description changes
-watch(description, async () => {
-  await nextTick()
-  autoResizeDescription()
-})
-
-onMounted(() => {
-  fetchPost()
-})
-
-// Debounce autosaves so the backend isn't hammered and the UI feels stable.
-const debouncedSaveArticle = useDebounceFn(saveArticle, 700)
 
 const onEditorUpdate = (json: object) => {
   articleContent.value = json
@@ -1143,99 +678,36 @@ const onEditorUpdate = (json: object) => {
   debouncedSaveArticle(json)
 }
 
-// Tag helpers
-const filteredTagSuggestions = computed(() => {
-  const query = (editingTagName.value || '').trim()
-  if (!query) return tagStore.allTags.filter(t => !postTags.value.some(pt => pt.id === t.id))
-  return tagStore.searchTags(query).filter(t => !postTags.value.some(pt => pt.id === t.id))
-})
-
-const addTagByName = async (name: string) => {
-  if (!post.value || !name) return
-  isAssigningTags.value = true
+const onCoverFileChange = async (event: Event) => {
+  error.value = ''
+  successMessage.value = ''
   try {
-    let tag = tagStore.findTagByName(name)
-    if (!tag) {
-      const created = await tagStore.createTag(name)
-      if (!created) throw new Error('Failed to create tag')
-      tag = created
+    await handleFileChange(event)
+    if (post.value?.image?.src) {
+      successMessage.value = 'Cover image uploaded successfully'
+      setTimeout(() => (successMessage.value = ''), 3000)
     }
-    const tagIds = Array.from(new Set([...postTags.value.map(t => t.id), tag.id]))
-    const assigned = await tagStore.assignPostTags(post.value.id as number, tagIds)
-    postTags.value = assigned
-    if (post.value) post.value.tags = assigned
-    editingTagActive.value = false
-    editingTagName.value = ''
-  } finally {
-    isAssigningTags.value = false
+  } catch (e: any) {
+    error.value = e?.message || 'Failed to upload cover image'
   }
 }
 
-const addTag = async (tag: ApiTag | undefined | null) => {
-  if (!post.value || !tag) return
-  isAssigningTags.value = true
+const deleteCoverWithFeedback = async () => {
+  if (!post.value?.image?.src) return
+  if (!confirm('Are you sure you want to remove the cover image?')) return
+  error.value = ''
   try {
-    const tagIds = Array.from(new Set([...postTags.value.map(t => t.id), tag.id]))
-    const assigned = await tagStore.assignPostTags(post.value.id as number, tagIds)
-    postTags.value = assigned
-    if (post.value) post.value.tags = assigned
-  } finally {
-    isAssigningTags.value = false
-    editingTagActive.value = false
-    editingTagName.value = ''
+    await deleteCoverImage()
+    successMessage.value = 'Cover image removed'
+    setTimeout(() => (successMessage.value = ''), 3000)
+  } catch (e: any) {
+    error.value = e?.message || 'Failed to remove cover image'
   }
 }
 
-const removeTag = async (tagId: number) => {
-  if (!post.value) return
-  isAssigningTags.value = true
-  try {
-    const tagIds = postTags.value.filter(t => t.id !== tagId).map(t => t.id)
-    const assigned = await tagStore.assignPostTags(post.value.id as number, tagIds)
-    postTags.value = assigned
-    if (post.value) post.value.tags = assigned
-  } finally {
-    isAssigningTags.value = false
-  }
-}
-
-const startNewTag = async () => {
-  editingTagActive.value = true
-  editingTagName.value = ''
-  await nextTick()
-  editingInputRef.value?.focus()
-}
-
-const cancelNewTag = () => {
-  editingTagActive.value = false
-  editingTagName.value = ''
-}
-
-// Autosize title textarea
-const autoResize = (evt: Event) => {
-  const el = evt.target as HTMLTextAreaElement
-  el.style.height = 'auto'
-  el.style.height = `${el.scrollHeight}px`
-}
-
-// Find the textarea element wrapped by `NInput` and autosize it.
-const autoResizeDescription = (evt?: Event | null) => {
-  // Prefer the event target if provided (native textarea)
-  let el: HTMLTextAreaElement | null = null
-  if (evt) el = evt.target as HTMLTextAreaElement
-
-  // Otherwise, try to locate a textarea inside the NInput wrapper
-  if (!el && descriptionInput.value) {
-    const wrapperEl: HTMLElement | null = (descriptionInput.value as any)?.$el ?? descriptionInput.value
-    el = wrapperEl?.querySelector('textarea') ?? null
-  }
-
-  if (!el) return
-
-  // Auto size
-  el.style.height = 'auto'
-  el.style.height = `${el.scrollHeight}px`
-}
+onMounted(() => {
+  fetchPost()
+})
 </script>
 
 <style>

@@ -40,7 +40,15 @@
     />
 
     <EditorContent v-if="editor" :editor="editor" />
-    <EditorDragHandleMenu v-if="editor" :editor="editor" :block-types="blockTypes" :identifier="String(routeForUpload.params.identifier || '')" />
+    <EditorDragHandleMenu
+      v-if="editor"
+      :editor="editor"
+      :block-types="blockTypes"
+      :identifier="String(routeForUpload.params.identifier || '')"
+      :ai-enabled="aiEnabled"
+      :ai-loading="aiLoading"
+      :on-ai-command="onAiCommand"
+    />
   </div>
 </template>
 
