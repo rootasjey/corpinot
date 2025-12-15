@@ -1,6 +1,6 @@
 {
-  "name": "poststellar",
-  "version": "0.22.0",
+  "name": "corpinot",
+  "version": "0.23.0",
   "type": "module",
   "private": true,
   "scripts": {

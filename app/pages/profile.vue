@@ -181,7 +181,7 @@ import { computed, reactive, ref, watch, onMounted, onBeforeUnmount, nextTick } 
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-useHead({ title: 'Profile - Constellate' })
+useHead({ title: 'Profile - Corpinot' })
 const { user, loggedIn, fetch: refreshSession } = useUserSession()
 
 // Redirect unauthenticated users on client-side

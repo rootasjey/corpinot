@@ -4,7 +4,7 @@
       <!-- Brand -->
       <div class="flex items-center justify-center">
         <NuxtLink to="/" class="inline-flex items-baseline gap-1 select-none">
-          <span class="text-3xl md:text-4xl font-title font-bold leading-none">constellate*</span>
+          <span class="text-3xl md:text-4xl font-title font-bold leading-none">corpinot</span>
         </NuxtLink>
       </div>
 
@@ -12,7 +12,7 @@
       <nav class="mt-6 md:mt-8 flex flex-wrap items-center justify-center gap-x-8 gap-y-3 text-xs md:text-sm font-semibold uppercase tracking-wide">
         <NuxtLink to="/signup" class="hover:text-black dark:hover:text-white transition-colors">Sign up</NuxtLink>
         <NuxtLink to="/signin" class="hover:text-black dark:hover:text-white transition-colors">Sign in</NuxtLink>
-        <NuxtLink to="https://github.com/rootasjey/constellate" external target="_blank" class="hover:text-black dark:hover:text-white transition-colors">GitHub repository</NuxtLink>
+        <NuxtLink to="https://github.com/rootasjey/corpinot" external target="_blank" class="hover:text-black dark:hover:text-white transition-colors">GitHub repository</NuxtLink>
         <NuxtLink to="/about" class="hover:text-black dark:hover:text-white transition-colors">About</NuxtLink>
         <NuxtLink to="/credits" class="hover:text-black dark:hover:text-white transition-colors">Credits</NuxtLink>
       </nav>

@@ -1,7 +1,7 @@
 <template>
   <div class="mx-auto max-w-4xl px-6 py-12">
     <div class="text-center mb-8">
-      <h1 class="font-title text-3xl font-bold mb-2">Support Constellate</h1>
+      <h1 class="font-title text-3xl font-bold mb-2">Support Corpinot</h1>
       <p class="text-slate-600 dark:text-slate-400">Help keep independent writing thriving. Your support funds development and editorial work.</p>
     </div>
 
@@ -9,7 +9,7 @@
       <div class="flex flex-col items-center gap-3">
         <NIcon class="confetti-icon" name="i-ph-confetti" size="16" />
         <h2 class="text-size-16 font-title font-bold">Thank you!</h2>
-        <p class="text-size-8 font-300 text-slate-600 dark:text-slate-400">We received a donation {{ formatAmount(lastDonation?.amount ?? displayAmount) }}{{ lastDonation?.recurring ? ' (monthly)' : '' }}. Your support keeps Constellate running.</p>
+        <p class="text-size-8 font-300 text-slate-600 dark:text-slate-400">We received a donation {{ formatAmount(lastDonation?.amount ?? displayAmount) }}{{ lastDonation?.recurring ? ' (monthly)' : '' }}. Your support keeps Corpinot running.</p>
         <div class="mt-4 space-x-2">
           <NButton btn="solid-lime" @click="donateAgain">Donate again</NButton>
           <NButton btn="soft" to="/">Return Home</NButton>

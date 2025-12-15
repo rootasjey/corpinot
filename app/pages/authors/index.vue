@@ -3,7 +3,7 @@
     <div class="container mx-auto px-6 max-w-6xl space-y-8">
       <header class="space-y-2">
         <p class="text-sm uppercase tracking-[0.2em] text-gray-500 dark:text-gray-400">Our authors</p>
-        <h1 class="text-3xl md:text-4xl font-serif font-800">Voices behind constellate*</h1>
+        <h1 class="text-3xl md:text-4xl font-serif font-800">Voices behind Corpinot</h1>
         <p class="text-gray-600 dark:text-gray-400 max-w-3xl">Explore the writers crafting our stories. Click any author to view their bio and articles.</p>
       </header>
 

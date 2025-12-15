@@ -204,10 +204,10 @@ const placeholderPosts: Array<Record<string, any>> = [
   },
   {
     slug: 'deploying-with-hub',
-    name: 'Deploying with Nuxt Hub',
+    name: 'Deploying with Cloudflare Workers',
     image: {
       src: 'https://images.pexels.com/photos/33260741/pexels-photo-33260741.jpeg',
-      alt: 'Deploying with Nuxt Hub'
+      alt: 'Deploying with Cloudflare Workers'
     },
     tags: [{ name: 'Deploy' } as any],
     formattedDate: 'Nov 01, 2025',

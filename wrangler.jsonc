@@ -30,6 +30,6 @@
     }
   ],
   "vars": {
-    "NUXT_PUBLIC_SITE_URL": "https://constellate.cc"
+    "NUXT_PUBLIC_SITE_URL": "https://corpinot.cc"
   }
 }

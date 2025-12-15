@@ -5,18 +5,18 @@ import { readFileSync } from 'node:fs'
 export default defineNuxtConfig({
   app: {
     head: {
-      title: 'Constellate* - Personal Toughts, Shared Openly',
+      title: 'Corpinot - Personal Toughts, Shared Openly',
       meta: [
         { charset: 'utf-8' },
         { name: 'viewport', content: 'width=device-width, initial-scale=1' },
-        { name: 'description', content: 'Personal thoughts shared openly on Constellate*' },
+        { name: 'description', content: 'Personal thoughts shared openly on Corpinot' },
         
         // Additional meta tags
         { name: 'theme-color', content: '#0BA6DF' }
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
-        { rel: 'canonical', href: 'https://constellate.cc' }
+        { rel: 'canonical', href: 'https://corpinot.cc' }
       ]
     }
   },

@@ -121,7 +121,7 @@
               class="font-title font-bold text-black dark:text-white transition-all duration-300"
               :class="isScrolled ? 'text-3xl' : 'text-4xl'"
             >
-              constellate*
+              corpinot
             </span>
           </NuxtLink>
         </div>
@@ -213,7 +213,7 @@
 
         <!-- Center: Logo -->
         <NuxtLink to="/" class="absolute left-1/2 transform -translate-x-1/2">
-          <span class="text-2xl font-title font-bold text-black dark:text-white">constellate*</span>
+          <span class="text-2xl font-title font-bold text-black dark:text-white">corpinot</span>
         </NuxtLink>
 
         <!-- Right: Search + Theme -->
