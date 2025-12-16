@@ -13,12 +13,6 @@
       "database_id": "eec181bd-22ad-4d95-9841-01b61979a24e"
     }
   ],
-  "r2_buckets": [
-    {
-      "binding": "BLOB",
-      "bucket_name": "corpinot"
-    }
-  ],
   "kv_namespaces": [
     {
       "binding": "KV",
@@ -27,6 +21,20 @@
     {
       "binding": "CACHE",
       "id": "36e6cc57a6374484a184cdd5ef868c23"
+    }
+  ],
+  "observability": {
+    "logs": {
+      "enabled": true,
+      "head_sampling_rate": 1,
+      "invocation_logs": true,
+      "persist": true
+    }
+  },
+  "r2_buckets": [
+    {
+      "binding": "BLOB",
+      "bucket_name": "corpinot"
     }
   ],
   "vars": {
