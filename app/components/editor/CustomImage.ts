@@ -12,6 +12,8 @@ export const CustomImage = Image.extend({
       ...parentAttrs,
       src: { default: null },
       alt: { default: '' },
+      // Per-image layout preference: 'center' (default) or 'full-bleed'
+      display: { default: 'center' },
     }
   },
 
@@ -21,8 +23,9 @@ export const CustomImage = Image.extend({
 
   renderHTML({ HTMLAttributes }: { HTMLAttributes: Record<string, any> }) {
     // Figure with caption (static rendering). Alt shown as caption if present.
-    const { alt, ...rest } = HTMLAttributes as any
-    return ['figure', { class: 'image-figure' }, ['img', { ...rest, alt }], ['figcaption', { class: 'image-caption' }, alt || '']]
+    const { alt, display, ...rest } = HTMLAttributes as any
+    const displayClass = `image-figure--${display || 'center'}`
+    return ['figure', { class: `image-figure ${displayClass}` }, ['img', { ...rest, alt }], ['figcaption', { class: 'image-caption' }, alt || '']]
   },
 })
 

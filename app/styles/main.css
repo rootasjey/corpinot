@@ -74,6 +74,23 @@
 .color-8b5cf6 { color: #8b5cf6 }
 .color-ec4899 { color: #ec4899 }
 
+/* Post viewer: full-bleed images */
+.post-content figure.image-figure--full-bleed {
+  width: 100vw;
+  max-width: none;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-inline: 1rem;
+  box-sizing: border-box;
+}
+.post-content figure.image-figure--full-bleed img {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
+}
+
+
 /* background palette colors (for the colored 'A' leading glyphs) */
 .color-fff7ed { color: #fff7ed }
 .color-ffedd5 { color: #ffedd5 }

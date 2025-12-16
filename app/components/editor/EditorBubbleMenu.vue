@@ -10,6 +10,13 @@
     <!-- Image specific actions -->
     <template v-if="imageSelected">
       <div class="flex items-center gap-2">
+        <button type="button" @click="setImageDisplay('center')" :class="{ 'is-active': currentImageDisplay === 'center' }" title="Center image" aria-label="Center image">
+          <span class="i-lucide-align-center" />
+        </button>
+        <button type="button" @click="setImageDisplay('full-bleed')" :class="{ 'is-active': currentImageDisplay === 'full-bleed' }" title="Full width (bleed)" aria-label="Full width (bleed)">
+          <span class="i-lucide-maximize-2" />
+        </button>
+
         <button type="button" @click="downloadSelectedImage" title="Download image">
           <span class="i-lucide-download" />
         </button>
@@ -209,6 +216,12 @@ const imageSelected = computed(() => {
   return !!sel && !!sel.node && sel.node.type?.name === 'image'
 })
 const copied = ref(false)
+
+const currentImageDisplay = computed(() => props.editor?.getAttributes('image')?.display || 'center')
+function setImageDisplay(mode: 'center' | 'full-bleed') {
+  if (!props.editor) return
+  props.editor.chain().focus().updateAttributes('image', { display: mode }).run()
+}
 
 // Upload helpers (shared composable state)
 const { addUploading, updateUploading, removeUploading, uploadFileWithProgress } = useEditorImages()

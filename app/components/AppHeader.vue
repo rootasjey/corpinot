@@ -188,47 +188,28 @@
             <button @click="openSearch" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" aria-label="Open search">
               <div class="i-ph-magnifying-glass-bold"></div>
             </button>
-            <button 
-              @click="toggleTheme" 
-              class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+            <NDropdownMenu
+              :items="themeDropdownItems"
+              v-model:open="desktopThemeOpen"
+              :modal="false"
+              :_dropdown-menu-content="dropdownContentProps"
             >
-              <!-- SSR friendly: render both icons and toggle with CSS `dark:` utilities.
-                   Avoids class mismatch between server and client by keeping DOM the same. -->
-              <div class="i-ph-moon-bold block dark:hidden"></div>
-              <div class="i-ph-sun-bold hidden dark:block"></div>
-            </button>
+              <button
+                @click="toggleTheme"
+                @contextmenu.prevent="openThemeMenu('desktop')"
+                @pointerdown="onThemePressStart('desktop', $event)"
+                @pointerup="onThemePressEnd('desktop')"
+                @pointerleave="onThemePressEnd('desktop')"
+                class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+              >
+                <!-- SSR friendly: render both icons and toggle with CSS `dark:` utilities.
+                     Avoids class mismatch between server and client by keeping DOM the same. -->
+                <div class="i-ph-moon-bold block dark:hidden"></div>
+                <div class="i-ph-sun-bold hidden dark:block"></div>
+                <span class="sr-only">Theme</span>
+              </button>
+            </NDropdownMenu>
           </div>
-        </div>
-      </div>
-
-      <!-- Mobile Header -->
-      <div class="lg:hidden flex items-center justify-between py-4">
-        <!-- Left: Menu Button -->
-        <button
-          @click="toggleMobileMenu"
-          class="p-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
-        >
-          <div class="i-ph-list w-6 h-6"></div>
-        </button>
-
-        <!-- Center: Logo -->
-        <NuxtLink to="/" class="absolute left-1/2 transform -translate-x-1/2">
-          <span class="text-2xl font-title font-bold text-black dark:text-white">corpinot</span>
-        </NuxtLink>
-
-        <!-- Right: Search + Theme -->
-        <div class="flex items-center gap-2">
-          <button @click="openSearch" class="p-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" aria-label="Open search">
-            <div class="i-ph-magnifying-glass w-5 h-5"></div>
-          </button>
-          <button 
-            @click="toggleTheme" 
-            class="p-2 text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
-          >
-            <!-- Mobile: same SSR-safe approach -->
-            <div class="i-ph-moon w-5 h-5 block dark:hidden"></div>
-            <div class="i-ph-sun w-5 h-5 hidden dark:block"></div>
-          </button>
         </div>
       </div>
     </div>
@@ -236,22 +217,37 @@
 </template>
 
 <script setup lang="ts">
-const { user, loggedIn, fetch: refreshSession, clear: clearSession } = useUserSession()
+import { computed, isRef, onBeforeUnmount, ref } from 'vue'
 import { useRouter } from 'vue-router'
+import { useHeaderScroll } from '../composables/useHeaderScroll'
+import useGlobalSearch from '~/composables/useGlobalSearch'
+
+type ThemePreference = 'light' | 'dark' | 'system'
+type ThemeMenuScope = 'desktop' | 'mobile'
+
+const { user, loggedIn, fetch: refreshSession, clear: clearSession } = useUserSession()
 const router = useRouter()
 
-import { computed, isRef } from 'vue'
 const isLoggedIn = computed(() => (typeof loggedIn === 'boolean' ? loggedIn : loggedIn.value))
 const currentUser = computed(() => (isRef(user) ? (user.value as any) : user as any))
 const userInitial = computed(() => (currentUser.value?.name ? currentUser.value.name.charAt(0).toUpperCase() : ''))
 
 const isMobileMenuOpen = ref(false)
 const colorMode = useColorMode()
-import { useHeaderScroll } from '../composables/useHeaderScroll'
 const { isScrolled } = useHeaderScroll({ threshold: 12 })
 
+const desktopThemeMenu = createThemeMenuController()
+const mobileThemeMenu = createThemeMenuController()
+const desktopThemeOpen = computed({
+  get: () => desktopThemeMenu.open.value,
+  set: (val: boolean) => onThemeMenuOpenChange('desktop', val),
+})
+const mobileThemeOpen = computed({
+  get: () => mobileThemeMenu.open.value,
+  set: (val: boolean) => onThemeMenuOpenChange('mobile', val),
+})
+
 // Global search modal
-import useGlobalSearch from '~/composables/useGlobalSearch'
 const { open: openSearchModal } = useGlobalSearch()
 function openSearch() { openSearchModal() }
 
@@ -268,11 +264,61 @@ async function handleLogout() {
 
 const dropdownItems = computed(() => [
   { label: 'Profile', onSelect: () => router.push('/profile') },
-  { label: 'Logout', onSelect: async () => { await handleLogout() } }
+  { label: 'Logout', onSelect: async () => { await handleLogout() } },
 ])
 
-function toggleMobileMenu() {
-  isMobileMenuOpen.value = !isMobileMenuOpen.value
+const themeDropdownItems = computed(() => {
+  const preference = colorMode.preference as ThemePreference
+  return [
+    { label: 'Dark', leading: 'i-ph-moon', trailing: preference === 'dark' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('dark') },
+    { label: 'Light', leading: 'i-ph-sun', trailing: preference === 'light' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('light') },
+    { label: 'System', leading: 'i-ph-laptop', trailing: preference === 'system' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('system') },
+  ]
+})
+
+const dropdownContentProps = computed(() => ({
+  align: 'end' as const,
+  onEscapeKeyDown: () => closeThemeMenus(),
+  onInteractOutside: () => closeThemeMenus(),
+  onPointerDownOutside: () => closeThemeMenus(),
+  onFocusOutside: () => closeThemeMenus(),
+}))
+
+function setThemePreference(preference: ThemePreference) {
+  colorMode.preference = preference
+  closeThemeMenus()
+}
+
+function closeThemeMenus() {
+  desktopThemeMenu.close()
+  mobileThemeMenu.close()
+}
+
+function openThemeMenu(scope: ThemeMenuScope) {
+  closeThemeMenus()
+  const menu = scope === 'desktop' ? desktopThemeMenu : mobileThemeMenu
+  menu.requestOpen()
+}
+
+function onThemeMenuOpenChange(scope: ThemeMenuScope, nextOpen: boolean) {
+  const menu = scope === 'desktop' ? desktopThemeMenu : mobileThemeMenu
+  menu.handleOpenChange(nextOpen)
+  if (!nextOpen) {
+    const otherMenu = scope === 'desktop' ? mobileThemeMenu : desktopThemeMenu
+    otherMenu.close()
+  }
+}
+
+function onThemePressStart(scope: ThemeMenuScope, event: PointerEvent) {
+  if (event.pointerType !== 'touch') return
+  closeThemeMenus()
+  const menu = scope === 'desktop' ? desktopThemeMenu : mobileThemeMenu
+  menu.scheduleLongPress()
+}
+
+function onThemePressEnd(scope: ThemeMenuScope) {
+  const menu = scope === 'desktop' ? desktopThemeMenu : mobileThemeMenu
+  menu.cancelLongPress()
 }
 
 function closeMobileMenu() {
@@ -281,5 +327,62 @@ function closeMobileMenu() {
 
 function toggleTheme() {
   colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
+  setThemePreference(colorMode.value as ThemePreference)
+}
+
+function createThemeMenuController() {
+  const open = ref(false)
+  const allowOpen = ref(false)
+  const longPressTimer = ref<number | null>(null)
+
+  function clearTimer() {
+    if (longPressTimer.value) {
+      clearTimeout(longPressTimer.value)
+      longPressTimer.value = null
+    }
+  }
+
+  function requestOpen() {
+    allowOpen.value = true
+    open.value = true
+  }
+
+  function scheduleLongPress() {
+    if (!import.meta.client) return
+    clearTimer()
+    longPressTimer.value = window.setTimeout(() => {
+      allowOpen.value = true
+      open.value = true
+    }, 450)
+  }
+
+  function cancelLongPress() {
+    clearTimer()
+    if (!open.value) allowOpen.value = false
+  }
+
+  function close() {
+    clearTimer()
+    open.value = false
+    allowOpen.value = false
+  }
+
+  function handleOpenChange(nextOpen: boolean) {
+    if (!nextOpen) {
+      close()
+      return
+    }
+
+    if (!allowOpen.value) {
+      open.value = false
+      return
+    }
+
+    open.value = true
+  }
+
+  onBeforeUnmount(clearTimer)
+
+  return { open, requestOpen, scheduleLongPress, cancelLongPress, close, handleOpenChange }
 }
 </script>

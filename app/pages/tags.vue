@@ -65,6 +65,7 @@
                         <div>
                           <div class="text-sm font-semibold">{{ tag.name }}</div>
                           <div class="text-xs text-gray-500 dark:text-gray-400">{{ tag.category || 'General' }}</div>
+                          <div v-if="tag.description" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{{ tag.description }}</div>
                         </div>
                       </div>
 
@@ -140,6 +141,7 @@
       <NDialogDescription>
         <div class="space-y-3">
           <NInput v-model="tagName" placeholder="Tag name" input="outline-blue" class="shadow-none ring-none" autofocus />
+          <NInput v-model="tagDescription" placeholder="Description (optional)" input="outline-lime" />
           <NInput v-model="tagCategory" placeholder="Category (optional)" input="outline-pink" />
         </div>
       </NDialogDescription>
@@ -171,7 +173,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
+import { ref, computed, watch, onUnmounted } from 'vue'
 import type { ApiTag } from '~~/shared/types/tags'
 import type { Post as ApiPost } from '~~/shared/types/post'
 
@@ -244,6 +246,7 @@ const tagDialogOpen = ref(false)
 const editingTag = ref<ApiTag | null>(null)
 const tagName = ref('')
 const tagCategory = ref('')
+const tagDescription = ref('')
 const saving = ref(false)
 
 const confirmDialogOpen = ref(false)
@@ -253,7 +256,7 @@ const deleting = ref(false)
 const filteredTags = computed(() => {
   const q = search.value.trim().toLowerCase()
   if (!q) return tags.value
-  return tags.value.filter(t => t.name.toLowerCase().includes(q) || (t.category || '').toLowerCase().includes(q))
+  return tags.value.filter(t => t.name.toLowerCase().includes(q) || (t.category || '').toLowerCase().includes(q) || (t.description || '').toLowerCase().includes(q))
 })
 
 const tagCounts = computed<Record<string, number>>(() => {
@@ -296,6 +299,7 @@ function openNewTag() {
   editingTag.value = null
   tagName.value = ''
   tagCategory.value = ''
+  tagDescription.value = ''
   tagDialogOpen.value = true
 }
 
@@ -303,6 +307,7 @@ function openEditTag(tag: ApiTag) {
   editingTag.value = tag
   tagName.value = tag.name
   tagCategory.value = tag.category || ''
+  tagDescription.value = tag.description || ''
   tagDialogOpen.value = true
 }
 
@@ -321,10 +326,10 @@ async function saveTag() {
   saving.value = true
   try {
     if (editingTag.value) {
-      const updated = await $fetch<ApiTag>(`/api/tags/${editingTag.value.id}`, { method: 'PUT' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general' } })
+      const updated = await $fetch<ApiTag>(`/api/tags/${editingTag.value.id}`, { method: 'PUT' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim() } })
       tags.value = tags.value.map(t => t.id === updated.id ? updated : t)
     } else {
-      const created = await $fetch<ApiTag>('/api/tags', { method: 'POST' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general' } })
+      const created = await $fetch<ApiTag>('/api/tags', { method: 'POST' as any, body: { name: tagName.value.trim(), category: tagCategory.value.trim() || 'general', description: tagDescription.value.trim() } })
       tags.value = [...tags.value, created].sort((a, b) => a.name.localeCompare(b.name))
     }
     tagDialogOpen.value = false
@@ -334,6 +339,24 @@ async function saveTag() {
     saving.value = false
   }
 }
+
+// Keyboard shortcut: Cmd/Ctrl + Enter to confirm tag dialog
+function handleTagDialogKey(e: KeyboardEvent) {
+  if (e.key !== 'Enter') return
+  if (!(e.metaKey || e.ctrlKey)) return
+  if (!tagDialogOpen.value) return
+  e.preventDefault()
+  if (!saving.value) saveTag()
+}
+
+watch(tagDialogOpen, (open) => {
+  if (open) window.addEventListener('keydown', handleTagDialogKey)
+  else window.removeEventListener('keydown', handleTagDialogKey)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handleTagDialogKey)
+})
 
 async function confirmDelete() {
   if (!tagPendingDelete.value) return

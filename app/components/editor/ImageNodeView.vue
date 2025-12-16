@@ -1,8 +1,8 @@
 <template>
-  <NodeViewWrapper as="figure" :class="['image-figure', selected ? 'is-selected' : '']">
+  <NodeViewWrapper as="figure" :class="['image-figure', displayClass, selected ? 'is-selected' : '']">
     <img
       ref="imgEl"
-      class="editor-image"
+      :class="['editor-image', props.node.attrs.display === 'full-bleed' ? 'editor-image--full-bleed' : '']"
       :src="node.attrs.src"
       :alt="node.attrs.alt || ''"
       @click="selectNode"
@@ -27,13 +27,15 @@
 </template>
 
 <script setup lang="ts">
-import { onMounted, ref, watch } from 'vue'
+import { onMounted, ref, watch, computed } from 'vue'
 import { nodeViewProps, NodeViewWrapper } from '@tiptap/vue-3'
 
 const props = defineProps(nodeViewProps)
 const localAlt = ref(props.node.attrs.alt || '')
 const imgEl = ref<HTMLImageElement | null>(null)
 const dimensions = ref('')
+
+const displayClass = computed(() => `image-figure--${props.node.attrs.display || 'center'}`)
 
 function commitAlt() {
   props.updateAttributes({ alt: localAlt.value })
@@ -84,6 +86,23 @@ watch(() => props.selected, (val) => { if (val) updateDimensions() })
   border-radius: 0.75rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
   cursor: pointer;
+}
+
+/* Editor: full-bleed visual (keeps editor layout intact but shows the full-bleed intent) */
+.image-figure.image-figure--full-bleed {
+  width: 100vw;
+  max-width: none;
+  margin-left: calc(50% - 50vw);
+  margin-right: calc(50% - 50vw);
+  padding-inline: 1rem;
+  box-sizing: border-box;
+}
+
+.image-figure.image-figure--full-bleed .editor-image {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  border-radius: 0;
 }
 
 .image-caption {

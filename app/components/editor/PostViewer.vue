@@ -18,7 +18,7 @@ import TaskItem from '@tiptap/extension-task-item'
 import Separator from './Separator'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TaskItemNodeView from './TaskItemNodeView.vue'
-import Image from '@tiptap/extension-image'
+import { CustomImage } from './CustomImage'
 import { watch } from 'vue'
 
 interface Props {
@@ -38,7 +38,7 @@ const editor = useEditor({
     StarterKit.configure({
       heading: { levels: [1, 2, 3, 4] },
     }),
-    Image,
+    CustomImage,
     TextStyle,
     BackgroundColor,
     Color,

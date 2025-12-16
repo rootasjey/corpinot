@@ -280,6 +280,9 @@ function colorForTag(name: string) {
 }
 
 function descriptionForTag(tag: ApiTag) {
+  if (tag.description && tag.description.trim().length > 0) {
+    return tag.description
+  }
   return tag.category ? `Category: ${tag.category}` : `Explore posts tagged “${tag.name}”`
 }
 </script>

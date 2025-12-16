@@ -10,7 +10,8 @@
     {
       "binding": "DB",
       "database_name": "corpinot",
-      "database_id": "eec181bd-22ad-4d95-9841-01b61979a24e"
+      "database_id": "eec181bd-22ad-4d95-9841-01b61979a24e",
+      "migrations_dir": "server/db/migrations"
     }
   ],
   "kv_namespaces": [
@@ -35,6 +36,12 @@
     {
       "binding": "BLOB",
       "bucket_name": "corpinot"
+    }
+  ],
+  "routes": [
+    {
+      "pattern": "corpinot.cc",
+      "custom_domain": true
     }
   ],
   "vars": {
