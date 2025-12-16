@@ -11,8 +11,9 @@ export default defineEventHandler(async (event) => {
   const id = Number(idParam)
   const name = body.name.trim()
   const category = body.category?.trim() || 'general'
+  const description = typeof body.description === 'string' ? body.description.trim() : ''
 
-  const result = await db.update(schema.tags).set({ name, category }).where(eq(schema.tags.id, id)).run()
+  const result = await db.update(schema.tags).set({ name, category, description }).where(eq(schema.tags.id, id)).run()
   const rowsWritten = Number((result as any)?.rowsAffected ?? (result as any)?.meta?.changes ?? (result as any)?.meta?.rows_written ?? 0)
 
   if (!rowsWritten) {

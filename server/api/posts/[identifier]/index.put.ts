@@ -6,6 +6,13 @@ import type { ApiPost } from '~~/shared/types/post'
 import { convertApiToPost } from '~~/server/utils/post'
 import { upsertPostTags } from '~~/server/utils/tags'
 
+// Local type to represent the API post merged with a few optional user fields
+type ApiPostWithUser = ApiPost & {
+  user_avatar?: string | null
+  user_name?: string | null
+  user_slug?: string | null
+}
+
 const updatePostSchema = z.object({
   // Allow partial updates — make `name` optional for metadata-only updates
   // (e.g. updating just the slug). Creating a post still requires a name, but
@@ -14,7 +21,8 @@ const updatePostSchema = z.object({
   description: z.string().max(1000).optional(),
   tags: z.array(z.object({
     name: z.string().min(1).max(50),
-    category: z.string().max(50).optional()
+    category: z.string().max(50).optional(),
+    description: z.string().max(500).optional(),
   })).max(20).optional(),
   language: z.enum(['en', 'fr', 'es', 'de', 'it']).optional(),
   slug: z.string().min(1).max(255).optional(),
@@ -35,10 +43,9 @@ export default defineEventHandler(async (event) => {
   }
 
   const validatedBody = await readValidatedBody(event, updatePostSchema.parse)
-  let apiPost = await getPostByIdentifier(database, identifier)
+  const apiPost: ApiPostWithUser | null = await getPostByIdentifier(database, identifier)
 
   handlePostErrors(apiPost, userId)
-  apiPost = apiPost as ApiPost
 
   // Check for slug uniqueness if slug is being updated
   if (validatedBody.slug && validatedBody.slug !== apiPost.slug) {
@@ -141,7 +148,7 @@ export default defineEventHandler(async (event) => {
   }
 })
 
-const handlePostErrors = (post: any, userId?: number) => {
+function handlePostErrors(post: ApiPost | null, userId?: number): asserts post is ApiPost {
   if (!post) {
     throw createError({
       statusCode: 404,

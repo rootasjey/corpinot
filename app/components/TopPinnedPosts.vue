@@ -15,8 +15,8 @@
       <!-- Error -->
       <EmptyState
         v-else-if="error"
-        title="Featured posts unavailable"
-        description="We couldn't fetch featured content. Please try again later."
+        title="Top pinned posts unavailable"
+        description="We couldn't fetch pinned content. Please try again later."
         secondary-to="/posts"
         secondary-label="View all posts"
         variant="card"
@@ -94,9 +94,13 @@
 import type { Post } from '~~/shared/types/post'
 
 const { enhancePost } = usePost()
+const TOP_PINNED_TAG = 'top pinned'
 
-const { data, pending, error } = await useFetch<Post[]>('/api/posts')
-const topPosts = computed(() => (data.value ?? []).slice(0, 4).map(p => enhancePost(p)))
+const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
+  query: { tag: TOP_PINNED_TAG, limit: 4 },
+})
+
+const topPosts = computed(() => (data.value ?? []).map(p => enhancePost(p)))
 
 // Dummy items when empty – match the final UI
 const today = new Date()

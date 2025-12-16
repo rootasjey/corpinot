@@ -24,18 +24,12 @@
           <!-- Tags/Badges -->
           <div class="flex items-center justify-center flex-wrap gap-3">
             <div
-              class="bg-[#F2F3F4] text-color-black dark:bg-gray-600 dark:text-color-white rounded-full 
-                px-4 py-1 text-xs font-semibold flex items-center gap-2"
-            >
-              <NIcon name="i-ph-lightning-fill" />
-              <span>FEATURED POST</span>
-            </div>
-            <div
               v-for="tag in post.tags"
               :key="tag.id"
               class="uppercase bg-[#F2F3F4] text-color-black dark:bg-gray-600 dark:text-color-white rounded-full px-4 py-1 text-xs font-semibold flex items-center"
             >
-              {{ tag.name }}
+              <NIcon v-if="iconTag[tag.name]" :name="iconTag[tag.name]" />
+              <span>{{ tag.name }}</span>
             </div>
             <NTooltip v-if="isAdmin" content="Edit post">
                 <NButton
@@ -246,6 +240,22 @@ if (error.value || !post.value) {
 
 // Enhance post with computed properties
 const enhancedPost = computed(() => enhancePost(post.value!))
+
+const iconTag: Record<string, string> = {
+  featured: 'i-ph-lightning-fill',
+  'featured post': 'i-ph-lightning-fill',
+  'featured project': 'i-ph-lightning-fill',
+  technology: 'i-ph-laptop-fill',
+  lifestyle: 'i-ph-coffee-fill',
+  travel: 'i-ph-airplane-fill',
+  food: 'i-ph-fork-knife-fill',
+  education: 'i-ph-book-fill',
+  health: 'i-ph-heartbeat-fill',
+  finance: 'i-ph-currency-dollar-fill',
+  entertainment: 'i-ph-film-strip-fill',
+  business: 'i-ph-briefcase-fill',
+  science: 'i-ph-flask-fill',
+}
 
 type LightboxImage = {
   src: string

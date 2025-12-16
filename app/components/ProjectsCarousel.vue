@@ -97,9 +97,11 @@ function scrollProjects(direction: 'left' | 'right') {
   projectsContainer.value.scrollBy({ left: scrollDirection, behavior: 'smooth' })
 }
 
-// Fetch posts with "project" tag
+// Fetch posts with the featured project tag
+const FEATURED_PROJECT_TAG = 'featured project'
+
 const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
-  query: { tag: 'project' }
+  query: { tag: FEATURED_PROJECT_TAG, limit: 12 }
 })
 
 const projects = computed(() => {

@@ -1,6 +1,6 @@
 <template>
   <div>
-    <HeroFeaturedPosts />
+    <TopPinnedPosts />
     <NewsletterSubscription />
     <TrendingTagsCarousel />
     <FeaturedPostsGrid />

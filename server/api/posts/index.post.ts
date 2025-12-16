@@ -13,7 +13,8 @@ const createPostSchema = z.object({
   description: z.string().max(1000).optional(),
   tags: z.array(z.object({
     name: z.string().min(1).max(50),
-    category: z.string().max(50).optional()
+    category: z.string().max(50).optional(),
+    description: z.string().max(500).optional(),
   })).max(20).optional(),
 })
 

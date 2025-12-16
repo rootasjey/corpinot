@@ -51,11 +51,11 @@ export const useTagStore = defineStore('tags', () => {
     }
   }
 
-  const createTag = async (name: string, category = 'general') => {
+  const createTag = async (name: string, category = 'general', description = '') => {
     try {
       const tag = await $fetch<ApiTag | null>('/api/tags', {
         method: 'POST',
-        body: { name, category }
+        body: { name, category, description }
       })
       
       if (tag) {
@@ -72,11 +72,11 @@ export const useTagStore = defineStore('tags', () => {
     }
   }
 
-  const updateTag = async (id: number, name: string, category = 'general') => {
+  const updateTag = async (id: number, name: string, category = 'general', description = '') => {
     try {
       const tag = await $fetch<ApiTag | null>(`/api/tags/${id}`, {
         method: 'PUT',
-        body: { name, category }
+        body: { name, category, description }
       })
       
       if (tag) {

@@ -159,9 +159,12 @@
 import type { Post } from '~~/shared/types/post'
 const { enhancePost } = usePost()
 
-const { data, pending, error } = await useFetch<Post[]>('/api/posts')
+const FEATURED_POST_TAG = 'featured post'
+const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
+  query: { tag: FEATURED_POST_TAG, limit: 5 },
+})
 
-const featuredPosts = computed(() => (data.value ?? []).slice(0, 5).map(p => enhancePost(p)))
+const featuredPosts = computed(() => (data.value ?? []).map(p => enhancePost(p)))
 
 const today = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
 

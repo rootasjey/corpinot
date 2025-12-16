@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
   
   const name = body.name.trim()
   const category = body.category?.trim() || 'general'
+  const description = typeof body.description === 'string' ? body.description.trim() : ''
 
   try {
     const exists = await db.query.tags.findFirst({
@@ -20,7 +21,7 @@ export default defineEventHandler(async (event) => {
       throw createError({ statusCode: 409, statusMessage: 'Tag already exists' })
     }
 
-    const result = await db.insert(schema.tags).values({ name, category }).run()
+    const result = await db.insert(schema.tags).values({ name, category, description }).run()
     const insertedId = Number((result as any)?.lastInsertRowid ?? (result as any)?.meta?.last_row_id ?? 0)
 
     const tag = insertedId

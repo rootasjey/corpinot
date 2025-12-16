@@ -13,24 +13,32 @@ import type { ApiTag } from '~~/shared/types/tags'
 export async function upsertPostTags(
   db: any,
   postId: number,
-  tags: Array<{ name: string; category?: string }>
+  tags: Array<{ name: string; category?: string; description?: string }>
 ) {
   const tagIds: number[] = []
   const createdTags: Array<ApiTag> = []
 
   for (const tag of tags) {
+    const name = tag.name.trim()
+    const category = tag.category?.trim() || ''
+    const description = typeof tag.description === 'string' ? tag.description.trim() : ''
+
     const existing = await db.query.tags.findFirst({
-      where: eq(schema.tags.name, tag.name),
+      where: eq(schema.tags.name, name),
     })
 
     if (existing) {
+      if (description && description !== existing.description) {
+        await db.update(schema.tags).set({ description }).where(eq(schema.tags.id, existing.id)).run()
+      }
       tagIds.push(existing.id as number)
       continue
     }
 
     const inserted = await db.insert(schema.tags).values({
-      name: tag.name,
-      category: tag.category || '',
+      name,
+      category,
+      description,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }).run()
@@ -46,6 +54,7 @@ export async function upsertPostTags(
         id: fetched.id as number,
         name: fetched.name,
         category: fetched.category,
+        description: fetched.description ?? '',
         created_at: fetched.created_at,
         updated_at: fetched.updated_at,
       })

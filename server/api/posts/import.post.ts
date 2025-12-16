@@ -11,7 +11,7 @@ import { unzipSync } from 'fflate'
 const importPostSchema = z.object({
   name: z.string().min(1),
   description: z.string().max(1000).optional(),
-  tags: z.array(z.object({ name: z.string().min(1).max(50), category: z.string().max(50).optional() })).max(20).optional(),
+  tags: z.array(z.object({ name: z.string().min(1).max(50), category: z.string().max(50).optional(), description: z.string().max(500).optional() })).max(20).optional(),
   image: z.object({ src: z.string().optional(), alt: z.string().optional() }).optional(),
   article: z.any().optional(),
   language: z.string().optional(),

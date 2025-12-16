@@ -126,6 +126,7 @@ export function convertApiToPost(
       id: Number(t.id),
       name: String(t.name),
       category: typeof t.category === 'string' ? t.category : '',
+      description: typeof (t as any).description === 'string' ? (t as any).description : '',
       created_at: t.created_at ? String(t.created_at) : '',
       updated_at: t.updated_at ? String(t.updated_at) : ''
     })),

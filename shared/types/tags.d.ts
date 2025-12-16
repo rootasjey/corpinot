@@ -7,6 +7,7 @@ export type ApiTag = {
   id: number
   name: string
   category: string
+  description: string
   created_at: string
   updated_at: string
 }
@@ -19,6 +20,7 @@ export type ApiTag = {
 export type Tag = {
   name: string
   category?: string
+  description?: string
 }
 
 export interface TagWithUsage extends ApiTag {
