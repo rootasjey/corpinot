@@ -57,7 +57,10 @@ export default defineNuxtConfig({
     authSecret: process.env.NUXT_AUTH_SECRET,
     ai: {
       cloudflareKey: process.env.NUXT_AI_CLOUDFLARE_KEY || '',
-      cloudflareAccountId: process.env.NUXT_AI_CLOUDFLARE_ACCOUNT_ID || ''
+      cloudflareAccountId: process.env.NUXT_AI_CLOUDFLARE_ACCOUNT_ID || '',
+      defaultProvider: process.env.NUXT_AI_DEFAULT_AI_PROVIDER === 'openrouter' ? 'openrouter' : 'cloudflare',
+      openrouterKey: process.env.NUXT_AI_OPENROUTER_KEY || '',
+      openrouterBaseUrl: process.env.NUXT_AI_OPENROUTER_BASE_URL || 'https://openrouter.ai/api/v1',
     },
 
     // Public keys (exposed to client-side)

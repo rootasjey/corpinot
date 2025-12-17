@@ -84,6 +84,7 @@ export const ai_requests = sqliteTable('ai_requests', {
   user_id: integer('user_id').notNull(),
   post_id: integer('post_id'),
   action: text('action').notNull(),
+  provider: text('provider').notNull().default('cloudflare'),
   tokens_input: integer('tokens_input'),
   tokens_output: integer('tokens_output'),
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),

@@ -5,6 +5,7 @@
     :ai-enabled="aiEnabled"
     :ai-loading="aiLoading"
     :on-ai-command="onAiCommand"
+    :on-configure-models="onConfigureModels"
     @update:content="forwardContent"
     @editor-ready="forwardEditor"
   />
@@ -22,6 +23,7 @@ interface Props {
   aiEnabled?: boolean
   aiLoading?: boolean
   onAiCommand?: (action: AICommand) => void
+  onConfigureModels?: () => void
 }
 
 withDefaults(defineProps<Props>(), {
@@ -29,6 +31,7 @@ withDefaults(defineProps<Props>(), {
   aiEnabled: false,
   aiLoading: false,
   onAiCommand: undefined,
+  onConfigureModels: undefined,
 })
 const emit = defineEmits<{ 'update:content': [json: object]; 'editor-ready': [editor: any] }>()
 

@@ -25,6 +25,8 @@ export function useAIWriter() {
     targetLanguage?: string
     sourceLanguage?: string
     postIdentifier?: string
+    provider?: 'cloudflare' | 'openrouter'
+    model?: string
   }) {
     // Use POST and parse SSE-style stream from the response body
     const ctrl = nextController()
@@ -36,6 +38,8 @@ export function useAIWriter() {
       ...(params.targetLanguage ? { targetLanguage: params.targetLanguage } : {}),
       ...(params.sourceLanguage ? { sourceLanguage: params.sourceLanguage } : {}),
       ...(params.postIdentifier ? { postIdentifier: params.postIdentifier } : {}),
+      ...(params.provider ? { provider: params.provider } : {}),
+      ...(params.model ? { model: params.model } : {}),
     }
 
     const res = await fetch('/api/ai/write', {

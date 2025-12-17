@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { streamText } from 'ai'
+import { createOpenRouter } from '@openrouter/ai-sdk-provider'
 import { createWorkersAI } from 'workers-ai-provider'
 
 export const aiRequestSchema = z.object({
@@ -10,6 +11,8 @@ export const aiRequestSchema = z.object({
   postIdentifier: z.string().optional(),
   targetLanguage: z.string().optional(),
   sourceLanguage: z.string().optional(),
+  provider: z.enum(['cloudflare', 'openrouter']).optional(),
+  model: z.string().min(1).optional(),
 }).superRefine((val, ctx) => {
   if (val.action === 'translate' && !val.targetLanguage) {
     ctx.addIssue({
@@ -21,9 +24,29 @@ export const aiRequestSchema = z.object({
 })
 
 export type AIRequest = z.infer<typeof aiRequestSchema>
+export type AIProvider = 'cloudflare' | 'openrouter'
+
+const DEFAULT_MODELS: Record<AIProvider, string> = {
+  cloudflare: '@cf/meta/llama-2-7b-chat-int8',
+  openrouter: 'mistralai/devstral-2512:free',
+}
 
 export function getCFClient(accountId: string, apiKey: string) {
   return createWorkersAI({ accountId, apiKey })
+}
+
+export function getOpenRouterClient(apiKey: string, baseUrl?: string) {
+  return createOpenRouter({
+    apiKey,
+    baseURL: baseUrl || 'https://openrouter.ai/api/v1',
+  })
+}
+
+export function resolveModel(provider: AIProvider, requestedModel?: string) {
+  if (requestedModel && requestedModel.trim().length > 0) {
+    return requestedModel
+  }
+  return DEFAULT_MODELS[provider]
 }
 
 export function getPrompt(req: AIRequest) {
@@ -140,21 +163,43 @@ export function toSSEStreamFromText(text: string) {
   })
 }
 
-export async function streamAI(
-  accountId: string,
-  apiKey: string,
-  model: string,
-  prompt: string,
-  signal?: AbortSignal,
-) {
-  const provider = getCFClient(accountId, apiKey)
-  const result = streamText({
+export async function streamAI(options: {
+  provider: AIProvider
+  cloudflareAccountId?: string
+  cloudflareApiKey?: string
+  openrouterKey?: string
+  openrouterBaseUrl?: string
+  model?: string
+  prompt: string
+  signal?: AbortSignal
+}) {
+  const model = resolveModel(options.provider, options.model)
+
+  if (options.provider === 'openrouter') {
+    if (!options.openrouterKey) {
+      throw new Error('OpenRouter not configured')
+    }
+
+    const provider = getOpenRouterClient(options.openrouterKey, options.openrouterBaseUrl)
+    return streamText({
+      model: provider(model),
+      prompt: options.prompt,
+      maxOutputTokens: 1200,
+      temperature: 0.2,
+      abortSignal: options.signal,
+    })
+  }
+
+  if (!options.cloudflareAccountId || !options.cloudflareApiKey) {
+    throw new Error('Workers AI not configured')
+  }
+
+  const provider = getCFClient(options.cloudflareAccountId, options.cloudflareApiKey)
+  return streamText({
     model: provider(model, { safePrompt: true }),
-    prompt,
+    prompt: options.prompt,
     maxOutputTokens: 1200,
     temperature: 0.2,
-    abortSignal: signal,
+    abortSignal: options.signal,
   })
-
-  return result
 }

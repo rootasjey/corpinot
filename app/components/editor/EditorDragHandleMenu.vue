@@ -61,10 +61,12 @@ const props = withDefaults(defineProps<{
   aiEnabled?: boolean,
   aiLoading?: boolean,
   onAiCommand?: (action: AICommand) => void,
+  onConfigureModels?: () => void,
 }>(), {
   aiEnabled: false,
   aiLoading: false,
   onAiCommand: undefined,
+  onConfigureModels: undefined,
 })
 
 const { editor, blockTypes = [], identifier = '', aiEnabled = false, aiLoading = false, onAiCommand = undefined } = props
@@ -306,6 +308,7 @@ const aiDropdownItems = [
   { label: 'Make shorter', leading: 'i-lucide-scissors', onSelect: () => triggerAi('shorten') },
   { label: 'Summarize', leading: 'i-lucide-notebook-text', onSelect: () => triggerAi('summarize') },
   { label: 'Translate', leading: 'i-lucide-languages', onSelect: () => triggerAi({ action: 'translate' }) },
+  { label: 'Configure models', leading: 'i-lucide-settings-2', onSelect: () => props.onConfigureModels?.() },
 ]
 
 function triggerAi(action: AICommand) {

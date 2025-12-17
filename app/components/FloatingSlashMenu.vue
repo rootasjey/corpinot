@@ -42,6 +42,16 @@
             <span>Ask</span>
           </button>
 
+          <button
+            ref="aiConfigureBtn"
+            type="button"
+            class="ai-option mt-1 border-t border-border pt-2"
+            @click="openConfigureModels()"
+          >
+            <span class="i-lucide-settings-2 ai-option-icon" aria-hidden="true" />
+            <span>Configure models</span>
+          </button>
+
           <div v-if="aiAskOpen && aiMenuIndex === idx" class="mt-2 space-y-2">
             <label class="sr-only" :for="`ai-prompt-${idx}`">Ask the AI</label>
             <NInput
@@ -114,9 +124,11 @@ const props = withDefaults(defineProps<{
   shouldShow?: any
   actions: FloatingAction[]
   onInsertImages?: (files: FileList) => void
+  onConfigureModels?: () => void
 }>(), {
   editable: false,
   shouldShow: () => false,
+  onConfigureModels: undefined,
 })
 
 const emit = defineEmits<{
@@ -133,7 +145,8 @@ const aiPromptInput = ref<HTMLInputElement | HTMLInputElement[] | null>(null)
 // Vue collects refs inside v-for into arrays, so accept either a single element or an array
 const aiContinueBtn = ref<HTMLButtonElement | HTMLButtonElement[] | null>(null)
 const aiAskBtn = ref<HTMLButtonElement | HTMLButtonElement[] | null>(null)
-const aiPopoverFocusIndex = ref(0) // 0: Continue, 1: Ask
+const aiConfigureBtn = ref<HTMLButtonElement | HTMLButtonElement[] | null>(null)
+const aiPopoverFocusIndex = ref(0) // 0: Continue, 1: Ask, 2: Configure
 
 const getContinueBtn = () => {
   const el = aiContinueBtn.value
@@ -142,6 +155,11 @@ const getContinueBtn = () => {
 
 const getAskBtn = () => {
   const el = aiAskBtn.value
+  return Array.isArray(el) ? el[aiMenuIndex.value] ?? el[0] : el
+}
+
+const getConfigureBtn = () => {
+  const el = aiConfigureBtn.value
   return Array.isArray(el) ? el[aiMenuIndex.value] ?? el[0] : el
 }
 
@@ -206,6 +224,11 @@ const openAiAsk = async (idx: number) => {
   getAiPromptInput()?.focus()
 }
 
+const openConfigureModels = () => {
+  closeAiMenu()
+  props.onConfigureModels?.()
+}
+
 const closeAiAsk = () => {
   aiAskOpen.value = false
   aiPrompt.value = ''
@@ -229,23 +252,26 @@ const focusAiOption = (i: number) => {
   else if (i === 1) {
     if (aiAskOpen.value) getAiPromptInput()?.focus()
     else getAskBtn()?.focus()
+  } else if (i === 2) {
+    getConfigureBtn()?.focus()
   }
 }
 
 const onAiKeydown = (e: KeyboardEvent) => {
   if (aiMenuIndex.value < 0) return
-  // If the Ask input is focused, allow normal typing and navigation inside it
-  const inputEl = getAiPromptInput()
-  if (inputEl && document.activeElement === inputEl) return
+  // If the Ask input is open, allow normal typing and navigation inside it
+  if (aiAskOpen.value && aiPopoverFocusIndex.value === 1) return
+
   const key = e.key
+  const totalOptions = 3
   if (['ArrowDown', 'ArrowRight', 'Tab'].includes(key) && !e.shiftKey) {
     e.preventDefault()
-    focusAiOption((aiPopoverFocusIndex.value + 1) % 2)
+    focusAiOption((aiPopoverFocusIndex.value + 1) % totalOptions)
     return
   }
   if (['ArrowUp', 'ArrowLeft'].includes(key) || (key === 'Tab' && e.shiftKey)) {
     e.preventDefault()
-    focusAiOption((aiPopoverFocusIndex.value - 1 + 2) % 2)
+    focusAiOption((aiPopoverFocusIndex.value - 1 + totalOptions) % totalOptions)
     return
   }
   if (key === 'Enter' || key === ' ' || key === 'Spacebar') {
@@ -257,6 +283,8 @@ const onAiKeydown = (e: KeyboardEvent) => {
     } else if (aiPopoverFocusIndex.value === 1) {
       // If Ask is selected, open input
       openAiAsk(aiMenuIndex.value)
+    } else if (aiPopoverFocusIndex.value === 2) {
+      openConfigureModels()
     }
     return
   }

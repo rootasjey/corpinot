@@ -24,6 +24,7 @@ interface UsePostAIOptions {
   aiEnabled: ComputedRef<boolean>
   aiLength: Ref<AILength>
   sourceLanguage: ComputedRef<string>
+  aiProvider: Ref<'cloudflare' | 'openrouter'>
   streamSuggestion: (input: {
     action: AIAction
     content: string
@@ -31,6 +32,8 @@ interface UsePostAIOptions {
     postIdentifier: string
     targetLanguage?: string
     sourceLanguage?: string
+    provider?: 'cloudflare' | 'openrouter'
+    model?: string
   }) => AsyncIterable<{ text: string }> | Promise<AsyncIterable<{ text: string }>>
   cancelStream: () => void
   articleContent: Ref<object>
@@ -133,6 +136,7 @@ export function usePostAI(options: UsePostAIOptions) {
         postIdentifier: options.identifier.value,
         targetLanguage: payload.targetLanguage,
         sourceLanguage: payload.sourceLanguage,
+        provider: options.aiProvider.value,
       })
 
       // Helper: strip common model-added prefixes so the editor receives

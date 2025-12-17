@@ -152,11 +152,13 @@ interface Props {
   aiEnabled?: boolean
   aiLoading?: boolean
   onAiCommand?: (action: AICommand) => void
+  onConfigureModels?: () => void
 }
 const props = withDefaults(defineProps<Props>(), {
   aiEnabled: false,
   aiLoading: false,
   onAiCommand: undefined,
+  onConfigureModels: undefined,
 })
 
 const currentBlockType = computed(() => props.blockTypes.find(t => t.isActive()) || props.blockTypes[0])
@@ -167,13 +169,14 @@ const blockDropdownItems = computed(() => {
   return [ { label: 'Turn Into', items: textGroup }, { label: 'Format', items: otherGroup } ]
 })
 
-const aiDropdownItems = [
+const aiDropdownItems = computed(() => [
   { label: 'Fix grammar', leading: 'i-lucide-sparkles', onSelect: () => triggerAi('fix') },
   { label: 'Continue writing', leading: 'i-lucide-pen', onSelect: () => triggerAi('continue') },
   { label: 'Make shorter', leading: 'i-lucide-scissors', onSelect: () => triggerAi('shorten') },
   { label: 'Summarize', leading: 'i-lucide-notebook-text', onSelect: () => triggerAi('summarize') },
   { label: 'Translate', leading: 'i-lucide-languages', onSelect: () => triggerAi({ action: 'translate' }) },
-]
+  { label: 'Configure models', leading: 'i-lucide-settings-2', onSelect: () => props.onConfigureModels?.() },
+])
 
 /**
  * Prevent the editor from losing focus when clicking inside the bubble menu.

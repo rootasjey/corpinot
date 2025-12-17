@@ -25,6 +25,7 @@
         © {{ currentYear }}
         <NuxtLink to="https://github.com/rootasjey" external target="_blank" class="hover:text-black dark:hover:text-white transition-colors">Jérémie CORPINOT</NuxtLink>.
         Make the web a better place.
+        <div class="mt-1 text-xs text-gray-400 dark:text-gray-500">v{{ appVersion }}</div>
       </div>
     </div>
   </footer>
@@ -32,4 +33,6 @@
 
 <script setup lang="ts">
 const currentYear = new Date().getFullYear()
+const config = useRuntimeConfig()
+const appVersion = (config.public?.appVersion as string) || '0.0.0'
 </script>

@@ -7,9 +7,12 @@
         <div class="absolute -bottom-40 -left-20 w-[36rem] h-[36rem] rounded-full bg-purple-400/10 blur-3xl"></div>
       </div>
       <div class="max-w-6xl mx-auto px-4 py-16 md:py-24">
-        <p class="uppercase tracking-widest text-xs md:text-sm text-gray-500 dark:text-gray-400 mb-4">ABOUT</p>
+        <div class="flex items-center gap-4">
+          <p class="uppercase tracking-widest text-xs md:text-sm text-gray-500 dark:text-gray-400">ABOUT</p>
+          <p class="uppercase tracking-widest text-xs md:text-sm font-500 text-gray-500 dark:text-gray-400">v{{ appVersion }}</p>
+        </div>
         <h1 class="font-title text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
-          We’re Woords — crafted for curious minds and creative builders.
+          We're Woords — crafted for curious minds and creative builders.
         </h1>
         <p class="mt-6 max-w-2xl text-base md:text-lg text-gray-600 dark:text-gray-300">
           Our mission is simple: publish sharp, practical ideas — and make them delightful to read. No fluff. No clickbait. Just signal.
@@ -179,8 +182,14 @@
       <div class="max-w-3xl mx-auto px-4 text-center">
         <h2 class="text-2xl md:text-3xl font-serif font-bold">Say hello</h2>
         <p class="mt-3 text-gray-600 dark:text-gray-300">Questions, pitches, ideas? Email us at
-          <a href="mailto:hello@example.com" class="underline decoration-yellow-400 underline-offset-4">hello@example.com</a>.
+          <a href="mailto:hello@corpinot.cc" class="underline decoration-yellow-400 underline-offset-4">hello@corpinot.cc</a>
         </p>
+      </div>
+    </section>
+
+    <section class="py-6">
+      <div class="max-w-6xl mx-auto px-4 text-center">
+        <p class="text-sm text-gray-500 dark:text-gray-400">Version v{{ appVersion }}</p>
       </div>
     </section>
   </div>
@@ -193,4 +202,7 @@ useSeoMeta({
   description: 'Who we are, what we publish, and how we work. Meet Woords.',
   ogDescription: 'Who we are, what we publish, and how we work. Meet Woords.',
 })
+
+const config = useRuntimeConfig()
+const appVersion = (config.public?.appVersion as string) || '0.0.0'
 </script>

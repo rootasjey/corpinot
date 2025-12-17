@@ -1,4 +1,4 @@
-import { aiRequestSchema, getPrompt, streamAI, summarizeWithWorkersAI, toSSEStreamFromText, translateWithWorkersAI } from "~~/server/utils/ai"
+import { AIProvider, aiRequestSchema, getPrompt, streamAI, summarizeWithWorkersAI, toSSEStreamFromText, translateWithWorkersAI } from "~~/server/utils/ai"
 import { defineEventHandler } from "h3"
 import { db, schema } from 'hub:db'
 import { getPostByIdentifier } from "~~/server/utils/post"
@@ -8,6 +8,9 @@ export default defineEventHandler(async (event) => {
   const body = await readBody(event)
   const apiKey = config.ai?.cloudflareKey
   const accountId = config.ai?.cloudflareAccountId
+  const openrouterKey = config.ai?.openrouterKey
+  const openrouterBaseUrl = config.ai?.openrouterBaseUrl
+  const defaultProvider: AIProvider = config.ai?.defaultProvider === 'openrouter' ? 'openrouter' : 'cloudflare'
 
   const parsed = aiRequestSchema.safeParse(body)
   if (!parsed.success) {
@@ -16,11 +19,19 @@ export default defineEventHandler(async (event) => {
 
   const session = await requireUserSession(event)
 
-  if (!apiKey || !accountId) {
+  const req = parsed.data
+  const requestedProvider: AIProvider = req.provider || defaultProvider
+  const providerForAction: AIProvider = (req.action === 'translate' || req.action === 'summarize')
+    ? 'cloudflare'
+    : requestedProvider
+
+  if (providerForAction === 'cloudflare' && (!apiKey || !accountId)) {
     throw createError({ statusCode: 500, statusMessage: 'AI not configured' })
   }
 
-  const req = parsed.data
+  if (providerForAction === 'openrouter' && !openrouterKey) {
+    throw createError({ statusCode: 500, statusMessage: 'AI not configured for OpenRouter' })
+  }
 
   let postId: number | null = null
   if (req.postIdentifier) {
@@ -55,6 +66,7 @@ export default defineEventHandler(async (event) => {
           user_id: session.user.id,
           post_id: postId,
           action: req.action,
+          provider: providerForAction,
           created_at: new Date().toISOString(),
         }).run()
       } catch {}
@@ -91,6 +103,7 @@ export default defineEventHandler(async (event) => {
           user_id: session.user.id,
           post_id: postId,
           action: req.action,
+          provider: providerForAction,
           created_at: new Date().toISOString(),
         }).run()
       } catch {}
@@ -109,14 +122,20 @@ export default defineEventHandler(async (event) => {
 
   const prompt = getPrompt(req)
 
-  // model per user request
-  const model = "@cf/meta/llama-2-7b-chat-int8"
-
   // Streaming response
   const abort = new AbortController()
   let streamResp
   try {
-    streamResp = await streamAI(accountId, apiKey, model, prompt, abort.signal)
+    streamResp = await streamAI({
+      provider: providerForAction,
+      cloudflareAccountId: accountId,
+      cloudflareApiKey: apiKey,
+      openrouterKey,
+      openrouterBaseUrl,
+      model: req.model,
+      prompt,
+      signal: abort.signal,
+    })
   } catch (err: any) {
     console.error('[ai/write] AI stream failed', err)
     throw createError({ statusCode: 502, statusMessage: 'AI provider error' })
@@ -129,6 +148,7 @@ export default defineEventHandler(async (event) => {
         user_id: session.user.id,
         post_id: postId,
         action: req.action,
+        provider: providerForAction,
         created_at: new Date().toISOString(),
       }).run()
     } catch {}

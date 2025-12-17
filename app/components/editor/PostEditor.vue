@@ -27,6 +27,7 @@
       :ai-enabled="aiEnabled"
       :ai-loading="aiLoading"
       :on-ai-command="onAiCommand"
+      :on-configure-models="props.onConfigureModels"
     />
 
     <FloatingSlashMenu
@@ -37,6 +38,7 @@
       :actions="floatingActions"
       @select="selectFloatingAction"
       :onInsertImages="onInsertImages"
+      :on-configure-models="props.onConfigureModels"
     />
 
     <EditorContent v-if="editor" :editor="editor" />
@@ -48,6 +50,7 @@
       :ai-enabled="aiEnabled"
       :ai-loading="aiLoading"
       :on-ai-command="onAiCommand"
+      :on-configure-models="props.onConfigureModels"
     />
   </div>
 </template>
@@ -82,11 +85,13 @@ interface Props {
   aiEnabled?: boolean
   aiLoading?: boolean
   onAiCommand?: (action: AICommand) => void
+  onConfigureModels?: () => void
 }
 const props = withDefaults(defineProps<Props>(), {
   aiEnabled: false,
   aiLoading: false,
   onAiCommand: undefined,
+  onConfigureModels: undefined,
 })
 
 const emit = defineEmits<{ 'update:content': [json: object]; 'editor-ready': [editor: any] }>()

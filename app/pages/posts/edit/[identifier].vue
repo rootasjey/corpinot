@@ -30,20 +30,19 @@
                 size="xs"
               />
             </NTooltip>
-            <NButton :to="`/posts/${post.slug}`" btn="soft-gray" size="xs" target="_blank">
+            <NButton :to="`/posts/${post.slug}`" btn="~" size="xs" class="border b-dashed hover:b-solid" target="_blank">
               <span class="i-lucide-external-link mr-2" />Preview
             </NButton>
             <NDropdownMenu :items="exportMenuItems" :_dropdownMenuContent="{ side: 'bottom' }">
-              <NButton btn="soft-gray" size="xs">
+              <NButton btn="~" size="xs" class="border b-dashed hover:b-solid">
                 <NIcon :name="exportingZip ? 'i-lucide-loader' : 'i-ph-download-simple'" :class="{ 'animate-spin': exportingZip }" />
-                <span class="ml-2">Export</span>
               </NButton>
             </NDropdownMenu>
-            <NButton @click="saveAll" btn="soft-gray" size="xs" :disabled="saving || !name || !slug">
+            <NButton @click="saveAll" btn="~" size="xs" :disabled="saving || !name || !slug" class="border b-dashed hover:b-solid" >
               <NIcon :name="saving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': saving }" />
             </NButton>
             <NDropdownMenu :items="menuItems" class="menu-items">
-              <NButton icon label="i-ph-dots-three-vertical" btn="soft-gray" size="xs" />
+              <NButton icon label="i-ph-dots-three-vertical" btn="~" size="xs" class="border b-dashed hover:b-solid" />
             </NDropdownMenu>
 
             <EditSlugDialog
@@ -121,6 +120,7 @@
             :ai-enabled="aiEnabled"
             :ai-loading="aiLoading"
             :on-ai-command="startAI"
+            :on-configure-models="openAiProviderDialog"
             @update:content="onEditorUpdate"
             @editor-ready="onEditorReady"
           />
@@ -195,6 +195,11 @@
       </NDialogContent>
     </NDialog>
 
+    <AiProviderDialog
+      v-model:open="aiProviderDialogOpen"
+      v-model:provider="aiProvider"
+    />
+
     <!-- Hidden file input for cover image -->
     <input
       ref="fileInput"
@@ -209,9 +214,9 @@
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
 import type { ApiTag } from '~~/shared/types/tags'
-import { computed, nextTick, onMounted, ref, watch } from 'vue'
+import { computed, onMounted, ref, watch } from 'vue'
 import { useDebounceFn, useTimeAgo } from '@vueuse/core'
-import type { AIAction, AILength, AICommand } from '~/composables/useAIWriter'
+import type { AILength, AICommand } from '~/composables/useAIWriter'
 import PostContent from '~/components/PostContent.vue'
 import PostMetadataEditor from '~/components/PostMetadataEditor.vue'
 import { usePost } from '~/composables/usePost'
@@ -222,6 +227,8 @@ import { usePostAI } from '~/composables/usePostAI'
 import { deriveSlugFromName } from '~/utils/slug'
 import { useTagStore } from '~/stores/tags'
 import { useAIWriter } from '~/composables/useAIWriter'
+import { useStorage } from '@vueuse/core'
+import AiProviderDialog from '~/components/editor/AiProviderDialog.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -255,6 +262,8 @@ const articleContent = ref({})
 const runtimeConfig = useRuntimeConfig()
 const aiEnabled = computed(() => runtimeConfig.public?.features?.aiWriter === true)
 const aiLength = ref<AILength>('medium')
+const aiProvider = useStorage<'cloudflare' | 'openrouter'>('ai-provider', 'cloudflare')
+const aiProviderDialogOpen = ref(false)
 
 const editor = ref<any | null>(null)
 
@@ -323,6 +332,7 @@ const {
   identifier,
   aiEnabled,
   aiLength,
+  aiProvider,
   sourceLanguage,
   streamSuggestion,
   cancelStream: cancel,
@@ -380,6 +390,10 @@ const startAI = async (command: AICommand) => {
   }
 
   await startAIInternal(command)
+}
+
+function openAiProviderDialog() {
+  aiProviderDialogOpen.value = true
 }
 
 watch(aiError, (msg) => {
