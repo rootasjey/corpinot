@@ -67,10 +67,6 @@ watch(() => props.provider, (val) => {
   internalProvider.value = val
 })
 
-watch(() => props.open, (val) => {
-  if (!val) return
-})
-
 function setProvider(p: 'cloudflare' | 'openrouter') {
   internalProvider.value = p
 }

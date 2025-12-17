@@ -89,3 +89,11 @@ export const ai_requests = sqliteTable('ai_requests', {
   tokens_output: integer('tokens_output'),
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
+
+export const site_settings = sqliteTable('site_settings', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  key: text('key').notNull().unique(),
+  value: text('value').notNull().default('{}'),
+  created_at: text('created_at').default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text('updated_at').default(sql`CURRENT_TIMESTAMP`),
+})

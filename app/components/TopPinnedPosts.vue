@@ -57,7 +57,7 @@
 
       <!-- Empty: dummy row matching final UI -->
       <div v-else class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 md:gap-6 xl:gap-4 justify-items-center">
-        <article v-for="(item, i) in dummyHero" :key="i" class="group w-100">
+        <article v-for="(item, i) in dummyHero" :key="i" class="group w-90 xl:w-auto">
           <div class="flex gap-3 md:gap-4 items-start">
             <!-- Image placeholder on Left -->
             <div class="relative overflow-hidden rounded-xl w-24 h-24 md:w-28 md:h-28 xl:w-24 xl:h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-800">

@@ -81,23 +81,15 @@
         <!-- Social Icons in Mobile Drawer -->
         <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
           <div class="flex items-center gap-4">
-            <a href="https://x.com" target="_blank" rel="noopener" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-x-logo w-5 h-5"></div>
-            </a>
-            <a href="https://facebook.com" target="_blank" rel="noopener" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-facebook-logo w-5 h-5"></div>
-            </a>
-            <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-instagram-logo w-5 h-5"></div>
-            </a>
-            <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-pinterest-logo w-5 h-5"></div>
-            </a>
-            <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-youtube-logo w-5 h-5"></div>
-            </a>
-            <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-tiktok-logo w-5 h-5"></div>
+            <a
+              v-for="s in orderedSocials"
+              :key="s.platform + s.url"
+              :href="s.url"
+              target="_blank"
+              rel="noopener"
+              class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+            >
+              <div :class="`${iconClass(s.platform)} w-5 h-5`"></div>
             </a>
           </div>
         </div>
@@ -130,23 +122,15 @@
         <div class="flex items-center justify-between px-6 max-w-7xl mx-auto">
           <!-- Left: Social Icons -->
           <div class="flex items-center gap-3">
-            <a href="https://x.com" target="_blank" rel="noopener" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-x-logo w-4.5 h-4.5"></div>
-            </a>
-            <a href="https://facebook.com" target="_blank" rel="noopener" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-facebook-logo w-4.5 h-4.5"></div>
-            </a>
-            <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-instagram-logo w-4.5 h-4.5"></div>
-            </a>
-            <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-pinterest-logo w-4.5 h-4.5"></div>
-            </a>
-            <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-youtube-logo w-4.5 h-4.5"></div>
-            </a>
-            <a href="#" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors">
-              <div class="i-ph-tiktok-logo w-4.5 h-4.5"></div>
+            <a
+              v-for="s in orderedSocials"
+              :key="s.platform + s.url"
+              :href="s.url"
+              target="_blank"
+              rel="noopener"
+              class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
+            >
+              <div :class="`${iconClass(s.platform)} w-4.5 h-4.5`"></div>
             </a>
           </div>
 
@@ -214,6 +198,10 @@
       </div>
     </div>
   </header>
+
+  <ClientOnly>
+    <AdminSiteSettingsDrawer v-model:open="siteSettingsDrawerOpen" />
+  </ClientOnly>
 </template>
 
 <script setup lang="ts">
@@ -221,20 +209,26 @@ import { computed, isRef, onBeforeUnmount, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useHeaderScroll } from '../composables/useHeaderScroll'
 import useGlobalSearch from '~/composables/useGlobalSearch'
+import useSiteSettings from '~/composables/useSiteSettings'
 
 type ThemePreference = 'light' | 'dark' | 'system'
 type ThemeMenuScope = 'desktop' | 'mobile'
 
 const { user, loggedIn, fetch: refreshSession, clear: clearSession } = useUserSession()
 const router = useRouter()
+const { socials: siteSocials } = useSiteSettings()
+
+const orderedSocials = computed(() => [...siteSocials.value].filter((s) => s.enabled !== false).sort((a, b) => (a.order ?? 0) - (b.order ?? 0)))
 
 const isLoggedIn = computed(() => (typeof loggedIn === 'boolean' ? loggedIn : loggedIn.value))
 const currentUser = computed(() => (isRef(user) ? (user.value as any) : user as any))
 const userInitial = computed(() => (currentUser.value?.name ? currentUser.value.name.charAt(0).toUpperCase() : ''))
+const isAdmin = computed(() => isLoggedIn.value && currentUser.value?.role === 'admin')
 
 const isMobileMenuOpen = ref(false)
 const colorMode = useColorMode()
 const { isScrolled } = useHeaderScroll({ threshold: 12 })
+const siteSettingsDrawerOpen = ref(false)
 
 const desktopThemeMenu = createThemeMenuController()
 const mobileThemeMenu = createThemeMenuController()
@@ -262,10 +256,18 @@ async function handleLogout() {
   }
 }
 
-const dropdownItems = computed(() => [
-  { label: 'Profile', onSelect: () => router.push('/profile') },
-  { label: 'Logout', onSelect: async () => { await handleLogout() } },
-])
+const dropdownItems = computed(() => {
+  const items = [
+    { label: 'Profile', onSelect: () => router.push('/profile') },
+    { label: 'Logout', onSelect: async () => { await handleLogout() } },
+  ]
+
+  if (isAdmin.value) {
+    items.unshift({ label: 'Site settings', onSelect: () => { siteSettingsDrawerOpen.value = true } })
+  }
+
+  return items
+})
 
 const themeDropdownItems = computed(() => {
   const preference = colorMode.preference as ThemePreference
@@ -384,5 +386,19 @@ function createThemeMenuController() {
   onBeforeUnmount(clearTimer)
 
   return { open, requestOpen, scheduleLongPress, cancelLongPress, close, handleOpenChange }
+}
+
+function iconClass(platform?: string) {
+  if (!platform) return 'i-ph-link'
+  const p = platform.toLowerCase()
+  if (p.includes('twitter') || p === 'x') return 'i-ph-x-logo'
+  if (p.includes('facebook')) return 'i-ph-facebook-logo'
+  if (p.includes('instagram')) return 'i-ph-instagram-logo'
+  if (p.includes('pinterest')) return 'i-ph-pinterest-logo'
+  if (p.includes('youtube')) return 'i-ph-youtube-logo'
+  if (p.includes('tiktok')) return 'i-ph-tiktok-logo'
+  if (p.includes('github')) return 'i-ph-github-logo'
+  if (p.includes('linkedin')) return 'i-ph-linkedin-logo'
+  return 'i-ph-link'
 }
 </script>
