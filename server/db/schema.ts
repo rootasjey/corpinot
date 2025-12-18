@@ -68,6 +68,19 @@ export const messages = sqliteTable('messages', {
   updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 
+export const newsletter_subscribers = sqliteTable('newsletter_subscribers', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  email: text('email').notNull().unique(),
+  user_id: integer('user_id'),
+  status: text('status').notNull().default('subscribed'),
+  verified: integer('verified', { mode: 'boolean' }).notNull().default(false),
+  confirmed_at: text('confirmed_at'),
+  resend_message_id: text('resend_message_id'),
+  metadata: text('metadata').notNull().default('{}'),
+  created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+})
+
 export const post_images = sqliteTable('post_images', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   post_id: integer('post_id').notNull(),
