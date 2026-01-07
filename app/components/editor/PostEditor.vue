@@ -38,6 +38,7 @@
       :actions="floatingActions"
       @select="selectFloatingAction"
       :onInsertImages="onInsertImages"
+      :onInsertGallery="onInsertGallery"
       :on-configure-models="props.onConfigureModels"
     />
 
@@ -69,6 +70,7 @@ import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TaskItemNodeView from './TaskItemNodeView.vue'
 import CodeBlockNodeView from './CodeBlockNodeView.vue'
 import { CustomImage } from './CustomImage'
+import ImageGallery from './ImageGallery'
 import NodeRange from '@tiptap/extension-node-range'
 import Separator from './Separator'
 import EditorDragHandleMenu from './EditorDragHandleMenu.vue'
@@ -152,8 +154,14 @@ const editor = useEditor({
     }).configure({ lowlight: useLowlight() }),
     FileHandler.configure({
       allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
-      onDrop: async (currentEditor, files, pos) => handleFiles(currentEditor, files, pos),
-      onPaste: async (currentEditor, files) => handleFiles(currentEditor, files, currentEditor.state.selection.anchor),
+      onDrop: async (currentEditor, files, pos) => {
+        if (files.length > 1) return handleGalleryFiles(currentEditor, files, pos)
+        return handleFiles(currentEditor, files, pos)
+      },
+      onPaste: async (currentEditor, files) => {
+        if (files.length > 1) return handleGalleryFiles(currentEditor, files, currentEditor.state.selection.anchor)
+        return handleFiles(currentEditor, files, currentEditor.state.selection.anchor)
+      },
     }),
     Placeholder.configure({
       placeholder: ({ node }) => {
@@ -171,6 +179,7 @@ const editor = useEditor({
       },
     }).configure({ nested: true }),
     CustomImage,
+    ImageGallery,
     Separator,
     Table.configure({ resizable: true }),
     TextStyle,
@@ -253,6 +262,7 @@ const floatingActions = computed<FloatingAction[]>(() => {
     { label: 'Code Block', icon: 'i-lucide-code-2', isActive: () => editor.value?.isActive('codeBlock') ?? false, action: () => editor.value?.chain().focus().toggleCodeBlock().run() },
     { label: 'To-do', icon: 'i-lucide-check-square', isActive: () => editor.value?.isActive('taskList') ?? false, action: () => editor.value?.chain().focus().toggleTaskList().run() },
     { label: 'Blockquote', icon: 'i-lucide-quote', isActive: () => editor.value?.isActive('blockquote') ?? false, action: () => editor.value?.chain().focus().toggleBlockquote().run() },
+    { label: 'Gallery', icon: 'i-lucide-layout-grid', action: () => { /* drop-in handled by FloatingSlashMenu via file input */ } },
     { label: 'Image', icon: 'i-lucide-image', action: () => addImage() },
     { label: 'Separator', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator' }).run() },
     { label: 'Dashed', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator', attrs: { dashed: true } }).run() },
@@ -315,6 +325,56 @@ function onInsertImages(files: FileList) {
   if (!editor.value || !files?.length) return
   const pos = editor.value.state.selection.anchor
   handleFiles(editor.value, Array.from(files), pos)
+}
+
+async function handleGalleryFiles(currentEditor: any, files: File[], pos: number) {
+  const identifier = String(routeForUpload.params.identifier ?? '')
+  const imagesArray: any[] = []
+  for (const file of files) {
+    const uploadId = addUploading(file.name)
+    try {
+      if (identifier) {
+        try {
+          const json = await uploadFileWithProgress(identifier, file, (p: number) => updateUploading(uploadId, p), uploadId)
+          const src = json?.image?.src ?? null
+          if (src) {
+            imagesArray.push({ type: 'image', attrs: { src } })
+            continue
+          }
+        } catch (e: any) {
+          if (e && typeof e === 'object' && (e as any).aborted) continue
+        }
+      }
+      // Fallback base64 inline
+      const fileReader = new FileReader()
+      fileReader.readAsDataURL(file)
+      await new Promise<void>((resolve) => {
+        fileReader.onload = () => {
+          imagesArray.push({ type: 'image', attrs: { src: fileReader.result } })
+          resolve()
+        }
+      })
+    } catch {
+      const fr = new FileReader()
+      fr.readAsDataURL(file)
+      fr.onload = () => {
+        imagesArray.push({ type: 'image', attrs: { src: fr.result } })
+      }
+    } finally {
+      removeUploading(uploadId)
+    }
+  }
+
+  // Insert a single gallery node with the collected images
+  if (imagesArray.length > 0) {
+    currentEditor.chain().insertContentAt(pos, { type: 'imageGallery', attrs: { images: imagesArray } }).focus().run()
+  }
+}
+
+function onInsertGallery(files: FileList) {
+  if (!editor.value || !files?.length) return
+  const pos = editor.value.state.selection.anchor
+  handleGalleryFiles(editor.value, Array.from(files), pos)
 }
 
 // Keep external content sync if parent updates. Normalize incoming content

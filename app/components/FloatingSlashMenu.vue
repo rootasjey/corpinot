@@ -10,6 +10,7 @@
     @keydown.stop.prevent="onKeydown"
   >
     <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="onFilesChange" />
+    <input ref="fileInputGallery" type="file" accept="image/*" multiple class="hidden" @change="onGalleryFilesChange" />
     <template v-for="(item, idx) in actions" :key="item.label">
       <div v-if="item.ask" class="relative inline-flex">
         <button
@@ -124,6 +125,7 @@ const props = withDefaults(defineProps<{
   shouldShow?: any
   actions: FloatingAction[]
   onInsertImages?: (files: FileList) => void
+  onInsertGallery?: (files: FileList) => void
   onConfigureModels?: () => void
 }>(), {
   editable: false,
@@ -138,6 +140,7 @@ const emit = defineEmits<{
 const buttons = ref<HTMLButtonElement[]>([])
 const index = ref(-1)
 const fileInput = ref<HTMLInputElement | null>(null)
+const fileInputGallery = ref<HTMLInputElement | null>(null)
 const aiMenuIndex = ref(-1)
 const aiAskOpen = ref(false)
 const aiPrompt = ref('')
@@ -324,6 +327,23 @@ const onKeydown = (e: KeyboardEvent) => {
 
 const onSelect = (item: FloatingAction, idx: number) => {
   closeAiMenu()
+  if (item.label === 'Gallery' && props.onInsertGallery) {
+    const ed = props.editor
+    if (ed) {
+      try {
+        const pos = ed.state.selection.from
+        const charBefore = ed.state.doc.textBetween(pos - 1, pos, '', '\n')
+        if (charBefore === '/') {
+          const tr = ed.state.tr.delete(pos - 1, pos)
+          ed.view.dispatch(tr)
+          ed.chain().focus().setTextSelection(pos - 1).run()
+        }
+      } catch {}
+    }
+    fileInputGallery.value?.click()
+    return
+  }
+
   if (item.label === 'Image' && props.onInsertImages) {
     // If there's a leading '/' (that opened the slash menu), remove it
     const ed = props.editor
@@ -350,6 +370,14 @@ function onFilesChange(e: Event) {
   if (!input.files || input.files.length === 0) return
   props.onInsertImages?.(input.files)
   // Reset so selecting same file again triggers change
+  input.value = ''
+}
+
+function onGalleryFilesChange(e: Event) {
+  const input = e.target as HTMLInputElement
+  if (!input.files || input.files.length === 0) return
+  props.onInsertGallery?.(input.files)
+  // Reset so selecting same files again triggers change
   input.value = ''
 }
 
