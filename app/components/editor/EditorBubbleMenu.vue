@@ -32,6 +32,25 @@
         <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFilePicked" />
       </div>
     </template>
+    <!-- Code block language selector -->
+    <template v-else-if="codeBlockSelected">
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium px-2">Language:</span>
+        <NDropdownMenu 
+          modal
+          :items="languageDropdownItems"
+          :_dropdown-menu-content="blockDropDownMenuContent"
+        >
+          <NButton
+            btn="~"
+            class="flex items-center gap-1 px-2 py-1 hover:bg-muted rounded text-sm font-medium min-w-[120px]"
+          >
+            <span class="flex-1 text-left">{{ currentLanguageLabel }}</span>
+            <span class="i-lucide-chevron-down text-xs opacity-50" />
+          </NButton>
+        </NDropdownMenu>
+      </div>
+    </template>
     <!-- Formatting actions (default) -->
     <template v-else>
       <NDropdownMenu 
@@ -137,6 +156,7 @@ import type { BetterSelection } from '~~/shared/types/nodes'
 import type { Editor } from '@tiptap/vue-3'
 import type { Editor as TiptapEditor } from '@tiptap/core'
 import type { AICommand } from '~/composables/useAIWriter'
+import { useCodeHighlight } from '~/composables/useCodeHighlight'
 
 interface BlockType {
   label: string
@@ -209,6 +229,8 @@ const manualLinkOpen = ref(false)
 const linkInput = ref<any | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 
+const { popularLanguages, normalizeLangName } = useCodeHighlight()
+
 // Determine whether the current selection is an image node.
 // Use the editor's selection state directly — relying on `isActive('image')` alone
 // could be misleading in cases where the editor still reports the mark/node active
@@ -218,6 +240,37 @@ const imageSelected = computed(() => {
   const sel = props.editor?.state.selection as any | undefined
   return !!sel && !!sel.node && sel.node.type?.name === 'image'
 })
+
+// Check if a code block is currently active
+const codeBlockSelected = computed(() => props.editor?.isActive('codeBlock'))
+
+const currentLanguageLabel = computed(() => {
+  if (!props.editor || !codeBlockSelected.value) return 'Plain Text'
+  const attrs = props.editor.getAttributes('codeBlock')
+  const lang = attrs?.language || ''
+  if (!lang) return 'Plain Text'
+  const found = popularLanguages.find(l => l.value === lang)
+  return found?.label || lang.toUpperCase()
+})
+
+const languageDropdownItems = computed(() => [
+  {
+    label: 'Languages',
+    items: [
+      { label: 'Plain Text', onSelect: () => setCodeBlockLanguage(null) },
+      ...popularLanguages.map(l => ({
+        label: l.label,
+        trailing: currentLanguageLabel.value === l.label ? 'i-ph-check' : undefined,
+        onSelect: () => setCodeBlockLanguage(l.value),
+      })),
+    ],
+  },
+])
+
+function setCodeBlockLanguage(language: string | null) {
+  if (!props.editor) return
+  props.editor.chain().focus().updateAttributes('codeBlock', { language }).run()
+}
 const copied = ref(false)
 
 const currentImageDisplay = computed(() => props.editor?.getAttributes('image')?.display || 'center')

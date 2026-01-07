@@ -55,8 +55,10 @@
           <NuxtImg v-if="displayAvatar" provider="hubblob" :src="displayAvatar" :alt="form.name" class="object-cover w-full h-full" />
           <div v-else class="w-full h-40 md:h-64 flex items-center justify-center text-3xl sm:text-4xl font-bold text-gray-600 dark:text-gray-200">{{ userInitials }}</div>
           <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <NButton @click="triggerAvatarFileInput" btn="solid-white" size="sm" leading="i-ph-image">Replace</NButton>
-            <NButton @click="deleteAvatar" :disabled="!form.avatar" btn="ghost-gray" size="sm" leading="i-ph-trash" color="danger">Remove</NButton>
+            <NButton @click="triggerAvatarFileInput" btn="solid-white" size="sm" leading="i-ph-image" :disabled="avatarUploading">
+              {{ avatarUploading ? 'Uploading…' : displayAvatar ? 'Change' : 'Add' }}
+            </NButton>
+            <NButton @click="openDeleteAvatarDialog" :disabled="!displayAvatar" btn="solid-gray" size="sm" leading="i-ph-trash" color="danger">Remove</NButton>
           </div>
           <div v-if="avatarUploading" class="absolute left-0 bottom-0 w-full h-1 bg-black/10 rounded-b-2xl overflow-hidden">
             <div class="h-full bg-primary transition-all duration-300" :style="{ width: avatarUploadProgress + '%' }" />
@@ -172,6 +174,30 @@
           </NDialogFooter>
         </NDialogContent>
       </NDialog>
+
+      <!-- Confirm delete avatar dialog -->
+      <NDialog v-model:open="deleteAvatarDialogOpen" :closeOnEsc="true">
+        <NDialogOverlay />
+        <NDialogContent class="max-w-sm">
+          <NDialogHeader>
+            <NDialogTitle>Remove avatar</NDialogTitle>
+          </NDialogHeader>
+
+          <div class="p-6 text-sm text-gray-600 dark:text-gray-400">Are you sure you want to remove your avatar? This action cannot be undone.</div>
+
+          <NDialogFooter class="flex items-center gap-2 justify-end p-0">
+            <div class="flex items-center gap-2">
+              <NButton @click="deleteAvatarDialogOpen = false" btn="ghost-gray" size="xs" :disabled="isDeletingAvatar">Cancel</NButton>
+            </div>
+            <div class="ml-auto flex items-center gap-2">
+              <NButton @click="confirmDeleteAvatar" :disabled="isDeletingAvatar" btn="soft-pink" size="xs" color="danger">
+                <NIcon :name="isDeletingAvatar ? 'i-lucide-loader' : 'i-lucide-trash'" :class="{ 'animate-spin': isDeletingAvatar }" />
+                <span class="ml-2">Remove</span>
+              </NButton>
+            </div>
+          </NDialogFooter>
+        </NDialogContent>
+      </NDialog>
     </div>
   </section>
 </template>
@@ -233,6 +259,25 @@ const avatarUploadProgress = ref(0)
 const avatarDragOver = ref(false)
   // Preview avatar shown immediately after upload until the session/user data refreshes
   const previewAvatar = ref<string | null>(null)
+  // Delete avatar confirmation dialog state & loading indicator
+  const deleteAvatarDialogOpen = ref(false)
+  const isDeletingAvatar = ref(false)
+
+  function openDeleteAvatarDialog() { deleteAvatarDialogOpen.value = true }
+
+  async function confirmDeleteAvatar() {
+    isDeletingAvatar.value = true
+    errorMessage.value = ''
+    try {
+      await deleteAvatar()
+      // close dialog on success
+      deleteAvatarDialogOpen.value = false
+    } catch (e) {
+      // deleteAvatar already sets errorMessage
+    } finally {
+      isDeletingAvatar.value = false
+    }
+  }
 
 watch(userProfile, (val) => {
   if (!val) return
@@ -245,6 +290,13 @@ watch(userProfile, (val) => {
   form.language = val.language ?? ''
   form.socials = typeof val.socials === 'string' ? val.socials : JSON.stringify(val.socials ?? '')
   initialForm.value = { ...form }
+  // Clear preview avatar once the actual user profile has updated
+  if (previewAvatar.value !== null) {
+    // If the persisted avatar matches the preview, or the preview was set to empty string and the persisted avatar is now absent, clear the preview
+    if (val.avatar === previewAvatar.value || (previewAvatar.value === '' && !val.avatar)) {
+      previewAvatar.value = null
+    }
+  }
   // Ensure textarea is sized after we update the form value
   nextTick(() => autoResizeName(nameTextarea.value))
 }, { immediate: true })
@@ -260,8 +312,9 @@ const userInitials = computed(() => {
 })
 
 const displayAvatar = computed(() => {
-  // Prefer a temporary preview after upload, otherwise use persisted user profile avatar
-  return previewAvatar.value ?? userProfile.value?.avatar ?? ''
+  // Prefer a temporary preview after upload/delete, otherwise use persisted user profile avatar
+  if (previewAvatar.value !== null) return previewAvatar.value
+  return userProfile.value?.avatar ?? ''
 })
 
 const nameTextarea = ref<HTMLTextAreaElement | null>(null)
@@ -326,10 +379,9 @@ async function uploadAvatarWithUi(file: File) {
       previewAvatar.value = res.image.src
       showSuccess('Avatar updated')
       await refreshSession()
-      // after session refresh, profile/user will update and watch() will sync `form.avatar`
+      // Keep preview until userProfile watcher confirms the update
+      // The watch on userProfile will clear previewAvatar when val.avatar matches
       initialForm.value = { ...form }
-      // clear preview since persisted user data should now be in `userProfile`
-      previewAvatar.value = null
     }
   } catch (e: any) {
     errorMessage.value = e?.message || e?.data?.message || 'Failed to upload avatar'
@@ -379,19 +431,25 @@ const handleAvatarFileChange = async (event: Event) => {
 }
 
 const deleteAvatar = async () => {
-  if (!confirm('Are you sure you want to remove your avatar?')) return
   try {
     const res: any = await $fetch('/api/user/avatar', { method: 'DELETE' })
     if (res.success) {
-      // Clear any UI preview and rely on refreshed session/user data
-      previewAvatar.value = null
+      // Set preview to empty string to immediately clear the image
+      previewAvatar.value = ''
       form.avatar = ''
       showSuccess(res.message || 'Avatar removed')
       await refreshSession()
+      // The watch on userProfile will clear previewAvatar when the update is confirmed
       initialForm.value = { ...form }
+      return res
     }
+    // treat non-success payloads as errors
+    const err = new Error(res?.message || 'Failed to remove avatar')
+    errorMessage.value = res?.message || 'Failed to remove avatar'
+    throw err
   } catch (e: any) {
-    errorMessage.value = e?.data?.message || 'Failed to remove avatar'
+    errorMessage.value = e?.data?.message || e?.message || 'Failed to remove avatar'
+    throw e
   }
 }
 

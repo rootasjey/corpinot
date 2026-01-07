@@ -1,0 +1,212 @@
+/* Code syntax highlighting theme - minimal & accessible */
+
+/* Base code block styles */
+.post-content pre {
+  position: relative;
+  padding: 2.5rem 1rem 1rem 1rem; /* Extra top padding for buttons */
+  border-radius: 0.5rem;
+  overflow-x: auto;
+  background: var(--code-bg, #1e1e1e);
+  border: 1px solid var(--code-border, #333);
+  font-family: 'Fira Code', 'JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  tab-size: 2;
+}
+
+.post-content pre code {
+  display: block;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--code-text, #d4d4d4);
+}
+
+/* Light theme variables */
+:root {
+  --code-bg: #f8f8f8;
+  --code-border: #e5e5e5;
+  --code-text: #333;
+  
+  /* Syntax tokens - light theme */
+  --code-comment: #6a737d;
+  --code-keyword: #d73a49;
+  --code-string: #032f62;
+  --code-number: #005cc5;
+  --code-function: #6f42c1;
+  --code-class: #22863a;
+  --code-variable: #e36209;
+  --code-operator: #d73a49;
+  --code-punctuation: #24292e;
+  --code-tag: #22863a;
+  --code-attr: #6f42c1;
+  --code-builtin: #005cc5;
+}
+
+/* Dark theme variables */
+.dark {
+  --code-bg: #1e1e1e;
+  --code-border: #333;
+  --code-text: #d4d4d4;
+  
+  /* Syntax tokens - dark theme */
+  --code-comment: #6a9955;
+  --code-keyword: #c586c0;
+  --code-string: #ce9178;
+  --code-number: #b5cea8;
+  --code-function: #dcdcaa;
+  --code-class: #4ec9b0;
+  --code-variable: #9cdcfe;
+  --code-operator: #d4d4d4;
+  --code-punctuation: #d4d4d4;
+  --code-tag: #569cd6;
+  --code-attr: #9cdcfe;
+  --code-builtin: #4ec9b0;
+}
+
+/* Highlight.js/lowlight token classes */
+.hljs-comment,
+.hljs-quote {
+  color: var(--code-comment);
+  font-style: italic;
+}
+
+.hljs-keyword,
+.hljs-selector-tag,
+.hljs-subst {
+  color: var(--code-keyword);
+  font-weight: 600;
+}
+
+.hljs-string,
+.hljs-doctag,
+.hljs-regexp {
+  color: var(--code-string);
+}
+
+.hljs-number,
+.hljs-literal,
+.hljs-meta .hljs-string {
+  color: var(--code-number);
+}
+
+.hljs-title,
+.hljs-section,
+.hljs-name,
+.hljs-selector-id,
+.hljs-selector-class {
+  color: var(--code-function);
+  font-weight: 600;
+}
+
+.hljs-type,
+.hljs-class .hljs-title {
+  color: var(--code-class);
+}
+
+.hljs-variable,
+.hljs-template-variable,
+.hljs-attr {
+  color: var(--code-variable);
+}
+
+.hljs-params {
+  color: var(--code-attr);
+}
+
+.hljs-built_in,
+.hljs-builtin-name {
+  color: var(--code-builtin);
+}
+
+.hljs-tag,
+.hljs-meta-keyword {
+  color: var(--code-tag);
+}
+
+.hljs-attribute {
+  color: var(--code-attr);
+}
+
+.hljs-operator,
+.hljs-symbol,
+.hljs-bullet,
+.hljs-link {
+  color: var(--code-operator);
+}
+
+.hljs-punctuation {
+  color: var(--code-punctuation);
+}
+
+.hljs-emphasis {
+  font-style: italic;
+}
+
+.hljs-strong {
+  font-weight: 700;
+}
+
+.hljs-deletion {
+  background: rgba(255, 0, 0, 0.1);
+}
+
+.hljs-addition {
+  background: rgba(0, 255, 0, 0.1);
+}
+
+/* Code block with language label */
+.post-content pre[data-language]::before {
+  content: attr(data-language);
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  padding: 0.125rem 0.5rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  color: var(--code-comment);
+  background: var(--code-bg);
+  border: 1px solid var(--code-border);
+  border-radius: 0.25rem;
+  opacity: 0.6;
+}
+
+/* Editor-specific overrides */
+.tiptap pre {
+  background: var(--code-bg);
+  color: var(--code-text);
+  font-family: 'Fira Code', 'JetBrains Mono', 'Menlo', 'Monaco', 'Courier New', monospace;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--code-border);
+}
+
+.tiptap pre code {
+  background: none;
+  color: inherit;
+  font-size: 0.875rem;
+  padding: 0;
+}
+
+/* Scrollbar for code blocks */
+.post-content pre::-webkit-scrollbar,
+.tiptap pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.post-content pre::-webkit-scrollbar-track,
+.tiptap pre::-webkit-scrollbar-track {
+  background: var(--code-bg);
+}
+
+.post-content pre::-webkit-scrollbar-thumb,
+.tiptap pre::-webkit-scrollbar-thumb {
+  background: var(--code-border);
+  border-radius: 4px;
+}
+
+.post-content pre::-webkit-scrollbar-thumb:hover,
+.tiptap pre::-webkit-scrollbar-thumb:hover {
+  background: var(--code-comment);
+}

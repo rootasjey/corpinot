@@ -1,7 +1,7 @@
 <template>
   <div class="post-content relative">
     <!-- Upload progress indicators for inline images -->
-    <div v-if="uploadingImages.length > 0" class="upload-indicator fixed top-4 right-4 z-50 w-64 bg-background border border-border rounded-lg shadow-lg p-2">
+    <div v-if="uploadingImages.length > 0" class="upload-indicator fixed top-4 right-4 z-8 w-64 bg-background border border-border rounded-lg shadow-lg p-2">
       <div class="font-semibold text-sm mb-2">Uploading image{{ uploadingImages.length > 1 ? 's' : '' }}</div>
       <div class="space-y-2 max-h-40 overflow-auto">
         <div v-for="u in uploadingImages" :key="u.id" class="flex items-center gap-2">
@@ -58,6 +58,7 @@
 <script setup lang="ts">
 import { useEditor, EditorContent, Editor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Placeholder from '@tiptap/extension-placeholder'
 import { TextStyle, BackgroundColor } from '@tiptap/extension-text-style'
 import Color from '@tiptap/extension-color'
@@ -66,6 +67,7 @@ import TaskList from '@tiptap/extension-task-list'
 import TaskItem from '@tiptap/extension-task-item'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TaskItemNodeView from './TaskItemNodeView.vue'
+import CodeBlockNodeView from './CodeBlockNodeView.vue'
 import { CustomImage } from './CustomImage'
 import NodeRange from '@tiptap/extension-node-range'
 import Separator from './Separator'
@@ -79,6 +81,7 @@ import { useRoute } from '#imports'
 import type { EditorState } from '@tiptap/pm/state'
 import type { BlockType } from '~~/shared/types/nodes'
 import type { AICommand } from '~/composables/useAIWriter'
+import { useLowlight } from '~/composables/useCodeHighlight'
 
 interface Props {
   content: string | object
@@ -137,7 +140,16 @@ const editor = useEditor({
   content: normalizeEditorContent(props.content),
   editable: true,
   extensions: [
-    StarterKit.configure({ heading: { levels: [1, 2, 3, 4] }, link: { openOnClick: false } }),
+    StarterKit.configure({
+      heading: { levels: [1, 2, 3, 4] },
+      link: { openOnClick: false },
+      codeBlock: false, // Disable default codeBlock to use CodeBlockLowlight
+    }),
+    CodeBlockLowlight.extend({
+      addNodeView() {
+        return VueNodeViewRenderer(CodeBlockNodeView)
+      },
+    }).configure({ lowlight: useLowlight() }),
     FileHandler.configure({
       allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
       onDrop: async (currentEditor, files, pos) => handleFiles(currentEditor, files, pos),

@@ -44,7 +44,6 @@
 
   <template v-else>
     <NDialog v-model:open="open">
-      <NDialogOverlay />
       <NDialogContent class="max-w-2xl">
         <NDialogHeader>
           <NDialogTitle>Create Post</NDialogTitle>
@@ -102,6 +101,7 @@ const tagsText = ref('')
 const creating = ref(false)
 
 const router = useRouter()
+const toast = useToast()
 
 // Detect desktop (>= 1024px) to show dialog instead of drawer
 const isDesktop = useMediaQuery('(min-width: 1024px)')
@@ -137,13 +137,34 @@ const create = async () => {
     })
 
     emit('created', res)
+    
+    // Show success toast
+    toast.toast({
+      title: 'Post created',
+      description: 'Redirecting to editor...',
+      toast: 'success'
+    })
+    
     open.value = false
     // navigate to editor for new post
     await router.push(`/posts/edit/${res.id}`)
   } catch (e: any) {
-    console.error('Create post failed', e)
-    // lightweight error surface
-    try { alert(e?.data?.message || e?.message || 'Failed to create post') } catch {}
+    console.error('[NewPostDrawer] Create post failed:', {
+      error: e,
+      statusCode: e?.statusCode,
+      message: e?.data?.message || e?.message,
+      data: e?.data
+    })
+    
+    // Extract the most helpful error message
+    const errorMessage = e?.data?.message || e?.message || 'Failed to create post. Please try again.'
+    
+    // Show error toast with detailed message
+    toast.toast({
+      title: 'Failed to create post',
+      description: errorMessage,
+      toast: 'danger'
+    })
   } finally {
     creating.value = false
   }

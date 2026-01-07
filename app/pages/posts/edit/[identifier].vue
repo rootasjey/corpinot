@@ -77,20 +77,26 @@
       @update:tags="onTagsUpdated"
     />
 
-    <!-- Featured Image (preview) -->
-    <div v-if="post.image?.src" class="w-full px-4 relative group">
-      <NuxtImg provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-auto max-h-[80vh] object-cover rounded-2xl" />
+    <!-- Featured Image (preview / placeholder) -->
+    <div v-if="previewSrc || post.image?.src" class="w-full px-4 relative group">
+      <img v-if="previewSrc" :src="previewSrc" :alt="post.image?.alt || post.name" class="w-full h-auto max-h-[80vh] object-cover rounded-2xl" />
+      <NuxtImg v-else provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-auto max-h-[80vh] object-cover rounded-2xl" />
+
       <div v-if="uploadingCover" class="absolute left-0 bottom-0 w-full h-1 bg-black/20 rounded-b-2xl overflow-hidden">
         <div class="h-full bg-primary transition-all duration-300" :style="{ width: uploadProgress + '%' }" />
       </div>
+
       <!-- Overlay actions -->
       <div class="absolute top-4 right-8 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <NButton @click="triggerFileInput" btn="solid-white" size="xs" :disabled="uploadingCover" leading="i-ph-image">
           <span v-if="!uploadingCover">Replace</span>
           <span v-else>{{ uploadProgress }}%</span>
         </NButton>
-        <NButton @click="deleteCoverImage" btn="solid-white" size="xs" leading="i-ph-trash" class="text-red-500" :disabled="uploadingCover">
+        <NButton v-if="post.image?.src" @click="openDeleteCoverDialog" btn="solid-white" size="xs" leading="i-ph-trash" class="text-red-500" :disabled="uploadingCover">
           Delete
+        </NButton>
+        <NButton v-else-if="previewSrc && !uploadingCover" @click="clearPreview" btn="solid-white" size="xs" leading="i-ph-x">
+          Cancel
         </NButton>
       </div>
     </div>
@@ -155,7 +161,6 @@
     </transition>
 
     <NDialog v-model:open="translateDialogOpen">
-      <NDialogOverlay />
       <NDialogContent class="max-w-md">
         <NDialogHeader>
           <NDialogTitle>Translate selection</NDialogTitle>
@@ -204,12 +209,49 @@
       v-model:provider="aiProvider"
     />
 
+    <!-- Delete post confirmation -->
+    <NDialog v-model:open="confirmDeleteDialogOpen">
+      <NDialogContent class="max-w-md">
+        <NDialogHeader>
+          <NDialogTitle>Delete post</NDialogTitle>
+        </NDialogHeader>
+
+        <NDialogDescription>
+          <p class="text-sm text-gray-700 dark:text-gray-300">Are you sure you want to delete this post? This action cannot be undone.</p>
+        </NDialogDescription>
+
+        <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
+          <NButton btn="ghost-gray" size="sm" @click="confirmDeleteDialogOpen = false">Cancel</NButton>
+          <NButton btn="danger" size="sm" @click="performDeletePost" :loading="deletePostLoading">Delete</NButton>
+        </NDialogFooter>
+      </NDialogContent>
+    </NDialog>
+
+    <!-- Remove cover image confirmation -->
+    <NDialog v-model:open="confirmDeleteCoverOpen">
+      <NDialogContent class="max-w-md">
+        <NDialogHeader>
+          <NDialogTitle>Remove cover image</NDialogTitle>
+        </NDialogHeader>
+
+        <NDialogDescription>
+          <p class="text-sm text-gray-700 dark:text-gray-300">Are you sure you want to remove the cover image?</p>
+        </NDialogDescription>
+
+        <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
+          <NButton btn="ghost-gray" size="sm" @click="confirmDeleteCoverOpen = false">Cancel</NButton>
+          <NButton btn="danger" size="sm" @click="confirmDeleteCover" :loading="deleteCoverLoading">Remove</NButton>
+        </NDialogFooter>
+      </NDialogContent>
+    </NDialog>
+
     <!-- Hidden file input for cover image -->
     <input
       ref="fileInput"
       type="file"
       accept="image/*"
       class="hidden"
+      :disabled="uploadingCover"
       @change="onCoverFileChange"
     />
   </div>
@@ -257,6 +299,12 @@ const error = ref('')
 const successMessage = ref('')
 const exportingZip = ref(false)
 
+// Delete confirmations (use Una UI dialogs instead of window.confirm)
+const confirmDeleteDialogOpen = ref(false)
+const deletePostLoading = ref(false)
+const confirmDeleteCoverOpen = ref(false)
+const deleteCoverLoading = ref(false)
+
 const name = ref('')
 const description = ref('')
 const slug = ref('')
@@ -300,7 +348,7 @@ async function saveArticle(content: object) {
 
 const debouncedSaveArticle = useDebounceFn(saveArticle, 700)
 
-const { fileInput, uploadingCover, uploadProgress, triggerFileInput, handleFileChange, deleteCoverImage } = usePostImages(
+const { fileInput, uploadingCover, uploadProgress, previewSrc, clearPreview, triggerFileInput, handleFileChange, deleteCoverImage } = usePostImages(
   () => identifier.value,
   () => post.value,
 )
@@ -488,7 +536,7 @@ const menuItems = computed(() => {
       ],
     },
     { label: 'Edit Slug', onSelect: openSlugDialog },
-    { label: 'Delete Post', onSelect: deletePost },
+    { label: 'Delete Post', onSelect: openDeleteDialog },
     { label: 'Export (ZIP)', onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
     {
       label: 'Cover Image',
@@ -497,7 +545,7 @@ const menuItems = computed(() => {
           ? { label: 'Replace Cover Image', onSelect: triggerFileInput, leading: uploadingCover.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-image' }
           : { label: 'Add Cover Image', onSelect: triggerFileInput, leading: 'i-ph-image' },
         post.value?.image?.src
-          ? { label: 'Delete Cover Image', onSelect: deleteCoverWithFeedback, leading: 'i-ph-trash' }
+          ? { label: 'Delete Cover Image', onSelect: openDeleteCoverDialog, leading: 'i-ph-trash' }
           : {},
       ],
     },
@@ -615,18 +663,28 @@ const saveAll = async () => {
   }
 }
 
-const deletePost = async () => {
+// Open the delete-post confirmation dialog
+const openDeleteDialog = () => {
+  confirmDeleteDialogOpen.value = true
+}
+
+// Perform the deletion after the user confirms
+const performDeletePost = async () => {
   if (!post.value) return
-  if (!confirm('Are you sure you want to delete this post? This action cannot be undone.')) return
+  deletePostLoading.value = true
+  error.value = ''
 
   try {
     await deletePostApi(identifier.value)
+    confirmDeleteDialogOpen.value = false
     router.push('/posts')
   } catch (e: any) {
     error.value = e?.data?.message || 'Failed to delete post'
     console.error('Failed to delete post:', e)
+  } finally {
+    deletePostLoading.value = false
   }
-}
+} 
 
 const exportPost = async () => {
   if (!post.value) return
@@ -710,18 +768,31 @@ const onCoverFileChange = async (event: Event) => {
   }
 }
 
-const deleteCoverWithFeedback = async () => {
+const openDeleteCoverDialog = () => {
   if (!post.value?.image?.src) return
-  if (!confirm('Are you sure you want to remove the cover image?')) return
+  confirmDeleteCoverOpen.value = true
+}
+
+const confirmDeleteCover = async () => {
+  if (!post.value?.image?.src) {
+    confirmDeleteCoverOpen.value = false
+    return
+  }
+
+  deleteCoverLoading.value = true
   error.value = ''
   try {
     await deleteCoverImage()
     successMessage.value = 'Cover image removed'
     setTimeout(() => (successMessage.value = ''), 3000)
+    confirmDeleteCoverOpen.value = false
   } catch (e: any) {
     error.value = e?.message || 'Failed to remove cover image'
+    console.error('Failed to remove cover image:', e)
+  } finally {
+    deleteCoverLoading.value = false
   }
-}
+} 
 
 onMounted(() => {
   fetchPost()

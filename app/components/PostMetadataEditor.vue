@@ -9,6 +9,7 @@
         </div>
 
         <textarea
+          ref="nameInput"
           v-model="nameProxy"
           rows="1"
           class="w-full resize-none overflow-hidden text-4xl md:text-5xl lg:text-4xl font-serif font-700 text-center leading-tight bg-transparent outline-none focus:outline-none focus:ring-0"
@@ -68,7 +69,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch } from 'vue'
+import { computed, nextTick, ref, watch, onMounted } from 'vue'
 import { useTagStore } from '~/stores/tags'
 import type { ApiTag } from '~~/shared/types/tags'
 
@@ -103,6 +104,7 @@ const descriptionProxy = computed({
 const localTags = ref<ApiTag[]>(props.tags || [])
 watch(() => props.tags, (tags) => { localTags.value = tags || [] })
 
+const nameInput = ref<HTMLTextAreaElement | null>(null)
 const descriptionInput = ref<any | null>(null)
 const editingTagActive = ref(false)
 const editingTagName = ref('')
@@ -176,8 +178,11 @@ const cancelNewTag = () => {
   editingTagName.value = ''
 }
 
-const autoResize = (evt: Event) => {
-  const el = evt.target as HTMLTextAreaElement
+const autoResize = (evt?: Event | null) => {
+  let el: HTMLTextAreaElement | null = null
+  if (evt) el = evt.target as HTMLTextAreaElement
+  else el = nameInput.value
+  if (!el) return
   el.style.height = 'auto'
   el.style.height = `${el.scrollHeight}px`
 }
@@ -196,6 +201,17 @@ const autoResizeDescription = (evt?: Event | null) => {
 
 watch(() => props.description, async () => {
   await nextTick()
+  autoResizeDescription()
+})
+
+watch(() => props.name, async () => {
+  await nextTick()
+  autoResize()
+})
+
+onMounted(async () => {
+  await nextTick()
+  autoResize()
   autoResizeDescription()
 })
 </script>

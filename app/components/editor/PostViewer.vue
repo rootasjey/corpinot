@@ -7,6 +7,7 @@
 <script setup lang="ts">
 import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
+import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Placeholder from '@tiptap/extension-placeholder'
 import { TextStyle, BackgroundColor } from '@tiptap/extension-text-style'
 import Color from '@tiptap/extension-color'
@@ -18,8 +19,10 @@ import TaskItem from '@tiptap/extension-task-item'
 import Separator from './Separator'
 import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TaskItemNodeView from './TaskItemNodeView.vue'
+import CodeBlockNodeView from './CodeBlockNodeView.vue'
 import { CustomImage } from './CustomImage'
 import { watch } from 'vue'
+import { useLowlight } from '~/composables/useCodeHighlight'
 
 interface Props {
   content: string | object
@@ -37,7 +40,13 @@ const editor = useEditor({
   extensions: [
     StarterKit.configure({
       heading: { levels: [1, 2, 3, 4] },
+      codeBlock: false, // Disable default codeBlock to use CodeBlockLowlight
     }),
+    CodeBlockLowlight.extend({
+      addNodeView() {
+        return VueNodeViewRenderer(CodeBlockNodeView)
+      },
+    }).configure({ lowlight: useLowlight() }),
     CustomImage,
     TextStyle,
     BackgroundColor,

@@ -113,7 +113,11 @@
               <article v-for="post in visiblePosts" :key="post.slug" class="group flex flex-col">
                 <NuxtLink :to="`/posts/${post.slug}`" class="block flex flex-col h-full">
                   <div v-if="post.image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
-                    <img :src="post.image.src" :alt="post.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <NuxtImg
+                      :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
+                      :src="post.image.src" 
+                      :alt="post.name" 
+                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
 
                   <div class="space-y-2 flex-1 flex flex-col">
