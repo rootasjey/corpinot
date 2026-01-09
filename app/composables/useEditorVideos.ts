@@ -2,45 +2,36 @@ import { ref } from 'vue'
 import type { UploadingItem } from '~~/shared/types/uploading'
 
 interface UploadResult {
-  image?: { src?: string }
+  video?: { src?: string; posterSrc?: string }
   [key: string]: any
 }
 
-export interface UseEditorImagesApi {
-  uploadingImages: typeof uploadingImages
-  addUploading: (name: string) => string
-  updateUploading: (id: string, progress: number) => void
-  removeUploading: (id: string) => void
-  uploadFileWithProgress: (identifier: string, file: File, onProgress: (p: number) => void, id?: string) => Promise<UploadResult>
-  cancelUpload: (id: string) => void
-}
-
-const uploadingImages = ref<UploadingItem[]>([])
+const uploadingVideos = ref<UploadingItem[]>([])
 const uploadRequests = new Map<string, XMLHttpRequest>()
 
 function addUploading(name: string) {
   const id = `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`
-  uploadingImages.value.push({ id, name, progress: 0 })
+  uploadingVideos.value.push({ id, name, progress: 0 })
   return id
 }
 
 function updateUploading(id: string, progress: number) {
-  const idx = uploadingImages.value.findIndex(u => u.id === id)
+  const idx = uploadingVideos.value.findIndex(u => u.id === id)
   if (idx >= 0) {
-    const item = uploadingImages.value[idx]
+    const item = uploadingVideos.value[idx]
     if (item) item.progress = progress
   }
 }
 
 function removeUploading(id: string) {
-  uploadingImages.value = uploadingImages.value.filter(u => u.id !== id)
+  uploadingVideos.value = uploadingVideos.value.filter(u => u.id !== id)
 }
 
-function uploadFileWithProgress(identifier: string, file: File, onProgress: (p: number) => void, id?: string) {
+function uploadVideoWithProgress(identifier: string, file: File, posterBlob: Blob | null, onProgress: (p: number) => void, id?: string) {
   return new Promise<any>((resolve, reject) => {
     try {
       const xhr = new XMLHttpRequest()
-      const url = `/api/posts/${encodeURIComponent(identifier)}/images`
+      const url = `/api/posts/${encodeURIComponent(identifier)}/videos`
       xhr.open('POST', url)
 
       xhr.upload.onprogress = (evt) => {
@@ -75,6 +66,10 @@ function uploadFileWithProgress(identifier: string, file: File, onProgress: (p: 
       form.append('file', file)
       form.append('fileName', file.name)
       form.append('type', file.type)
+      if (posterBlob) {
+        // Poster as a blob; the server will accept it as 'poster' with a filename
+        form.append('poster', posterBlob, `${file.name}-poster.png`)
+      }
       if (id) uploadRequests.set(id, xhr)
 
       xhr.send(form)
@@ -93,13 +88,13 @@ function cancelUpload(id: string) {
   removeUploading(id)
 }
 
-export function useEditorImages(): UseEditorImagesApi {
+export function useEditorVideos() {
   return {
-    uploadingImages,
+    uploadingVideos,
     addUploading,
     updateUploading,
     removeUploading,
-    uploadFileWithProgress,
+    uploadVideoWithProgress,
     cancelUpload,
   }
 }

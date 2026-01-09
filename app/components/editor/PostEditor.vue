@@ -19,6 +19,25 @@
       </div>
     </div>
 
+    <!-- Upload progress indicators for inline videos -->
+    <div v-if="uploadingVideos.length > 0" class="upload-indicator fixed top-4 right-4 z-8 w-64 bg-background border border-border rounded-lg shadow-lg p-2 mt-20">
+      <div class="font-semibold text-sm mb-2">Uploading video{{ uploadingVideos.length > 1 ? 's' : '' }}</div>
+      <div class="space-y-2 max-h-40 overflow-auto">
+        <div v-for="u in uploadingVideos" :key="u.id" class="flex items-center gap-2">
+          <div class="flex-1">
+            <div class="text-xs truncate">{{ u.name }}</div>
+            <div class="h-2 bg-muted rounded mt-1 overflow-hidden">
+              <div class="h-full bg-primary transition-all" :style="{ width: u.progress + '%' }"></div>
+            </div>
+          </div>
+          <div class="text-xs w-10 text-right">{{ u.progress }}%</div>
+          <button @click.prevent="cancelVideoUpload(u.id)" type="button" class="text-xs ml-1 p-1 rounded hover:bg-muted" title="Cancel upload">
+            <span class="i-lucide-x" />
+          </button>
+        </div>
+      </div>
+    </div>
+
     <EditorBubbleMenu
       v-if="editor"
       :editor="editor"
@@ -59,6 +78,8 @@
 <script setup lang="ts">
 import { useEditor, EditorContent, Editor } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
+import { Extension } from '@tiptap/core'
+import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
 import CodeBlockLowlight from '@tiptap/extension-code-block-lowlight'
 import Placeholder from '@tiptap/extension-placeholder'
 import { TextStyle, BackgroundColor } from '@tiptap/extension-text-style'
@@ -71,6 +92,7 @@ import TaskItemNodeView from './TaskItemNodeView.vue'
 import CodeBlockNodeView from './CodeBlockNodeView.vue'
 import { CustomImage } from './CustomImage'
 import ImageGallery from './ImageGallery'
+import { Video } from './Video'
 import NodeRange from '@tiptap/extension-node-range'
 import Separator from './Separator'
 import EditorDragHandleMenu from './EditorDragHandleMenu.vue'
@@ -84,6 +106,8 @@ import type { EditorState } from '@tiptap/pm/state'
 import type { BlockType } from '~~/shared/types/nodes'
 import type { AICommand } from '~/composables/useAIWriter'
 import { useLowlight } from '~/composables/useCodeHighlight'
+import { useEditorVideos } from '~/composables/useEditorVideos'
+import { generatePosterFromVideoFile } from '~/composables/generateVideoPoster'
 
 interface Props {
   content: string | object
@@ -109,6 +133,16 @@ const {
   uploadFileWithProgress, 
   cancelUpload,
 } = useEditorImages()
+
+// Video uploads (progress UI handled separately)
+const {
+  uploadingVideos,
+  addUploading: addVideoUploading,
+  updateUploading: updateVideoUploading,
+  removeUploading: removeVideoUploading,
+  uploadVideoWithProgress,
+  cancelUpload: cancelVideoUpload,
+} = useEditorVideos()
 
 const routeForUpload = useRoute()
 
@@ -138,6 +172,117 @@ function normalizeEditorContent(input: string | object) {
 
 let suppressNextContentSync = false
 
+// Custom extension for line-by-line text selection with Shift+Arrow
+const ShiftArrowFix = Extension.create({
+  name: 'shiftArrowFix',
+  priority: 10000,
+  
+  addProseMirrorPlugins() {
+    return [
+      new Plugin({
+        key: new PluginKey('shiftArrowFix'),
+        props: {
+          handleKeyDown: (view, event) => {
+            if (event.shiftKey && !event.metaKey && !event.ctrlKey && !event.altKey) {
+              if (event.key === 'ArrowUp' || event.key === 'ArrowDown') {
+                event.preventDefault()
+                const { state, dispatch } = view
+                const { selection } = state
+                const { $head, $anchor } = selection
+                
+                try {
+                  const direction = event.key === 'ArrowUp' ? -1 : 1
+                  
+                  // Try multiple Y offsets until we find a different position
+                  let newPosResult = null
+                  const headCoords = view.coordsAtPos($head.pos)
+                  
+                  for (let offset = 20; offset <= 60; offset += 10) {
+                    const testY = headCoords.top + (direction * offset)
+                    const testPos = view.posAtCoords({ left: headCoords.left, top: testY })
+                    
+                    if (testPos && testPos.pos !== $head.pos) {
+                      newPosResult = testPos
+                      break
+                    }
+                  }
+                  
+                  // If we couldn't find a new position (at document boundary)
+                  // select to the start/end of the current line/block
+                  if (!newPosResult || newPosResult.pos === $head.pos) {
+                    const $headPos = state.doc.resolve($head.pos)
+                    let targetPos: number
+                    
+                    if (direction < 0) {
+                      // Going up: select to start of line/block
+                      // First try start of current text block
+                      targetPos = $headPos.start($headPos.depth)
+                      
+                      // If already at block start, select to start of parent or document
+                      if (targetPos === $head.pos && $headPos.depth > 1) {
+                        targetPos = $headPos.start($headPos.depth - 1)
+                      } else if (targetPos === $head.pos) {
+                        targetPos = 0
+                      }
+                    } else {
+                      // Going down: select to end of line/block
+                      // First try end of current text block
+                      targetPos = $headPos.end($headPos.depth)
+                      
+                      // If already at block end, select to end of parent or document
+                      if (targetPos === $head.pos && $headPos.depth > 1) {
+                        targetPos = $headPos.end($headPos.depth - 1)
+                      } else if (targetPos === $head.pos) {
+                        targetPos = state.doc.content.size
+                      }
+                    }
+                    
+                    // Ensure we don't select the same position
+                    if (targetPos !== $head.pos) {
+                      const newSelection = TextSelection.create(state.doc, $anchor.pos, targetPos)
+                      dispatch(state.tr.setSelection(newSelection).scrollIntoView())
+                      return true
+                    }
+                  } else if (newPosResult.pos !== $head.pos) {
+                    let targetPos = newPosResult.pos
+                    
+                    // Validate the position
+                    try {
+                      const $pos = state.doc.resolve(targetPos)
+                      
+                      // If we're at a position that's not inline content, try to find valid inline position
+                      if (!$pos.parent.inlineContent && $pos.depth > 0) {
+                        // Try to find a nearby valid position
+                        if (direction > 0 && targetPos < state.doc.content.size - 1) {
+                          targetPos = targetPos + 1
+                        } else if (direction < 0 && targetPos > 1) {
+                          targetPos = targetPos - 1
+                        }
+                      }
+                    } catch (e) {
+                      // If position resolution fails, use the original position
+                      console.warn('Position validation failed, using original:', e)
+                    }
+                    
+                    const newSelection = TextSelection.create(state.doc, $anchor.pos, targetPos)
+                    dispatch(state.tr.setSelection(newSelection).scrollIntoView())
+                    return true
+                  }
+                } catch (err) {
+                  console.error('Shift+Arrow selection error:', err)
+                }
+                
+                return true
+              }
+            }
+            return false
+          },
+        },
+      }),
+    ]
+  },
+})
+
 const editor = useEditor({
   content: normalizeEditorContent(props.content),
   editable: true,
@@ -147,13 +292,15 @@ const editor = useEditor({
       link: { openOnClick: false },
       codeBlock: false, // Disable default codeBlock to use CodeBlockLowlight
     }),
+    ShiftArrowFix,
     CodeBlockLowlight.extend({
       addNodeView() {
         return VueNodeViewRenderer(CodeBlockNodeView)
       },
     }).configure({ lowlight: useLowlight() }),
     FileHandler.configure({
-      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp'],
+      // Allow common image types and common web video types for inline uploads
+      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/ogg'],
       onDrop: async (currentEditor, files, pos) => {
         if (files.length > 1) return handleGalleryFiles(currentEditor, files, pos)
         return handleFiles(currentEditor, files, pos)
@@ -180,6 +327,7 @@ const editor = useEditor({
     }).configure({ nested: true }),
     CustomImage,
     ImageGallery,
+    Video,
     Separator,
     Table.configure({ resizable: true }),
     TextStyle,
@@ -204,6 +352,49 @@ watch(() => editor.value, (ed) => { if (ed) emit('editor-ready', ed) }, { immedi
 async function handleFiles(currentEditor: any, files: File[], pos: number) {
   const identifier = String(routeForUpload.params.identifier ?? '')
   for (const file of files) {
+    // Video handling: generate a poster client-side and upload both video + poster
+    if (file.type && file.type.startsWith('video')) {
+      const uploadId = addVideoUploading(file.name)
+      try {
+        if (identifier) {
+          try {
+            const posterBlob = await generatePosterFromVideoFile(file)
+            const json = await uploadVideoWithProgress(identifier, file, posterBlob, (p: number) => updateVideoUploading(uploadId, p), uploadId)
+            const src = json?.video?.src ?? null
+            const poster = json?.video?.posterSrc ?? null
+            if (src) {
+              currentEditor.chain().insertContentAt(pos, { type: 'video', attrs: { src, poster } }).focus().run()
+              continue
+            }
+          } catch (e: any) {
+            if (e && typeof e === 'object' && (e as any).aborted) continue
+            // Fall through to base64 fallback
+          }
+        }
+
+        // Fallback to base64 inline if upload is not available
+        const fr = new FileReader()
+        fr.readAsDataURL(file)
+        await new Promise<void>((resolve) => {
+          fr.onload = () => {
+            currentEditor.chain().insertContentAt(pos, { type: 'video', attrs: { src: fr.result } }).focus().run()
+            resolve()
+          }
+        })
+      } catch {
+        const fr = new FileReader()
+        fr.readAsDataURL(file)
+        fr.onload = () => {
+          currentEditor.chain().insertContentAt(pos, { type: 'video', attrs: { src: fr.result } }).focus().run()
+        }
+      } finally {
+        removeVideoUploading(uploadId)
+      }
+
+      continue
+    }
+
+    // Image (existing) flow
     const uploadId = addUploading(file.name)
     try {
       if (identifier) {
@@ -264,6 +455,7 @@ const floatingActions = computed<FloatingAction[]>(() => {
     { label: 'Blockquote', icon: 'i-lucide-quote', isActive: () => editor.value?.isActive('blockquote') ?? false, action: () => editor.value?.chain().focus().toggleBlockquote().run() },
     { label: 'Gallery', icon: 'i-lucide-layout-grid', action: () => { /* drop-in handled by FloatingSlashMenu via file input */ } },
     { label: 'Image', icon: 'i-lucide-image', action: () => addImage() },
+    { label: 'Video', icon: 'i-lucide-film', action: () => addVideo() },
     { label: 'Separator', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator' }).run() },
     { label: 'Dashed', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator', attrs: { dashed: true } }).run() },
   ]
@@ -319,6 +511,11 @@ function addImage() {
   // Fallback: prompt for URL if file picker not available
   const url = window.prompt('Image URL')
   if (url && editor.value) editor.value.chain().focus().setImage({ src: url }).run()
+}
+
+function addVideo() {
+  const url = window.prompt('Video URL')
+  if (url && editor.value) editor.value.chain().focus().insertContent({ type: 'video', attrs: { src: url } }).run()
 }
 
 function onInsertImages(files: FileList) {

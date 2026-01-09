@@ -38,18 +38,30 @@ const collectImageSrcs = (node: any, setFiles: Set<string>, setPaths: Set<string
     addFilename(stored)
   }
 
-  // Process current node, if it's an image
-  if (node.type === 'image' && node.attrs && node.attrs.src) {
-    const src = String(node.attrs.src).trim()
-    if (!src) {
-      // nothing to do
-    } else if (src.startsWith('/images/')) {
-      handleImagesPrefix(src)
-    } else if (src.startsWith('/posts/')) {
-      handlePostsPrefix(src)
-    } else {
-      // external URL or other source — just capture filename
-      addFilename(src)
+  // Process current node: images and videos (video has src and optional poster)
+  if ((node.type === 'image' || node.type === 'video') && node.attrs) {
+    // Handle node src
+    const src = String(node.attrs?.src || '').trim()
+    if (src) {
+      if (src.startsWith('/images/')) {
+        handleImagesPrefix(src)
+      } else if (src.startsWith('/posts/')) {
+        handlePostsPrefix(src)
+      } else {
+        addFilename(src)
+      }
+    }
+
+    // If video has a poster attribute, also collect that
+    const poster = String(node.attrs?.poster || '').trim()
+    if (poster) {
+      if (poster.startsWith('/images/')) {
+        handleImagesPrefix(poster)
+      } else if (poster.startsWith('/posts/')) {
+        handlePostsPrefix(poster)
+      } else {
+        addFilename(poster)
+      }
     }
   }
 
@@ -85,6 +97,17 @@ export async function cleanupOrphanPostImages(database: Database, postId: number
       .update(schema.post_images)
       .set({ in_use: false })
       .where(eq(schema.post_images.post_id, postIdNumber))
+      .run()
+  } catch (err) {
+    // non-fatal — keep going
+  }
+
+  // Also reset any video in_use flags — we'll re-mark videos that are referenced later
+  try {
+    await database
+      .update(schema.post_videos)
+      .set({ in_use: false })
+      .where(eq(schema.post_videos.post_id, postIdNumber))
       .run()
   } catch (err) {
     // non-fatal — keep going
@@ -154,6 +177,67 @@ export async function cleanupOrphanPostImages(database: Database, postId: number
     }
   } catch (err) {
     console.warn('Failed to list post images for cleanup', err)
+  }
+
+  // Now handle video blobs under posts/<id>/videos in the same way, marking post_videos.in_use or deleting
+  const videosPrefix = `posts/${postId}/videos`
+  const markVideoInUse = async (pathname: string, filename: string) => {
+    try {
+      await database
+        .update(schema.post_videos)
+        .set({ in_use: true })
+        .where(
+          and(
+            eq(schema.post_videos.post_id, postIdNumber),
+            or(eq(schema.post_videos.pathname, `/${pathname}`), eq(schema.post_videos.filename, filename))
+          )
+        )
+        .run()
+    } catch (err) {
+      // non-fatal — keep going
+    }
+  }
+
+  const deleteVideoBlobAndRecord = async (pathname: string, filename: string) => {
+    try {
+      console.log('Deleting orphan video blob:', `/${pathname}`)
+      await blob.del(pathname)
+      results.deleted += 1
+      try {
+        await database
+          .delete(schema.post_videos)
+          .where(
+            and(
+              eq(schema.post_videos.post_id, postIdNumber),
+              or(eq(schema.post_videos.pathname, `/${pathname}`), eq(schema.post_videos.filename, filename))
+            )
+          )
+          .run()
+      } catch (err) {
+        console.warn('postVideos: failed to delete DB record for', pathname, err)
+      }
+    } catch (err) {
+      console.warn('Failed to delete orphan video', `/${pathname}`, err)
+    }
+  }
+
+  try {
+    const list = await blob.list({ prefix: videosPrefix })
+    for (const blobItem of list.blobs) {
+      const pathname = blobItem.pathname.replace(/^\/+/, '')
+      const filename = pathname.split('/').pop() || ''
+      const isReferenced = referencedPaths.has(pathname) || referencedFiles.has(filename)
+
+      if (isReferenced) {
+        results.preserved += 1
+        await markVideoInUse(pathname, filename)
+        continue
+      }
+
+      await deleteVideoBlobAndRecord(pathname, filename)
+    }
+  } catch (err) {
+    console.warn('Failed to list post videos for cleanup', err)
   }
 
   return results

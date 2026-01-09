@@ -20,7 +20,7 @@ export default defineNuxtConfig({
       ]
     }
   },
-  compatibilityDate: '2025-07-15',
+  compatibilityDate: '2025-12-31',
   devtools: { enabled: true },
   future: {
     compatibilityVersion: 4,
@@ -51,7 +51,7 @@ export default defineNuxtConfig({
     '@nuxtjs/color-mode',
     '@vueuse/nuxt',
   ],
-
+  
   runtimeConfig: {
     // Private keys (only available on server-side)
     authSecret: process.env.NUXT_AUTH_SECRET,

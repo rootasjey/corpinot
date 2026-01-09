@@ -5,7 +5,7 @@ These notes help AI agents navigate and extend this Nuxt 4 app quickly and corre
 ## Big picture
 - Framework: Nuxt 4 (TypeScript) with Pinia, UnoCSS + Una UI, and @nuxt/image.
 - Platform integrations via @nuxthub/core: hub features enabled for blob, cache, database, kv, and browser (see `nuxt.config.ts`).
-- Server routes live under `server/routes/**` (Nitro). Database schema is defined in `server/database/migrations/schema.sql`.
+- Server routes live under `server/routes/**` (Nitro). Database schema is defined in `server/db/schema.ts`.
 - Custom image provider wired to @nuxt/image in `providers/hubblob.ts` and served by `server/routes/images/[pathname].get.ts` via `hubBlob().serve(...)`.
 
 ## Project structure
@@ -56,8 +56,9 @@ const isOpen = computed({
   get: () => props.open,
   set: (v: boolean) => emits('update:open', v),
 })
+```
 
-```## Dev workflows
+## Dev workflows
 - Scripts (see `package.json`):
   - `bun run dev` (or `npm run dev`) – start local dev server.
   - `bun run build` – production build.
@@ -65,7 +66,9 @@ const isOpen = computed({
   - `bun run preview` – preview a build.
   - `postinstall` runs `nuxt prepare`.
 - Runtime config: the image provider uses `useRuntimeConfig().public.siteUrl` when `baseURL` isn’t provided. Set `NUXT_PUBLIC_SITE_URL` in env for correct absolute image URLs in dev/prod.- **Terminal management:** Never run commands (e.g., `curl`, tests, builds) in a terminal that already has a background process like `bun run dev`. These will fail or hang. Instead, always open a separate terminal for concurrent commands. Only use the dev server terminal to stop the process if needed.
+
 ## Images flow (important)
+
 - Frontend uses @nuxt/image with a custom provider (`providers/hubblob.ts`).
   - If `src` starts with `/projects/` or `/posts/`, the provider rewrites to the internal route: `/images/:filename?relatedTo=:category&slug=:slug[&modifiers...]`.
   - Otherwise it joins `baseURL` (defaults to `public.siteUrl`) with the raw `src`.
@@ -77,7 +80,7 @@ const isOpen = computed({
 - To introduce a new top-level image category (e.g. `/avatars/...`), extend the prefix handling in `providers/hubblob.ts` so it’s rewritten through `/images/*` similarly to `posts` and `projects`.
 
 ## Data model and constraints
-- Schema location: `server/database/migrations/schema.sql` (SQLite/D1 via nuxthub). Core tables:
+- Schema location: `server/db/schema.ts`. Core tables:
   - `users` with unique `email` and `name`, language enum `('en','fr','es','de','it')`, audit timestamps, and trigger to update `updated_at`.
   - `posts` with unique `slug`, status enum `('draft','published','archived')`, metrics counters (non-negative), optional `blob_path` and image fields, FK to `users`.
   - `tags` and `post_tags` (many-to-many), plus `messages` with `priority` enum and indices for common filters.
@@ -90,7 +93,7 @@ Example query:
 
 sqlite3 .data/hub/d1/miniflare-D1DatabaseObject/7b8799eb95f0bb5448e259812996a461ce40142dacbdea254ea597e307767f45.sqlite "SELECT id, answer, metadata FROM activity_cards WHERE activity_id = (SELECT id FROM activities WHERE code='a1-2-countries') AND answer LIKE 'L''Australie'"
 
-Migrations: All schema changes must be done via SQL migrations in server/database/migrations/. Never modify the database directly in production.
+Migrations: All schema changes must be done via SQL migrations in server/db/migrations/. Never modify the database directly in production.
 
 ## Server route conventions
 - Use `eventHandler` and validate route params with zod + `getValidatedRouterParams` (see `server/routes/images/[pathname].get.ts`).

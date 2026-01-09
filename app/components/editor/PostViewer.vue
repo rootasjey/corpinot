@@ -21,6 +21,7 @@ import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TaskItemNodeView from './TaskItemNodeView.vue'
 import CodeBlockNodeView from './CodeBlockNodeView.vue'
 import { CustomImage } from './CustomImage'
+import { Video } from './Video'
 import { watch } from 'vue'
 import { useLowlight } from '~/composables/useCodeHighlight'
 
@@ -48,6 +49,7 @@ const editor = useEditor({
       },
     }).configure({ lowlight: useLowlight() }),
     CustomImage,
+    Video,
     TextStyle,
     BackgroundColor,
     Color,

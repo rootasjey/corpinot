@@ -5,7 +5,11 @@
 .post-content { @apply text-foreground; }
 .post-content .ProseMirror { @apply focus:outline-none border-none ring-none shadow-none; }
 .post-content .ProseMirror.ProseMirror-noderangeselection.ProseMirror-hideselection { @apply bg-[#000] p-2 transition-all; }
+.post-content .ProseMirror.ProseMirror-noderangeselection.ProseMirror-hideselection { @apply color-white transition-all; }
+.post-content .ProseMirror.ProseMirror-noderangeselection.ProseMirror-hideselection p { @apply color-white transition-all; }
 .dark .post-content .ProseMirror.ProseMirror-noderangeselection.ProseMirror-hideselection { @apply bg-[#F5E5E1]; }
+.dark .post-content .ProseMirror.ProseMirror-noderangeselection.ProseMirror-hideselection { @apply color-black transition-all; }
+.dark .post-content .ProseMirror.ProseMirror-noderangeselection.ProseMirror-hideselection p { @apply color-black transition-all; }
 
 /* Placeholder handling */
 .post-content .ProseMirror [data-placeholder].is-editor-empty,
