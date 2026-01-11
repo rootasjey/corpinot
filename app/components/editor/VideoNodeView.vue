@@ -297,7 +297,7 @@ function hideVolumeWithDelay() {
   if (volumeTimeout) clearTimeout(volumeTimeout)
   volumeTimeout = setTimeout(() => {
     showVolumeSlider.value = false
-  }, 3000)
+  }, 1000)
 }
 
 function handleKeydown(event: KeyboardEvent) {

@@ -10,6 +10,12 @@
 .dark .post-content .ProseMirror.ProseMirror-noderangeselection.ProseMirror-hideselection { @apply bg-[#F5E5E1]; }
 .dark .post-content .ProseMirror.ProseMirror-noderangeselection.ProseMirror-hideselection { @apply color-black transition-all; }
 .dark .post-content .ProseMirror.ProseMirror-noderangeselection.ProseMirror-hideselection p { @apply color-black transition-all; }
+.dark .post-content .ProseMirror.ProseMirror-hideselection .audio-container .title::selection,
+.dark .post-content .ProseMirror.ProseMirror-hideselection .audio-container .time-left::selection,
+.dark .post-content .ProseMirror.ProseMirror-hideselection .audio-container .time-right::selection { @apply color-white; }
+.light .post-content .ProseMirror.ProseMirror-hideselection .audio-container .title::selection,
+.light .post-content .ProseMirror.ProseMirror-hideselection .audio-container .time-left::selection,
+.light .post-content .ProseMirror.ProseMirror-hideselection .audio-container .time-right::selection { @apply color-black; }
 
 /* Placeholder handling */
 .post-content .ProseMirror [data-placeholder].is-editor-empty,

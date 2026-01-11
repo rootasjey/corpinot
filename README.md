@@ -87,3 +87,13 @@ If you rely on an alternative editor/IDE or different lint setup, add those same
 - Set `NUXT_AI_CLOUDFLARE_ACCOUNT_ID` and `NUXT_AI_CLOUDFLARE_KEY` in your environment (see `.env.example`).
 - Enable the UI with `NUXT_PUBLIC_FEATURE_AI_WRITER=true`.
 - The server streams via the Vercel AI SDK + `workers-ai-provider` using model `@cf/openai/gpt-oss-120b`.
+
+---
+
+## Editor: audio node
+
+- Added an atomic `audio` node with a Vue NodeView at `app/components/editor/AudioNodeView.vue`.
+- Upload support: client-side uploads POST to `POST /api/posts/[identifier]/audios` and are stored under `posts/<id>/audios`.
+- MIME types accepted: `audio/mpeg`, `audio/webm`, `audio/ogg`, `audio/wav`.
+- DB metadata stored in `post_audios` (migration: `server/db/migrations/010_add_post_audios.sql`).
+

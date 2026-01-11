@@ -38,8 +38,8 @@ const collectImageSrcs = (node: any, setFiles: Set<string>, setPaths: Set<string
     addFilename(stored)
   }
 
-  // Process current node: images and videos (video has src and optional poster)
-  if ((node.type === 'image' || node.type === 'video') && node.attrs) {
+  // Process current node: images, videos and audios (video has src and optional poster)
+  if ((node.type === 'image' || node.type === 'video' || node.type === 'audio') && node.attrs) {
     // Handle node src
     const src = String(node.attrs?.src || '').trim()
     if (src) {
@@ -102,12 +102,22 @@ export async function cleanupOrphanPostImages(database: Database, postId: number
     // non-fatal — keep going
   }
 
-  // Also reset any video in_use flags — we'll re-mark videos that are referenced later
+  // Also reset any video and audio in_use flags — we'll re-mark videos/audios that are referenced later
   try {
     await database
       .update(schema.post_videos)
       .set({ in_use: false })
       .where(eq(schema.post_videos.post_id, postIdNumber))
+      .run()
+  } catch (err) {
+    // non-fatal — keep going
+  }
+
+  try {
+    await database
+      .update(schema.post_audios)
+      .set({ in_use: false })
+      .where(eq(schema.post_audios.post_id, postIdNumber))
       .run()
   } catch (err) {
     // non-fatal — keep going
@@ -238,6 +248,67 @@ export async function cleanupOrphanPostImages(database: Database, postId: number
     }
   } catch (err) {
     console.warn('Failed to list post videos for cleanup', err)
+  }
+
+  // Handle audio blobs under posts/<id>/audios similarly
+  const audiosPrefix = `posts/${postId}/audios`
+  const markAudioInUse = async (pathname: string, filename: string) => {
+    try {
+      await database
+        .update(schema.post_audios)
+        .set({ in_use: true })
+        .where(
+          and(
+            eq(schema.post_audios.post_id, postIdNumber),
+            or(eq(schema.post_audios.pathname, `/${pathname}`), eq(schema.post_audios.filename, filename))
+          )
+        )
+        .run()
+    } catch (err) {
+      // non-fatal — keep going
+    }
+  }
+
+  const deleteAudioBlobAndRecord = async (pathname: string, filename: string) => {
+    try {
+      console.log('Deleting orphan audio blob:', `/${pathname}`)
+      await blob.del(pathname)
+      results.deleted += 1
+      try {
+        await database
+          .delete(schema.post_audios)
+          .where(
+            and(
+              eq(schema.post_audios.post_id, postIdNumber),
+              or(eq(schema.post_audios.pathname, `/${pathname}`), eq(schema.post_audios.filename, filename))
+            )
+          )
+          .run()
+      } catch (err) {
+        console.warn('postAudios: failed to delete DB record for', pathname, err)
+      }
+    } catch (err) {
+      console.warn('Failed to delete orphan audio', `/${pathname}`, err)
+    }
+  }
+
+  try {
+    const list = await blob.list({ prefix: audiosPrefix })
+    for (const blobItem of list.blobs) {
+      const pathname = blobItem.pathname.replace(/^\/+/, '')
+      const filename = pathname.split('/').pop() || ''
+      const isReferenced = referencedPaths.has(pathname) || referencedFiles.has(filename)
+
+      if (isReferenced) {
+        results.preserved += 1
+        await markAudioInUse(pathname, filename)
+        continue
+      }
+
+      await deleteAudioBlobAndRecord(pathname, filename)
+    }
+  } catch (err) {
+    console.warn('Failed to list post audios for cleanup', err)
   }
 
   return results

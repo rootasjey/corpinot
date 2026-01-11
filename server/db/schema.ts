@@ -105,6 +105,17 @@ export const post_videos = sqliteTable('post_videos', {
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 
+export const post_audios = sqliteTable('post_audios', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  post_id: integer('post_id').notNull(),
+  pathname: text('pathname').notNull().unique(),
+  filename: text('filename').notNull(),
+  content_type: text('content_type'),
+  size: integer('size'),
+  in_use: integer('in_use', { mode: 'boolean' }).notNull().default(false),
+  created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+})
+
 export const ai_requests = sqliteTable('ai_requests', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   user_id: integer('user_id').notNull(),

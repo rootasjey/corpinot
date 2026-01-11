@@ -32,6 +32,18 @@
         <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFilePicked" />
       </div>
     </template>
+    <!-- Audio specific actions -->
+    <template v-else-if="audioSelected">
+      <div class="flex items-center gap-2">
+        <button type="button" @click="triggerReplaceAudio" title="Replace audio">
+          <span class="i-lucide-upload" />
+        </button>
+        <button type="button" @click="deleteSelectedAudio" title="Delete audio">
+          <span class="i-lucide-trash" />
+        </button>
+        <input ref="audioFileInput" type="file" accept="audio/*" class="hidden" @change="onAudioFilePicked" />
+      </div>
+    </template>
     <!-- Code block language selector -->
     <template v-else-if="codeBlockSelected">
       <div class="flex items-center gap-2">
@@ -228,6 +240,7 @@ const linkUrl = ref('')
 const manualLinkOpen = ref(false)
 const linkInput = ref<any | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
+const audioFileInput = ref<HTMLInputElement | null>(null)
 
 const { popularLanguages, normalizeLangName } = useCodeHighlight()
 
@@ -239,6 +252,12 @@ const { popularLanguages, normalizeLangName } = useCodeHighlight()
 const imageSelected = computed(() => {
   const sel = props.editor?.state.selection as any | undefined
   return !!sel && !!sel.node && sel.node.type?.name === 'image'
+})
+
+// Check if an audio node is selected
+const audioSelected = computed(() => {
+  const sel = props.editor?.state.selection as any | undefined
+  return !!sel && !!sel.node && sel.node.type?.name === 'audio'
 })
 
 // Check if a code block is currently active
@@ -332,6 +351,9 @@ function shouldShowMenu(ctx: { state: EditorState; editor: TiptapEditor }) {
   const selectionIsImage = !!sel && !!sel.node && sel.node.type?.name === 'image'
   if (selectionIsImage) return true
 
+  const selectionIsAudio = !!sel && !!sel.node && sel.node.type?.name === 'audio'
+  if (selectionIsAudio) return true
+
   // For formatting menu: only show if there is an actual range selection (not a collapsed cursor),
   // or when the link editor/color popover is active.
   const { empty } = state.selection
@@ -396,6 +418,60 @@ async function copyImageUrl() {
   const ok = await copyImageToClipboard(src) ; if (!ok) return
   copied.value = true
   setTimeout(() => (copied.value = false), 1500)
+}
+
+function triggerReplaceAudio() {
+  audioFileInput.value?.click()
+}
+
+async function onAudioFilePicked(e: Event) {
+  const input = e.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file || !props.editor) return
+  const identifier = props.identifier || String(currentRoute.params.identifier || '')
+
+  if (!identifier) {
+    // fallback: base64
+    const fr = new FileReader()
+    fr.readAsDataURL(file)
+    fr.onload = () => {
+      props.editor?.chain().focus().updateAttributes('audio', { src: fr.result }).run()
+    }
+    input.value = ''
+    return
+  }
+
+  // Try server upload
+  try {
+    const form = new FormData()
+    form.append('file', file)
+    const res = await fetch(`/api/posts/${encodeURIComponent(identifier)}/audios`, { method: 'POST', body: form })
+    const json = await res.json()
+    if (res.ok && json?.audio?.src) {
+      props.editor?.chain().focus().updateAttributes('audio', { src: json.audio.src }).run()
+    } else {
+      // fallback base64
+      const fr = new FileReader()
+      fr.readAsDataURL(file)
+      fr.onload = () => {
+        props.editor?.chain().focus().updateAttributes('audio', { src: fr.result }).run()
+      }
+    }
+  } catch (err) {
+    // fallback base64
+    const fr = new FileReader()
+    fr.readAsDataURL(file)
+    fr.onload = () => {
+      props.editor?.chain().focus().updateAttributes('audio', { src: fr.result }).run()
+    }
+  } finally {
+    input.value = ''
+  }
+}
+
+function deleteSelectedAudio() {
+  if (!props.editor) return
+  props.editor.chain().focus().deleteSelection().run()
 }
 
 /**

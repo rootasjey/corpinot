@@ -21,9 +21,11 @@ import { VueNodeViewRenderer } from '@tiptap/vue-3'
 import TaskItemNodeView from './TaskItemNodeView.vue'
 import CodeBlockNodeView from './CodeBlockNodeView.vue'
 import { CustomImage } from './CustomImage'
+import ImageGallery from './ImageGallery'
 import { Video } from './Video'
+import { Audio } from './Audio'
 import { watch } from 'vue'
-import { useLowlight } from '~/composables/useCodeHighlight'
+import { useLowlight } from '~/composables/useCodeHighlight' 
 
 interface Props {
   content: string | object
@@ -49,7 +51,9 @@ const editor = useEditor({
       },
     }).configure({ lowlight: useLowlight() }),
     CustomImage,
+    ImageGallery,
     Video,
+    Audio,
     TextStyle,
     BackgroundColor,
     Color,

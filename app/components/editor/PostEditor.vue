@@ -38,6 +38,25 @@
       </div>
     </div>
 
+    <!-- Upload progress indicators for inline audios -->
+    <div v-if="uploadingAudios.length > 0" class="upload-indicator fixed top-4 right-4 z-8 w-64 bg-background border border-border rounded-lg shadow-lg p-2 mt-40">
+      <div class="font-semibold text-sm mb-2">Uploading audio{{ uploadingAudios.length > 1 ? 's' : '' }}</div>
+      <div class="space-y-2 max-h-40 overflow-auto">
+        <div v-for="u in uploadingAudios" :key="u.id" class="flex items-center gap-2">
+          <div class="flex-1">
+            <div class="text-xs truncate">{{ u.name }}</div>
+            <div class="h-2 bg-muted rounded mt-1 overflow-hidden">
+              <div class="h-full bg-primary transition-all" :style="{ width: u.progress + '%' }"></div>
+            </div>
+          </div>
+          <div class="text-xs w-10 text-right">{{ u.progress }}%</div>
+          <button @click.prevent="cancelAudioUpload(u.id)" type="button" class="text-xs ml-1 p-1 rounded hover:bg-muted" title="Cancel upload">
+            <span class="i-lucide-x" />
+          </button>
+        </div>
+      </div>
+    </div> 
+
     <EditorBubbleMenu
       v-if="editor"
       :editor="editor"
@@ -72,11 +91,18 @@
       :on-ai-command="onAiCommand"
       :on-configure-models="props.onConfigureModels"
     />
+
+    <MediaInsertDialog
+      v-model:open="mediaDialogOpen"
+      :media-type="mediaDialogType"
+      @insert="onMediaInsert"
+      @insert-link="onMediaInsertLink"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
-import { useEditor, EditorContent, Editor } from '@tiptap/vue-3'
+import { useEditor, EditorContent } from '@tiptap/vue-3'
 import StarterKit from '@tiptap/starter-kit'
 import { Extension } from '@tiptap/core'
 import { Plugin, PluginKey, TextSelection } from 'prosemirror-state'
@@ -93,6 +119,7 @@ import CodeBlockNodeView from './CodeBlockNodeView.vue'
 import { CustomImage } from './CustomImage'
 import ImageGallery from './ImageGallery'
 import { Video } from './Video'
+import { Audio } from './Audio'
 import NodeRange from '@tiptap/extension-node-range'
 import Separator from './Separator'
 import EditorDragHandleMenu from './EditorDragHandleMenu.vue'
@@ -101,13 +128,15 @@ import FileHandler from '@tiptap/extension-file-handler'
 import { watch, onBeforeUnmount, computed, toRaw } from 'vue'
 import FloatingSlashMenu from '../FloatingSlashMenu.vue'
 import EditorBubbleMenu from './EditorBubbleMenu.vue'
+import MediaInsertDialog from './MediaInsertDialog.vue'
 import { useRoute } from '#imports'
 import type { EditorState } from '@tiptap/pm/state'
 import type { BlockType } from '~~/shared/types/nodes'
 import type { AICommand } from '~/composables/useAIWriter'
 import { useLowlight } from '~/composables/useCodeHighlight'
 import { useEditorVideos } from '~/composables/useEditorVideos'
-import { generatePosterFromVideoFile } from '~/composables/generateVideoPoster'
+import { useEditorAudio } from '~/composables/useEditorAudio'
+import { generatePosterFromVideoFile } from '~/composables/generateVideoPoster' 
 
 interface Props {
   content: string | object
@@ -116,6 +145,7 @@ interface Props {
   onAiCommand?: (action: AICommand) => void
   onConfigureModels?: () => void
 }
+
 const props = withDefaults(defineProps<Props>(), {
   aiEnabled: false,
   aiLoading: false,
@@ -134,7 +164,6 @@ const {
   cancelUpload,
 } = useEditorImages()
 
-// Video uploads (progress UI handled separately)
 const {
   uploadingVideos,
   addUploading: addVideoUploading,
@@ -143,6 +172,18 @@ const {
   uploadVideoWithProgress,
   cancelUpload: cancelVideoUpload,
 } = useEditorVideos()
+
+const {
+  uploadingAudios,
+  addUploading: addAudioUploading,
+  updateUploading: updateAudioUploading,
+  removeUploading: removeAudioUploading,
+  uploadAudioWithProgress,
+  cancelUpload: cancelAudioUpload,
+} = useEditorAudio()
+
+const mediaDialogOpen = ref(false)
+const mediaDialogType = ref<'audio' | 'video'>('audio')
 
 const routeForUpload = useRoute()
 
@@ -299,8 +340,8 @@ const editor = useEditor({
       },
     }).configure({ lowlight: useLowlight() }),
     FileHandler.configure({
-      // Allow common image types and common web video types for inline uploads
-      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/ogg'],
+      // Allow common image types, web video types and common audio types for inline uploads
+      allowedMimeTypes: ['image/png', 'image/jpeg', 'image/gif', 'image/webp', 'video/mp4', 'video/webm', 'video/ogg', 'audio/mpeg', 'audio/mp3', 'audio/webm', 'audio/ogg', 'audio/wav', 'audio/flac', 'audio/x-flac', 'audio/aac', 'audio/mp4', 'audio/m4a'],
       onDrop: async (currentEditor, files, pos) => {
         if (files.length > 1) return handleGalleryFiles(currentEditor, files, pos)
         return handleFiles(currentEditor, files, pos)
@@ -328,6 +369,7 @@ const editor = useEditor({
     CustomImage,
     ImageGallery,
     Video,
+    Audio,
     Separator,
     Table.configure({ resizable: true }),
     TextStyle,
@@ -389,6 +431,45 @@ async function handleFiles(currentEditor: any, files: File[], pos: number) {
         }
       } finally {
         removeVideoUploading(uploadId)
+      }
+
+      continue
+    }
+
+    // Audio handling: upload and insert an audio node (MVP without waveform)
+    if (file.type && file.type.startsWith('audio')) {
+      const uploadId = addAudioUploading(file.name)
+      try {
+        if (identifier) {
+          try {
+            const json = await uploadAudioWithProgress(identifier, file, (p: number) => updateAudioUploading(uploadId, p), uploadId)
+            const src = json?.audio?.src ?? null
+            if (src) {
+              currentEditor.chain().insertContentAt(pos, { type: 'audio', attrs: { src } }).focus().run()
+              continue
+            }
+          } catch (e: any) {
+            if (e && typeof e === 'object' && (e as any).aborted) continue
+          }
+        }
+
+        // Fallback to base64 inline
+        const fr = new FileReader()
+        fr.readAsDataURL(file)
+        await new Promise<void>((resolve) => {
+          fr.onload = () => {
+            currentEditor.chain().insertContentAt(pos, { type: 'audio', attrs: { src: fr.result } }).focus().run()
+            resolve()
+          }
+        })
+      } catch {
+        const fr = new FileReader()
+        fr.readAsDataURL(file)
+        fr.onload = () => {
+          currentEditor.chain().insertContentAt(pos, { type: 'audio', attrs: { src: fr.result } }).focus().run()
+        }
+      } finally {
+        removeAudioUploading(uploadId)
       }
 
       continue
@@ -456,6 +537,7 @@ const floatingActions = computed<FloatingAction[]>(() => {
     { label: 'Gallery', icon: 'i-lucide-layout-grid', action: () => { /* drop-in handled by FloatingSlashMenu via file input */ } },
     { label: 'Image', icon: 'i-lucide-image', action: () => addImage() },
     { label: 'Video', icon: 'i-lucide-film', action: () => addVideo() },
+    { label: 'Audio', icon: 'i-lucide-mic', action: () => addAudio() },
     { label: 'Separator', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator' }).run() },
     { label: 'Dashed', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator', attrs: { dashed: true } }).run() },
   ]
@@ -514,8 +596,28 @@ function addImage() {
 }
 
 function addVideo() {
-  const url = window.prompt('Video URL')
-  if (url && editor.value) editor.value.chain().focus().insertContent({ type: 'video', attrs: { src: url } }).run()
+  mediaDialogType.value = 'video'
+  mediaDialogOpen.value = true
+}
+
+function addAudio() {
+  mediaDialogType.value = 'audio'
+  mediaDialogOpen.value = true
+}
+
+function onMediaInsert(files: File[]) {
+  if (!editor.value || !files.length) return
+  const pos = editor.value.state.selection.anchor
+  handleFiles(editor.value, files, pos)
+}
+
+function onMediaInsertLink(url: string) {
+  if (!editor.value || !url) return
+  if (mediaDialogType.value === 'video') {
+    editor.value.chain().focus().insertContent({ type: 'video', attrs: { src: url } }).run()
+  } else {
+    editor.value.chain().focus().insertContent({ type: 'audio', attrs: { src: url } }).run()
+  }
 }
 
 function onInsertImages(files: FileList) {

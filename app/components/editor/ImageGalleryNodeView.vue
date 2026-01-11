@@ -5,32 +5,31 @@
         v-for="(img, idx) in images"
         :key="idx"
         :class="['gallery-item', { 'is-active': activeIndex === idx } ]"
-        :draggable="selected"
-        @click.stop="selectNode(idx)"
-        @dragstart="onDragStart($event, idx)"
-        @dragover.prevent="onDragOver($event, idx)"
-        @drop="onDrop($event, idx)"
-        @dragend="onDragEnd"
+:draggable="selected && isEditorEditable"
+      @click.stop="selectNode(idx)"
+      @dragstart="onDragStart($event, idx)"
+      @dragover.prevent="onDragOver($event, idx)"
+      @drop="onDrop($event, idx)"
+      @dragend="onDragEnd"
       >
         <img :src="img.attrs?.src ?? img.src" :alt="img.attrs?.alt ?? ''" class="gallery-img" />
 
-        <div v-if="selected" class="overlay">
+        <div v-if="selected && isEditorEditable" class="overlay">
           <NButton btn="solid-gray" label="i-lucide-grip-vertical" icon @mousedown.stop title="Drag to reorder" class="cursor-move" />
           <NButton btn="solid-gray" label="i-lucide-refresh-ccw" icon @click.stop.prevent="triggerReplace(idx)" title="Replace" />
           <NButton btn="solid-gray" label="i-lucide-trash-2" icon @click.stop.prevent="removeImage(idx)" title="Remove" />
         </div>
       </div>
 
-      <!-- If selection and there's room for extra images, allow adding more -->
-      <NTooltip v-if="selected && images.length < 9" content="Add image" placement="top">
+      <!-- Add image button — only visible in editable mode when selected and under limit -->
+      <NTooltip v-if="selected && isEditorEditable && images.length < 9" content="Add image" placement="top">
         <NButton 
-          v-if="selected" 
           icon
           label="i-lucide-plus"
           btn="~"
           rounded="full"
           @click.stop.prevent="triggerAdd" 
-          class="absolute right-0 top-50% translate-y-[-50%] translate-x-60%
+          class="absolute right-0 top-1/2 transform -translate-y-1/2 translate-x-3/4
           color-black bg-white border border-gray-300 rounded-full shadow-md 
           hover:bg-gray-100 hover:scale-105 active:scale-95 transition-all duration-150"
         />
@@ -56,6 +55,10 @@ const activeIndex = computed(() => Number(props.node.attrs?.activeIndex ?? 0))
 const fileInputReplace = ref<HTMLInputElement | null>(null)
 const fileInputAdd = ref<HTMLInputElement | null>(null)
 const replaceIndex = ref<number | null>(null)
+
+// Detect whether the host editor is editable (viewer uses editable=false)
+import { editorIsEditable } from './editorUtils'
+const isEditorEditable = computed(() => editorIsEditable(props.editor))
 
 const { addUploading, updateUploading, removeUploading, uploadFileWithProgress } = useEditorImages()
 const route = useRoute()
@@ -154,6 +157,7 @@ function removeImage(idx: number) {
 const draggedIndex = ref<number | null>(null)
 
 function onDragStart(e: DragEvent, idx: number) {
+  if (!isEditorEditable.value) return
   draggedIndex.value = idx
   if (e.dataTransfer) {
     e.dataTransfer.effectAllowed = 'move'
@@ -162,12 +166,14 @@ function onDragStart(e: DragEvent, idx: number) {
 }
 
 function onDragOver(e: DragEvent, idx: number) {
+  if (!isEditorEditable.value) return
   if (draggedIndex.value === null || draggedIndex.value === idx) return
   e.preventDefault()
   if (e.dataTransfer) e.dataTransfer.dropEffect = 'move'
 }
 
 function onDrop(e: DragEvent, dropIdx: number) {
+  if (!isEditorEditable.value) return
   e.preventDefault()
   const dragIdx = draggedIndex.value
   if (dragIdx === null || dragIdx === dropIdx) return
