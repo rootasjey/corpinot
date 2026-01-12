@@ -15,6 +15,10 @@
 .dark .post-content .ProseMirror.ProseMirror-hideselection .audio-container .time-right::selection { @apply color-white; }
 .light .post-content .ProseMirror.ProseMirror-hideselection .audio-container .title::selection,
 .light .post-content .ProseMirror.ProseMirror-hideselection .audio-container .time-left::selection,
+.light .post-content .ProseMirror.ProseMirror-hideselection div::selection,
+.light .post-content .ProseMirror.ProseMirror-hideselection span::selection,
+.light .post-content .ProseMirror.ProseMirror-hideselection label::selection,
+.light .post-content .ProseMirror.ProseMirror-hideselection strong::selection,
 .light .post-content .ProseMirror.ProseMirror-hideselection .audio-container .time-right::selection { @apply color-black; }
 
 /* Placeholder handling */
@@ -101,7 +105,7 @@
 .post-content .ProseMirror hr { @apply my-12 border-t-none border-b border-border h-[16px] bg-transparent transition-colors duration-800 ease-in-out; }
 .post-content .ProseMirror hr:hover { @apply border-blue; }
 .post-content .ProseMirror hr.separator { @apply; }
-.post-content .ProseMirror hr.separator--dashed { @apply border-border/60 border-dashed opacity-80; }
+.post-content .ProseMirror hr.separator--dashed { @apply border-border/60 border-b-dashed opacity-80; }
 
 /* Task list */
 .post-content .ProseMirror ul[data-type="taskList"] { @apply list-none ml-0 p-0; }

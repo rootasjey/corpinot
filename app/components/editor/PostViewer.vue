@@ -24,6 +24,7 @@ import { CustomImage } from './CustomImage'
 import ImageGallery from './ImageGallery'
 import { Video } from './Video'
 import { Audio } from './Audio'
+import { Conway } from './Conway'
 import { watch } from 'vue'
 import { useLowlight } from '~/composables/useCodeHighlight' 
 
@@ -54,6 +55,7 @@ const editor = useEditor({
     ImageGallery,
     Video,
     Audio,
+    Conway,
     TextStyle,
     BackgroundColor,
     Color,

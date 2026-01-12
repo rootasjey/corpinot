@@ -44,6 +44,19 @@
         <input ref="audioFileInput" type="file" accept="audio/*" class="hidden" @change="onAudioFilePicked" />
       </div>
     </template>
+
+    <!-- Separator node actions -->
+    <template v-else-if="separatorSelected">
+      <div class="flex items-center gap-2">
+        <button type="button" @click="toggleSeparatorDashed" :class="{ 'is-active': currentSeparatorDashed }" :title="currentSeparatorDashed ? 'Dashed' : 'Solid'">
+          <span class="i-lucide-scissors-line-dashed" />
+        </button>
+        <button type="button" @click="deleteSelectedSeparator" title="Delete separator">
+          <span class="i-lucide-trash" />
+        </button>
+      </div>
+    </template>
+
     <!-- Code block language selector -->
     <template v-else-if="codeBlockSelected">
       <div class="flex items-center gap-2">
@@ -260,6 +273,12 @@ const audioSelected = computed(() => {
   return !!sel && !!sel.node && sel.node.type?.name === 'audio'
 })
 
+// Check if a separator node is selected
+const separatorSelected = computed(() => {
+  const sel = props.editor?.state.selection as any | undefined
+  return !!sel && !!sel.node && sel.node.type?.name === 'separator'
+})
+
 // Check if a code block is currently active
 const codeBlockSelected = computed(() => props.editor?.isActive('codeBlock'))
 
@@ -297,6 +316,13 @@ function setImageDisplay(mode: 'center' | 'full-bleed') {
   if (!props.editor) return
   props.editor.chain().focus().updateAttributes('image', { display: mode }).run()
 }
+
+// Current separator dashed attribute helper
+const currentSeparatorDashed = computed(() => {
+  if (!props.editor) return false
+  const v = props.editor.getAttributes('separator')?.dashed
+  return v === true || v === 'true'
+})
 
 // Upload helpers (shared composable state)
 const { addUploading, updateUploading, removeUploading, uploadFileWithProgress } = useEditorImages()
@@ -353,6 +379,9 @@ function shouldShowMenu(ctx: { state: EditorState; editor: TiptapEditor }) {
 
   const selectionIsAudio = !!sel && !!sel.node && sel.node.type?.name === 'audio'
   if (selectionIsAudio) return true
+
+  const selectionIsSeparator = !!sel && !!sel.node && sel.node.type?.name === 'separator'
+  if (selectionIsSeparator) return true
 
   // For formatting menu: only show if there is an actual range selection (not a collapsed cursor),
   // or when the link editor/color popover is active.
@@ -470,6 +499,18 @@ async function onAudioFilePicked(e: Event) {
 }
 
 function deleteSelectedAudio() {
+  if (!props.editor) return
+  props.editor.chain().focus().deleteSelection().run()
+}
+
+function toggleSeparatorDashed() {
+  if (!props.editor) return
+  const attrs = props.editor.getAttributes('separator')
+  const dashed = attrs?.dashed === true || attrs?.dashed === 'true'
+  props.editor.chain().focus().updateAttributes('separator', { dashed: !dashed }).run()
+}
+
+function deleteSelectedSeparator() {
   if (!props.editor) return
   props.editor.chain().focus().deleteSelection().run()
 }

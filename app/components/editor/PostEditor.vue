@@ -80,6 +80,8 @@
       :on-configure-models="props.onConfigureModels"
     />
 
+    <UncommonNodesPicker v-model:open="uncommonNodesOpen" @select="onUncommonSelect" />
+
     <EditorContent v-if="editor" :editor="editor" />
     <EditorDragHandleMenu
       v-if="editor"
@@ -120,15 +122,17 @@ import { CustomImage } from './CustomImage'
 import ImageGallery from './ImageGallery'
 import { Video } from './Video'
 import { Audio } from './Audio'
+import { Conway } from './Conway'
 import NodeRange from '@tiptap/extension-node-range'
 import Separator from './Separator'
 import EditorDragHandleMenu from './EditorDragHandleMenu.vue'
 import { Table, TableRow, TableCell, TableHeader } from '@tiptap/extension-table'
 import FileHandler from '@tiptap/extension-file-handler'
-import { watch, onBeforeUnmount, computed, toRaw } from 'vue'
+import { watch, onBeforeUnmount, computed, toRaw, ref } from 'vue'
 import FloatingSlashMenu from '../FloatingSlashMenu.vue'
 import EditorBubbleMenu from './EditorBubbleMenu.vue'
 import MediaInsertDialog from './MediaInsertDialog.vue'
+import UncommonNodesPicker from './UncommonNodesPicker.vue'
 import { useRoute } from '#imports'
 import type { EditorState } from '@tiptap/pm/state'
 import type { BlockType } from '~~/shared/types/nodes'
@@ -184,6 +188,7 @@ const {
 
 const mediaDialogOpen = ref(false)
 const mediaDialogType = ref<'audio' | 'video'>('audio')
+const uncommonNodesOpen = ref(false)
 
 const routeForUpload = useRoute()
 
@@ -370,6 +375,7 @@ const editor = useEditor({
     ImageGallery,
     Video,
     Audio,
+    Conway,
     Separator,
     Table.configure({ resizable: true }),
     TextStyle,
@@ -539,7 +545,7 @@ const floatingActions = computed<FloatingAction[]>(() => {
     { label: 'Video', icon: 'i-lucide-film', action: () => addVideo() },
     { label: 'Audio', icon: 'i-lucide-mic', action: () => addAudio() },
     { label: 'Separator', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator' }).run() },
-    { label: 'Dashed', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator', attrs: { dashed: true } }).run() },
+    { label: 'Uncommon', icon: 'i-lucide-box', action: () => (uncommonNodesOpen.value = true) },
   ]
 
   if (props.aiEnabled && props.onAiCommand) {
@@ -618,6 +624,15 @@ function onMediaInsertLink(url: string) {
   } else {
     editor.value.chain().focus().insertContent({ type: 'audio', attrs: { src: url } }).run()
   }
+}
+
+function onUncommonSelect(item: any) {
+  const type = typeof item === 'string' ? item : item?.type
+  if (!editor.value || !type) return
+  if (type === 'conway') {
+    editor.value.chain().focus().insertContent({ type: 'conway', attrs: { rows: 25, cols: 25, speed: 200, seed: null } }).run()
+  }
+  uncommonNodesOpen.value = false
 }
 
 function onInsertImages(files: FileList) {
