@@ -9,8 +9,23 @@ import { ApiPost, Post } from "~~/shared/types/post"
  * @param userId - The ID of the user creating the post.
  * @returns A new post data object with default values.
  */
+function sanitizeSlug(name: string) {
+  // Normalize, remove accent marks, convert to lower-case, keep letters/numbers and hyphens
+  // Collapse whitespace and punctuation into single hyphens and trim
+  return name
+    .toString()
+    .normalize('NFKD')
+    .replace(/\p{Diacritic}/gu, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, ' ')
+    .trim()
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+}
+
 export const createPostData = (body: any, userId: number) => {
   const name = body?.name || "New Post"
+  const slugBase = sanitizeSlug(name)
   return {
     blob_path: "",
     description: body?.description ?? "",
@@ -22,7 +37,7 @@ export const createPostData = (body: any, userId: number) => {
     metrics_likes: 0,
     metrics_views: 0,
     name,
-    slug: name.toLowerCase().replaceAll(" ", "-"),
+    slug: slugBase || 'post',
     user_id: userId,
     status: body?.status ?? "draft",
   }
@@ -145,18 +160,26 @@ export function convertApiToPost(
  * e.g. "my-slug", "my-slug-1", "my-slug-2"
  */
 export async function generateUniqueSlug(db: any, baseSlug: string) {
-  const rows = await db.select({ slug: schema.posts.slug }).from(schema.posts).where(sql`${schema.posts.slug} LIKE ${baseSlug + '%'} `)
-  const existing = new Set<string>((rows as any[]).map((r: any) => String(r.slug)))
-  if (!existing.has(baseSlug)) return baseSlug
+  const base = (typeof baseSlug === 'string' ? sanitizeSlug(baseSlug) : '') || 'post'
 
-  let max = 0
-  for (const s of existing) {
-    if (s === baseSlug) continue
-    const m = s.match(new RegExp(`^${baseSlug.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')}-([0-9]+)$`))
-    if (m) {
-      const n = Number(m[1])
-      if (!Number.isNaN(n) && n > max) max = n
+  try {
+    // Use LIKE on sanitized base (safe from SQL wildcard surprises)
+    const rows = await db.select({ slug: schema.posts.slug }).from(schema.posts).where(sql`${schema.posts.slug} LIKE ${base + '%'} `)
+    const existing = new Set<string>((rows as any[]).map((r: any) => String(r.slug)))
+    if (!existing.has(base)) return base
+
+    let max = 0
+    for (const s of existing) {
+      if (s === base) continue
+      const m = s.match(new RegExp(`^${base.replace(/[-\\^$*+?.()|[\]{}]/g, '\\$&')}-([0-9]+)$`))
+      if (m) {
+        const n = Number(m[1])
+        if (!Number.isNaN(n) && n > max) max = n
+      }
     }
+    return `${base}-${max + 1}`
+  } catch (err: any) {
+    console.error('[generateUniqueSlug] Database error while checking existing slugs for base:', base, { message: err?.message, stack: err?.stack })
+    throw err
   }
-  return `${baseSlug}-${max + 1}`
 }

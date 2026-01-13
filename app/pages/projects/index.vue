@@ -148,7 +148,6 @@
 
   <!-- Confirm Delete Modal -->
   <NDialog v-model:open="confirmDialogOpen">
-    <NDialogOverlay />
     <NDialogContent class="max-w-md">
       <NDialogHeader>
         <NDialogTitle>Delete project post</NDialogTitle>

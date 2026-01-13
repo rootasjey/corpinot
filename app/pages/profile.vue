@@ -144,7 +144,6 @@
       
       <!-- Socials editor dialog -->
       <NDialog v-model:open="socialsDialogOpen" :closeOnEsc="true">
-        <NDialogOverlay />
           <NDialogContent class="max-w-full sm:max-w-2xl">
           <NDialogHeader>
             <NDialogTitle>Edit socials</NDialogTitle>
@@ -177,7 +176,6 @@
 
       <!-- Confirm delete avatar dialog -->
       <NDialog v-model:open="deleteAvatarDialogOpen" :closeOnEsc="true">
-        <NDialogOverlay />
         <NDialogContent class="max-w-sm">
           <NDialogHeader>
             <NDialogTitle>Remove avatar</NDialogTitle>

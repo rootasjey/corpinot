@@ -7,7 +7,10 @@ export type PostStatus = 'draft' | 'published' | 'archived'
  * This type is used for displaying posts in the UI.
  */
 export type Post = {
-  [x: string]: {}
+  // Allow additional indexed properties whose types are not strictly defined here.
+  // Using `unknown` is safer than `any` and permits string values for fields
+  // like `blobPath` while keeping the type reasonably strict.
+  [x: string]: unknown
   /** Post article in JSON format. */
   article?: object
   /** Blob path to the article. */

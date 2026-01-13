@@ -562,6 +562,8 @@ const floatingActions = computed<FloatingAction[]>(() => {
 
 function deleteSlashIfPresent() {
   const ed = editor.value; if (!ed) return
+  // If caret is inside a code block, do not touch the leading slash
+  if (ed.isActive?.('codeBlock')) return
   const pos = ed.state.selection.from; if (typeof pos !== 'number' || pos <= 0) return
   try {
     const charBefore = ed.state.doc.textBetween(pos - 1, pos, '', '\n')
@@ -570,7 +572,7 @@ function deleteSlashIfPresent() {
     ed.view.dispatch(tr)
     ed.chain().focus().setTextSelection(pos - 1).run()
   } catch {}
-}
+} 
 
 function selectFloatingAction(item: FloatingAction) {
   if (!editor.value) return
@@ -592,8 +594,10 @@ function shouldShowFloatingMenu(props: any) {
   const { selection } = state
   if (!selection.empty) return false
   const pos = selection.from; if (typeof pos !== 'number' || pos <= 0) return false
+  // don't show when caret is inside a code block
+  if (props.editor?.isActive?.('codeBlock')) return false
   try { return state.doc.textBetween(pos - 1, pos, '', '\n') === '/' } catch { return false }
-}
+} 
 
 function addImage() {
   // Fallback: prompt for URL if file picker not available

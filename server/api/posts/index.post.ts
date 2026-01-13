@@ -48,29 +48,46 @@ export default defineEventHandler(async (event) => {
       })
     }
 
-    // Insert post without blob_path first
+    // Insert post without blob_path first. Retry if a slug uniqueness race occurs.
     let result
-    try {
-      result = await db.insert(schema.posts).values({
-        description: postData.description,
-        image_src: postData.image_src,
-        image_alt: postData.image_alt,
-        language: postData.language,
-        links: postData.links,
-        metrics_comments: postData.metrics_comments,
-        metrics_likes: postData.metrics_likes,
-        metrics_views: postData.metrics_views,
-        name: postData.name,
-        slug: postData.slug,
-        user_id: postData.user_id,
-        status: postData.status,
-      }).run()
-    } catch (dbError: any) {
-      console.error('[POST /api/posts] Database insert failed:', dbError)
-      throw createError({ 
-        statusCode: 500, 
-        message: 'Failed to create post in database. Please try again.' 
-      })
+    const maxInsertAttempts = 3
+    for (let attempt = 1; attempt <= maxInsertAttempts; attempt++) {
+      try {
+        result = await db.insert(schema.posts).values({
+          description: postData.description,
+          image_src: postData.image_src,
+          image_alt: postData.image_alt,
+          language: postData.language,
+          links: postData.links,
+          metrics_comments: postData.metrics_comments,
+          metrics_likes: postData.metrics_likes,
+          metrics_views: postData.metrics_views,
+          name: postData.name,
+          slug: postData.slug,
+          user_id: postData.user_id,
+          status: postData.status,
+        }).run()
+        break
+      } catch (dbError: any) {
+        const msg = String(dbError?.message || '')
+        // If it's a unique constraint on slug, regenerate and retry
+        if (/unique|constraint|duplicate/i.test(msg) && attempt < maxInsertAttempts) {
+          console.warn('[POST /api/posts] Insert conflict on slug, regenerating and retrying (attempt ' + attempt + ')')
+          try {
+            postData.slug = await generateUniqueSlug(db, postData.slug)
+          } catch (slugErr: any) {
+            console.error('[POST /api/posts] Failed to regenerate slug during retry:', slugErr)
+            throw createError({ statusCode: 500, message: 'Failed to generate post slug. Please try again.' })
+          }
+          continue
+        }
+
+        console.error('[POST /api/posts] Database insert failed:', dbError)
+        throw createError({ 
+          statusCode: 500, 
+          message: 'Failed to create post in database. Please try again.' 
+        })
+      }
     }
 
     const insertedId = Number((result as any)?.lastInsertRowid ?? (result as any)?.meta?.last_row_id ?? 0)

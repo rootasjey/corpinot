@@ -5,14 +5,14 @@
         v-for="(img, idx) in images"
         :key="idx"
         :class="['gallery-item', { 'is-active': activeIndex === idx } ]"
-:draggable="selected && isEditorEditable"
-      @click.stop="selectNode(idx)"
-      @dragstart="onDragStart($event, idx)"
-      @dragover.prevent="onDragOver($event, idx)"
-      @drop="onDrop($event, idx)"
-      @dragend="onDragEnd"
+        :draggable="selected && isEditorEditable"
+        @click="onClick(idx, $event)"
+        @dragstart="onDragStart($event, idx)"
+        @dragover.prevent="onDragOver($event, idx)"
+        @drop="onDrop($event, idx)"
+        @dragend="onDragEnd"
       >
-        <img :src="img.attrs?.src ?? img.src" :alt="img.attrs?.alt ?? ''" class="gallery-img" />
+        <img :src="img.attrs?.src ?? img.src" :alt="img.attrs?.alt ?? ''" :class="['gallery-img', isEditorEditable ? 'is-editable' : 'is-viewer']" />
 
         <div v-if="selected && isEditorEditable" class="overlay">
           <NButton btn="solid-gray" label="i-lucide-grip-vertical" icon @mousedown.stop title="Drag to reorder" class="cursor-move" />
@@ -73,10 +73,18 @@ const galleryClass = computed(() => {
 })
 
 function selectNode(idx: number) {
+  if (!isEditorEditable.value) return
   // Set the active image index on the node and then set node selection
   props.updateAttributes({ activeIndex: idx })
   const pos = props.getPos?.()
   if (typeof pos === 'number') props.editor.commands.setNodeSelection(pos)
+}
+
+function onClick(idx: number, e: MouseEvent) {
+  // viewer mode: let page-level handler open the lightbox
+  if (!isEditorEditable.value) return
+  e.stopPropagation()
+  selectNode(idx)
 }
 
 function triggerReplace(idx: number) {
@@ -250,7 +258,9 @@ function onDragEnd() {
   height: 100%;
   object-fit: cover;
   display: block;
+  cursor: default;
 }
+.gallery-img.is-editable { cursor: pointer; }
 
 .overlay {
   position: absolute;

@@ -107,7 +107,14 @@
         <div class="max-w-3xl mx-auto py-6">
           <div class="flex items-center justify-between flex-wrap gap-4">
             <div v-if="post.user" class="flex items-center gap-3">
-              <NuxtImg provider="hubblob" v-if="post.user.avatar" :src="post.user.avatar" :alt="post.user.name || 'User'" class="w-8 h-8 rounded-full" />
+              <NuxtImg 
+                provider="hubblob" 
+                v-if="post.user.avatar" 
+                :src="post.user.avatar" 
+                :alt="post.user.name || 'User'" 
+                fit="cover"
+                class="w-8 h-8 rounded-full border" 
+              />
               <div v-if="post.user.name">
                 <div class="font-semibold">{{ post.user.name }}</div>
               </div>

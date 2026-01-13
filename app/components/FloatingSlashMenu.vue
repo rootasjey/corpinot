@@ -331,12 +331,15 @@ const onSelect = (item: FloatingAction, idx: number) => {
     const ed = props.editor
     if (ed) {
       try {
-        const pos = ed.state.selection.from
-        const charBefore = ed.state.doc.textBetween(pos - 1, pos, '', '\n')
-        if (charBefore === '/') {
-          const tr = ed.state.tr.delete(pos - 1, pos)
-          ed.view.dispatch(tr)
-          ed.chain().focus().setTextSelection(pos - 1).run()
+        // Don't delete the leading slash when the caret is inside a code block
+        if (!ed.isActive?.('codeBlock')) {
+          const pos = ed.state.selection.from
+          const charBefore = ed.state.doc.textBetween(pos - 1, pos, '', '\n')
+          if (charBefore === '/') {
+            const tr = ed.state.tr.delete(pos - 1, pos)
+            ed.view.dispatch(tr)
+            ed.chain().focus().setTextSelection(pos - 1).run()
+          }
         }
       } catch {}
     }
@@ -345,16 +348,18 @@ const onSelect = (item: FloatingAction, idx: number) => {
   }
 
   if (item.label === 'Image' && props.onInsertImages) {
-    // If there's a leading '/' (that opened the slash menu), remove it
+    // If there's a leading '/' (that opened the slash menu), remove it unless inside a code block
     const ed = props.editor
     if (ed) {
       try {
-        const pos = ed.state.selection.from
-        const charBefore = ed.state.doc.textBetween(pos - 1, pos, '', '\n')
-        if (charBefore === '/') {
-          const tr = ed.state.tr.delete(pos - 1, pos)
-          ed.view.dispatch(tr)
-          ed.chain().focus().setTextSelection(pos - 1).run()
+        if (!ed.isActive?.('codeBlock')) {
+          const pos = ed.state.selection.from
+          const charBefore = ed.state.doc.textBetween(pos - 1, pos, '', '\n')
+          if (charBefore === '/') {
+            const tr = ed.state.tr.delete(pos - 1, pos)
+            ed.view.dispatch(tr)
+            ed.chain().focus().setTextSelection(pos - 1).run()
+          }
         }
       } catch {}
     }

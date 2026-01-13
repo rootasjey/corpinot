@@ -32,35 +32,65 @@
         <div class="mt-4 max-w-3xl mx-auto">
           <div class="relative mt-3">
             <div class="flex justify-center items-center gap-2 flex-wrap">
-              <span v-for="tag in localTags" :key="tag.id" class="inline-flex items-center gap-2 px-3 py-1 text-sm bg-gray-100 dark:bg-black dark:border rounded-full">
-                <span class="uppercase font-semibold text-xs">{{ tag.name }}</span>
-                <button aria-label="Remove tag" @click="removeTag(tag.id)" :disabled="isAssigningTags" class="text-xs opacity-70 hover:opacity-100">✕</button>
-              </span>
+              <NBadge v-for="tag in localTags" :key="tag.id" badge="~" rounded="full" class="inline-flex items-center gap-2 px-3 py-1 text-black bg-gray-100 dark:bg-black dark:text-white dark:border hover:scale-105 active:scale-95 transition-transform cursor-pointer">
+                <NLink :to="`/tags?tag=${tag.name}`" class="uppercase font-semibold text-xs">{{ tag.name }}</NLink>
+                <NTooltip>
+                  <template #content>
+                    <span class="font-600 text-gray-300 dark:text-gray-600">Remove <strong class="text-white dark:text-black underline decoration-offset-4">{{ tag.name }}</strong> tag</span>
+                  </template>
+                  <button aria-label="Remove tag" @click="removeTag(tag.id)" :disabled="isAssigningTags" class="line-height-1 opacity-70 hover:opacity-100 hover:scale-105 active:scale-95 transition-transform">
+                    <NIcon name="i-ph-x-bold" size="3" />
+                  </button>
+                </NTooltip>
+              </NBadge>
 
-              <div v-if="editingTagActive" class="inline-flex items-center gap-2 px-3 py-1 text-sm dark:bg-black rounded-full">
-                <input
-                  ref="editingInputRef"
-                  v-model="editingTagName"
-                  @keydown.enter.prevent="addTagByName(editingTagName)"
-                  @keydown.esc.prevent="cancelNewTag"
-                  @blur="editingTagName ? addTagByName(editingTagName) : cancelNewTag"
-                  class="bg-transparent outline-none border px-4 py-1 rounded-full text-sm"
-                  placeholder="Tag name"
-                />
-                <button @click="cancelNewTag" class="text-xs opacity-70 hover:opacity-100">✕</button>
-              </div>
-              <div v-else>
-                <NButton :icon="localTags.length > 0" size="xs" btn="ghost-gray" class="border b-dashed" @click="startNewTag" aria-label="Add tag">
-                  <NIcon name="i-ph-plus" />
+              <NCombobox
+                v-if="editingTagActive"
+                v-model="selectedTag"
+                :items="comboboxItems"
+                by="id"
+                value-key="id"
+                label-key="name"
+                v-model:open="comboboxOpen"
+                :_combobox-input="{
+                  placeholder: 'Search or create tag...',
+                  modelValue: editingTagName,
+                  'onUpdate:modelValue': (v: string) => editingTagName = v,
+                  autofocus: true,
+                }"
+                size="xs"
+                class="inline-block min-w-48"
+              >
+                <template #trigger>
+                  <span class="inline-flex items-center gap-2 px-3 py-1 text-sm dark:bg-black rounded-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900">
+                    <span class="text-xs font-500">{{ selectedTag?.name || 'Add tag...' }}</span>
+                  </span>
+                </template>
+
+                <template #label="{ item }">
+                  <div class="flex items-center gap-2">
+                    <NIcon v-if="item.id === -1" name="i-ph-plus-circle" class="text-xs" />
+                    <span class="uppercase font-semibold text-xs">{{ item.name }}</span>
+                  </div>
+                </template>
+              </NCombobox>
+
+              <NTooltip v-else>
+                <template #content>
+                  <span class="font-600">Add tag</span>
+                </template>
+                <NButton :icon="localTags.length > 0" rounded="full" size="xs" btn="ghost-gray" 
+                    class="border b-dashed hover:scale-110 active:scale-95 transition-transform" 
+                    :class="{
+                      'h-6 w-6': localTags.length > 0,
+                    }"
+                    @click="startNewTag" 
+                    aria-label="Add tag">
+                  <NIcon name="i-ph-plus-bold" />
                   <span v-if="localTags.length === 0">Add tag</span>
                 </NButton>
-              </div>
+              </NTooltip>
             </div>
-            <ul v-if="filteredTagSuggestions.length && editingTagActive && editingTagName" class="absolute z-20 w-full mt-1 bg-background border border-border rounded-md max-h-40 overflow-auto">
-              <li v-for="s in filteredTagSuggestions" :key="s.id">
-                <button class="w-full text-left px-3 py-2 hover:bg-gray-100 dark:hover:bg-black/10" @click.prevent="addTag(s)">{{ s.name }}</button>
-              </li>
-            </ul>
           </div>
         </div>
       </div>
@@ -108,13 +138,29 @@ const nameInput = ref<HTMLTextAreaElement | null>(null)
 const descriptionInput = ref<any | null>(null)
 const editingTagActive = ref(false)
 const editingTagName = ref('')
-const editingInputRef = ref<HTMLInputElement | null>(null)
 const isAssigningTags = ref(false)
+const selectedTag = ref<ApiTag | null>(null)
+const comboboxOpen = ref(false)
 
 const filteredTagSuggestions = computed(() => {
   const query = (editingTagName.value || '').trim()
   if (!query) return tagStore.allTags.filter(t => !localTags.value.some(pt => pt.id === t.id))
   return tagStore.searchTags(query).filter(t => !localTags.value.some(pt => pt.id === t.id))
+})
+
+const comboboxItems = computed(() => {
+  const suggestions = filteredTagSuggestions.value
+  const query = (editingTagName.value || '').trim()
+  
+  // If there's a query and no exact match, add "Create new" option
+  if (query && !tagStore.findTagByName(query)) {
+    return [
+      ...suggestions,
+      { id: -1, name: `Create "${query}"` }
+    ]
+  }
+  
+  return suggestions
 })
 
 const addTagByName = async (name: string) => {
@@ -169,14 +215,41 @@ const removeTag = async (tagId: number) => {
 const startNewTag = async () => {
   editingTagActive.value = true
   editingTagName.value = ''
+  selectedTag.value = null
+  comboboxOpen.value = true
   await nextTick()
-  editingInputRef.value?.focus()
 }
 
 const cancelNewTag = () => {
   editingTagActive.value = false
   editingTagName.value = ''
+  selectedTag.value = null
+  comboboxOpen.value = false
 }
+
+// Watch for tag selection from combobox
+watch(selectedTag, async (tag) => {
+  if (!tag) return
+  
+  if (tag.id === -1) {
+    // Create new tag from the typed name
+    const query = editingTagName.value.replace(/^Create "/, '').replace(/"$/, '')
+    if (query) {
+      await addTagByName(query)
+    }
+  } else {
+    // Add existing tag
+    await addTag(tag)
+  }
+})
+
+// Watch for combobox close without selection
+watch(comboboxOpen, (isOpen) => {
+  if (!isOpen && !selectedTag.value && editingTagActive.value) {
+    // Combobox closed without selection - just cancel
+    cancelNewTag()
+  }
+})
 
 const autoResize = (evt?: Event | null) => {
   let el: HTMLTextAreaElement | null = null

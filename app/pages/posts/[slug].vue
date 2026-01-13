@@ -27,13 +27,16 @@
               v-for="tag in post.tags"
               :key="tag.id"
               :to="{ path: '/tags', query: { tag: tag.name } }"
-              class="uppercase bg-[#F2F3F4] text-color-black dark:bg-gray-600 dark:text-color-white rounded-full px-4 py-1 text-xs font-semibold flex items-center transition-transform hover:scale-105"
+              class="uppercase bg-[#F2F3F4] text-color-black dark:bg-gray-600 dark:text-color-white rounded-full px-4 py-1 text-xs font-semibold flex items-center transition-transform hover:scale-105 active:scale-95"
               :aria-label="`View posts for tag ${tag.name}`"
             >
               <NIcon v-if="iconTag[tag.name]" :name="iconTag[tag.name]" />
               <span>{{ tag.name }}</span>
             </NuxtLink>
-            <NTooltip v-if="isAdmin" content="Edit post">
+            <NTooltip v-if="isAdmin">
+              <template #content>
+                <span class="font-600">Edit Post</span>
+              </template>
                 <NButton
                 size="xs"
                 icon
@@ -71,7 +74,7 @@
                 v-if="post.user.avatar"
                 :src="post.user.avatar" 
                 :alt="post.user.name || 'User'"
-                class="w-8 h-8 rounded-full"
+                class="w-8 h-8 rounded-full border"
               />
               <div v-if="post.user.name">
                 <div class="font-semibold">{{ post.user.name }}</div>
@@ -138,7 +141,7 @@
                 v-if="post.user.avatar"
                 :src="post.user.avatar" 
                 :alt="post.user.name || 'User'"
-                class="w-12 h-12 rounded-full flex-shrink-0 ring-4 ring-white/10"
+                class="w-12 h-12 rounded-full flex-shrink-0 ring-4 ring-white/10 border"
               />
               <div>
                 <h3 class="text-md font-bold mb-1">{{ post.user.name }}</h3>

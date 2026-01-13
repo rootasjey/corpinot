@@ -1,6 +1,5 @@
 <template>
   <NDialog v-model:open="isOpen" :draggable="false">
-    <NDialogOverlay />
     <NDialogContent class="max-w-lg">
       <NDialogHeader>
         <NDialogTitle>Configure AI provider</NDialogTitle>
@@ -43,7 +42,7 @@
 
       <NDialogFooter class="flex items-center justify-end gap-2 mt-6">
         <NButton btn="ghost-gray" size="sm" @click="emit('update:open', false)">Cancel</NButton>
-        <NButton btn="primary" size="sm" @click="confirm">Save</NButton>
+        <NButton btn="solid-blue" size="sm" class="min-w-24 font-600" @click="confirm">Save</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>

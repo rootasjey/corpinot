@@ -1,6 +1,5 @@
 <template>
   <NDialog v-model:open="open">
-    <NDialogOverlay />
     <NDialogContent class="max-w-xl">
       <NDialogHeader>
         <NDialogTitle>Edit post slug</NDialogTitle>

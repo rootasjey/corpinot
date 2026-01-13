@@ -237,7 +237,11 @@ function commitTitle() {
 }
 
 function handleKeydown(event: KeyboardEvent) {
+  // Ignore keyboard shortcuts when the user is typing in an input/textarea/select or contenteditable element
+  const tgt = event.target as HTMLElement | null
+  if (tgt && (tgt.closest('input,textarea,select,[contenteditable="true"]') || tgt.isContentEditable)) return
   if (!audioEl.value) return
+
   switch (event.key) {
     case 'ArrowLeft':
       audioEl.value.currentTime = Math.max(0, audioEl.value.currentTime - 5)

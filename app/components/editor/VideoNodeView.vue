@@ -305,6 +305,9 @@ function handleKeydown(event: KeyboardEvent) {
   if (event.shiftKey && (event.key === 'ArrowUp' || event.key === 'ArrowDown')) {
     return
   }
+  // Ignore keyboard shortcuts when the user is typing in an input/textarea/select or contenteditable element
+  const tgt = event.target as HTMLElement | null
+  if (tgt && (tgt.closest('input,textarea,select,[contenteditable="true"]') || tgt.isContentEditable)) return
   if (!videoEl.value) return
   
   switch (event.key) {

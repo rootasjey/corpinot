@@ -3,6 +3,7 @@
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import type { ApiPost } from '~~/shared/types/post'
+
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
   const userId = session.user.id
@@ -65,15 +66,7 @@ export default defineEventHandler(async (event) => {
       }).run()
 
       const rawId = insertResult?.lastInsertRowid ?? insertResult?.meta?.last_row_id ?? null
-      if (rawId != null) {
-        if (typeof rawId === 'bigint') {
-          audioRowId = Number(rawId)
-        } else {
-          audioRowId = Number(rawId)
-        }
-      } else {
-        audioRowId = null
-      }
+      audioRowId = rawId !== null ? Number(rawId) : null
     } catch (err) {
       console.warn('Failed to persist post_audios metadata:', err)
     }

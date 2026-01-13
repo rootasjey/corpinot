@@ -203,9 +203,15 @@
             <NuxtLink to="/donate" class="uppercase px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
               Donate
             </NuxtLink>
-            <button @click="openSearch" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" aria-label="Open search">
-              <div class="i-ph-magnifying-glass-bold"></div>
-            </button>
+
+            <NTooltip>
+              <template #content>
+                <span class="font-600">Search</span>
+              </template>
+              <button @click="openSearch" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" aria-label="Open search">
+                <div class="i-ph-magnifying-glass-bold"></div>
+              </button>
+            </NTooltip>
             <NDropdownMenu
               :items="themeDropdownItems"
               v-model:open="desktopThemeOpen"

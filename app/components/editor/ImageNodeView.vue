@@ -2,13 +2,13 @@
   <NodeViewWrapper as="figure" :class="['image-figure', displayClass, selected ? 'is-selected' : '']">
     <img
       ref="imgEl"
-      :class="['editor-image', props.node.attrs.display === 'full-bleed' ? 'editor-image--full-bleed' : '']"
+      :class="['editor-image', props.node.attrs.display === 'full-bleed' ? 'editor-image--full-bleed' : '', isEditorEditable ? 'is-editable' : 'is-viewer']"
       :src="node.attrs.src"
       :alt="node.attrs.alt || ''"
-      @click="selectNode"
+      @click="onClick"
     />
     <figcaption class="image-caption">
-      <template v-if="selected">
+      <template v-if="selected && isEditorEditable">
         <input
           v-model="localAlt"
           type="text"
@@ -29,6 +29,7 @@
 <script setup lang="ts">
 import { onMounted, ref, watch, computed } from 'vue'
 import { nodeViewProps, NodeViewWrapper } from '@tiptap/vue-3'
+import { editorIsEditable } from './editorUtils'
 
 const props = defineProps(nodeViewProps)
 const localAlt = ref(props.node.attrs.alt || '')
@@ -36,6 +37,7 @@ const imgEl = ref<HTMLImageElement | null>(null)
 const dimensions = ref('')
 
 const displayClass = computed(() => `image-figure--${props.node.attrs.display || 'center'}`)
+const isEditorEditable = computed(() => editorIsEditable(props.editor))
 
 function commitAlt() {
   props.updateAttributes({ alt: localAlt.value })
@@ -54,8 +56,15 @@ function updateDimensions() {
 }
 
 function selectNode() {
+  if (!isEditorEditable.value) return
   const pos = props.getPos?.()
   if (typeof pos === 'number') props.editor.commands.setNodeSelection(pos)
+}
+
+function onClick(event: MouseEvent) {
+  // viewer mode: allow click to bubble to page-level handler (lightbox)
+  if (!isEditorEditable.value) return
+  selectNode()
 }
 
 onMounted(() => {
@@ -74,7 +83,7 @@ watch(() => props.selected, (val) => { if (val) updateDimensions() })
   transition: outline 0.2s;
 }
 
-.image-figure.is-selected {
+.image-figure.is-selected[contenteditable="true"] {
   outline: 2px solid var(--un-primary-color, #3b82f6);
   outline-offset: 4px;
   border-radius: 0.75rem;
@@ -85,24 +94,17 @@ watch(() => props.selected, (val) => { if (val) updateDimensions() })
   height: auto;
   border-radius: 0.75rem;
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  cursor: pointer;
+  cursor: default;
 }
-
-/* Editor: full-bleed visual (keeps editor layout intact but shows the full-bleed intent) */
-.image-figure.image-figure--full-bleed {
-  width: 100vw;
-  max-width: none;
-  margin-left: calc(50% - 50vw);
-  margin-right: calc(50% - 50vw);
-  padding-inline: 1rem;
-  box-sizing: border-box;
+.editor-image.is-editable {
+  cursor: pointer;
 }
 
 .image-figure.image-figure--full-bleed .editor-image {
   width: 100%;
   max-width: none;
   margin: 0;
-  border-radius: 0;
+  border-radius: 4px;
 }
 
 .image-caption {
