@@ -439,14 +439,21 @@ onBeforeUnmount(() => {
   removeLightboxListeners()
 })
 
-useHead({
+const config = useRuntimeConfig()
+const ogImageUrl = computed(() => {
+  const v = encodeURIComponent((post.value?.updatedAt as string) || new Date().toISOString())
+  return `${config.public.siteUrl}/og/post/${route.params.slug}.png?v=${v}`
+})
+
+useSeoMeta({
   title: post.value.name,
-  meta: [
-    { name: 'description', content: post.value.description || '' },
-    { property: 'og:title', content: post.value.name },
-    { property: 'og:description', content: post.value.description || '' },
-    { property: 'og:image', content: post.value.image?.src || '' },
-  ]
+  description: post.value.description || '',
+  ogTitle: post.value.name,
+  ogDescription: post.value.description || '',
+  ogImage: ogImageUrl.value,
+  ogUrl: `${config.public.siteUrl}/posts/${route.params.slug}`,
+  twitterCard: 'summary_large_image',
+  twitterImage: ogImageUrl.value,
 })
 </script>
 

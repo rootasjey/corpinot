@@ -224,6 +224,7 @@ import TagsDrawer from '~~/app/components/TagsDrawer.vue'
 
 const route = useRoute()
 const router = useRouter()
+const config = useRuntimeConfig()
 
 // Tags (use useFetch for SSR-safe hydration)
 const { data: tagsData, pending: tagsPending, error: tagsError } = await useFetch<ApiTag[]>('/api/tags')
@@ -233,6 +234,25 @@ watch(tagsData, (v) => { tags.value = v ?? [] })
 
 // Currently selected tag (may be set from route.query.tag)
 const selectedTag = ref<string | null>(null)
+
+// Dynamic OG image based on selected tag or default for all tags
+const ogImageUrl = computed(() => {
+  if (selectedTag.value) {
+    return `${config.public.siteUrl}/og/tag/${selectedTag.value}.png`
+  }
+  return `${config.public.siteUrl}/og/home/default.png` // fallback to home OG
+})
+
+useSeoMeta({
+  title: () => selectedTag.value ? `#${selectedTag.value} - Corpinot` : 'Tags - Corpinot',
+  description: () => selectedTag.value ? `Browse posts tagged with ${selectedTag.value}` : 'Browse all tags and discover posts grouped by topic',
+  ogTitle: () => selectedTag.value ? `#${selectedTag.value}` : 'Tags',
+  ogDescription: () => selectedTag.value ? `Browse posts tagged with ${selectedTag.value}` : 'Browse all tags and discover posts grouped by topic',
+  ogImage: ogImageUrl,
+  ogUrl: () => `${config.public.siteUrl}/tags${selectedTag.value ? `?tag=${selectedTag.value}` : ''}`,
+  twitterCard: 'summary_large_image',
+  twitterImage: ogImageUrl,
+})
 
 // when tags are loaded, if the route has a tag param select it (no route update)
 watch([() => tags.value.length, () => route.query.tag], ([len, t]) => {

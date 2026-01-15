@@ -35,6 +35,26 @@ export default defineEventHandler(async (event) => {
       .where(eq(schema.posts.id, post.id))
       .run()
 
+    // Invalidate OG cache for this post (delete any cached OG images referencing this post slug)
+    try {
+      const { blobs } = await blob.list({ prefix: 'og/', limit: 1000 })
+      for (const blobItem of blobs) {
+        if (blobItem.pathname.includes(`/post/${post.slug}`) || blobItem.pathname.includes(`/post/${post.id}`)) {
+          await blob.delete(blobItem.pathname)
+        }
+      }
+    } catch (err) {
+      console.warn('[cover.delete] Failed to invalidate OG cache for post:', post.id, err)
+    }
+
+    // Trigger synchronous OG regeneration to avoid first-request latency
+    try {
+      const baseUrl = useRuntimeConfig().public.siteUrl
+      await $fetch(`${baseUrl}/og/post/${encodeURIComponent(post.slug)}.png`)
+    } catch (err) {
+      console.warn('[cover.delete] Failed to regenerate OG image for post:', post.id, err)
+    }
+
     return { 
       success: true,
       message: 'Image removed successfully',

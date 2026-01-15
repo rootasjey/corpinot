@@ -24,10 +24,24 @@
 import { computed, defineAsyncComponent } from 'vue'
 
 const isMobile = useIsMobile()
+const config = useRuntimeConfig()
 
 const mobileIndex = computed(() => {
   if (!import.meta.client) return null
   return defineAsyncComponent(() => import('~~/app/components/MobileIndex.vue'))
+})
+
+const ogImageUrl = `${config.public.siteUrl}/og/home/default.png`
+
+useSeoMeta({
+  title: 'Corpinot - Personal Thoughts, Shared Openly',
+  description: 'Personal thoughts shared openly on Corpinot',
+  ogTitle: 'Corpinot',
+  ogDescription: 'Personal thoughts shared openly',
+  ogImage: ogImageUrl,
+  ogUrl: config.public.siteUrl,
+  twitterCard: 'summary_large_image',
+  twitterImage: ogImageUrl,
 })
 </script>
 

@@ -1,0 +1,349 @@
+import { eq, and, count } from 'drizzle-orm'
+import { z } from 'zod'
+import { blob } from 'hub:blob'
+import { db } from 'hub:db'
+import { renderOgHtml } from '~~/server/utils/og'
+import { serveImageUrl } from '~~/server/utils/serveImageUrl'
+import { posts, users, tags, post_tags } from '~~/server/db/schema'
+
+/**
+ * OG Image Generator Route
+ * 
+ * Generates Open Graph images dynamically using Cloudflare Browser Rendering.
+ * Supports: home, post, author, tag pages.
+ * 
+ * URLs:
+ * - /og/home/default.png
+ * - /og/post/{slug}.png
+ * - /og/author/{authorName}.png
+ * - /og/tag/{tagName}.png
+ * 
+ * Images are cached in R2 at og/{type}/{slug}.png and served with strong cache headers.
+ */
+export default defineEventHandler(async (event) => {
+  // Get path segments from catch-all route
+  const pathParam = getRouterParam(event, 'path')
+  if (!pathParam) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid OG image path',
+    })
+  }
+
+  // Parse path: type/slug.png
+  const pathMatch = pathParam.match(/^([^/]+)\/([^/]+\.png)$/)
+  if (!pathMatch) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid OG image path format. Expected: /og/{type}/{slug}.png',
+    })
+  }
+
+  const [, type, slug] = pathMatch
+
+  // Validate type
+  if (!['home', 'post', 'author', 'tag'].includes(type)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid OG type. Must be: home, post, author, or tag',
+    })
+  }
+
+  // Validate slug format
+  if (!/^[\w-]+\.png$/.test(slug)) {
+    throw createError({
+      statusCode: 400,
+      statusMessage: 'Invalid slug format',
+    })
+  }
+
+  // Remove .png extension from slug
+  const slugWithoutExt = slug.replace(/\.png$/, '')
+  const styleVersion = useRuntimeConfig().public.ogStyleVersion || '1'
+
+  // Fetch OG data early for use during generation
+  const data = await fetchOgData(type, slugWithoutExt)
+
+  // Deterministic cache key (overwrite on updates)
+  const cacheKey = `og/v${styleVersion}/${type}/${slug}`
+
+  try {
+    // Check if image exists in R2 cache
+    const cachedImage = await blob.head(cacheKey)
+    
+    // Serve cached image if it exists and is fresh (< 7 days)
+    if (cachedImage) {
+      const cacheAge = Date.now() - new Date(cachedImage.uploadedAt).getTime()
+      const maxAge = 7 * 24 * 60 * 60 * 1000 // 7 days
+      
+      if (cacheAge < maxAge) {
+        return blob.serve(event, cacheKey)
+      }
+    }
+
+    // Generate new OG image
+    const imageBuffer = await generateOgImage(type, slugWithoutExt, data)
+
+    // Store in R2
+    await blob.put(cacheKey, imageBuffer, {
+      contentType: 'image/png',
+    })
+
+    // Serve the image (short TTL to allow cache-busting on update)
+    setHeader(event, 'Content-Type', 'image/png')
+    setHeader(event, 'Cache-Control', 'public, max-age=3600, stale-while-revalidate=86400')
+    return imageBuffer
+  } catch (error) {
+    console.error('OG image generation error:', error)
+    const errorMessage = error instanceof Error ? error.message : String(error)
+    const errorStack = error instanceof Error ? error.stack : undefined
+    console.error('Error details:', { message: errorMessage, stack: errorStack })
+    throw createError({
+      statusCode: 500,
+      statusMessage: `Failed to generate OG image: ${errorMessage}`,
+      data: { originalError: errorMessage }
+    })
+  }
+})
+
+/**
+ * Generate OG image buffer using Cloudflare Browser Rendering
+ */
+async function generateOgImage(type: string, slug: string, dataParam?: any): Promise<Buffer> {
+  // Use provided data if available (we may have already fetched it to compute cache keys)
+  const data = dataParam ?? await fetchOgData(type, slug)
+  
+  // Render HTML template
+  const html = renderOgHtml(type, data) 
+
+  try {
+    // Use Cloudflare Browser to screenshot
+    const { browser, page } = await hubBrowser({ keepAlive: 30 })
+
+    // Log failed requests for debugging (e.g., missing avatar/image fetches)
+    page.on('requestfailed', (request: any) => {
+      try {
+        const url = (typeof request.url === 'function') ? request.url() : request.url
+        const failure = typeof request.failure === 'function' ? request.failure() : undefined
+        if (url && (url.includes('/images/') || url.includes('/users/') || url.includes('avatar'))) {
+          console.error('OG asset request failed:', url, failure?.errorText ?? failure)
+        }
+      } catch (e) {
+        // ignore logging errors
+      }
+    })
+    
+    try {
+      await page.setViewport({ width: 1200, height: 630 })
+      await page.setContent(html, { waitUntil: 'networkidle0' })
+      
+      const screenshot = await page.screenshot({
+        type: 'png',
+        clip: { x: 0, y: 0, width: 1200, height: 630 }
+      })
+
+      return Buffer.from(screenshot)
+    } finally {
+      await page.close().catch(() => {})
+      browser.disconnect()
+    }
+  } catch (browserError) {
+    console.error('Browser rendering failed, using fallback:', browserError)
+    // In dev mode, if browser fails, return a simple placeholder
+    if (import.meta.dev) {
+      return generateFallbackImage(type, data)
+    }
+    throw browserError
+  }
+}
+
+/**
+ * Generate a simple fallback OG image (for dev when browser isn't available)
+ */
+async function generateFallbackImage(type: string, data: any): Promise<Buffer> {
+  const { Jimp } = await import('jimp')
+  
+  // Create 1200x630 image with solid background
+  const image = await Jimp.fromBitmap({
+    data: Buffer.alloc(1200 * 630 * 4),
+    width: 1200,
+    height: 630
+  })
+  
+  // Set background color (dark theme)
+  for (let y = 0; y < 630; y++) {
+    for (let x = 0; x < 1200; x++) {
+      image.setPixelColor(0x0b1220ff, x, y)
+    }
+  }
+  
+  // For fallback, return a simple placeholder
+  // (Text rendering is not supported in new Jimp version without additional setup)
+  return await image.getBuffer('image/png')
+}
+
+/**
+ * Fetch data for OG image generation based on type and slug
+ */
+async function fetchOgData(type: string, slug: string): Promise<any> {
+  switch (type) {
+    case 'home': {
+      // Get total published posts count
+      const postCountResult = await db
+        .select({ count: count() })
+        .from(posts)
+        .where(eq(posts.status, 'published'))
+      
+      return {
+        title: 'Corpinot',
+        description: 'Personal thoughts shared openly',
+        postCount: postCountResult[0]?.count || 0,
+      }
+    }
+
+    case 'post': {
+      // Fetch post with author and tags (include image and updated_at)
+      const post = await db
+        .select({
+          id: posts.id,
+          name: posts.name,
+          description: posts.description,
+          publishedAt: posts.published_at,
+          authorName: users.name,
+          authorAvatar: users.avatar,
+          imageSrc: posts.image_src,
+          updatedAt: posts.updated_at,
+        })
+        .from(posts)
+        .innerJoin(users, eq(posts.user_id, users.id))
+        .where(eq(posts.slug, slug))
+        .limit(1)
+
+      if (!post.length) {
+        throw createError({
+          statusCode: 404,
+          statusMessage: 'Post not found',
+        })
+      }
+
+      // Fetch tags for this post
+      const postTags = await db
+        .select({ name: tags.name })
+        .from(post_tags)
+        .innerJoin(tags, eq(post_tags.tag_id, tags.id))
+        .where(eq(post_tags.post_id, post[0].id))
+        .limit(4)
+
+      // Build absolute cover URL with resize modifiers (1200x630)
+      const coverSrc = post[0].imageSrc || undefined
+      const coverUrlRaw = coverSrc ? serveImageUrl(coverSrc) : undefined
+      const coverUrl = coverUrlRaw
+        ? (coverUrlRaw.includes('?') ? (coverUrlRaw + '&w=1200&h=630&fit=cover') : (coverUrlRaw + '?w=1200&h=630&fit=cover'))
+        : undefined
+
+      const avatarUrl = serveImageUrl(post[0].authorAvatar)
+      console.log('[OG Post] Raw avatar:', post[0].authorAvatar, '-> Resolved:', avatarUrl)
+
+      return {
+        title: post[0].name,
+        description: post[0].description || '',
+        author: {
+          name: post[0].authorName,
+          avatar: avatarUrl || undefined,
+        },
+        publishedAt: post[0].publishedAt || undefined,
+        tags: postTags.map((t: { name: string }) => t.name),
+        cover: coverUrl,
+        updatedAt: post[0].updatedAt || undefined,
+      }
+    }
+
+    case 'author': {
+      // Fetch author by name (slug is author name)
+      const author = await db
+        .select({
+          id: users.id,
+          name: users.name,
+          avatar: users.avatar,
+          biography: users.biography,
+          job: users.job,
+          location: users.location,
+        })
+        .from(users)
+        .where(eq(users.name, slug))
+        .limit(1)
+
+      if (!author.length) {
+        throw createError({
+          statusCode: 404,
+          statusMessage: 'Author not found',
+        })
+      }
+
+      // Count author's published posts
+      const postCountResult = await db
+        .select({ count: count() })
+        .from(posts)
+        .where(and(
+          eq(posts.user_id, author[0].id),
+          eq(posts.status, 'published')
+        ))
+
+      const avatarUrl = serveImageUrl(author[0].avatar)
+      console.log('[OG Author] Raw avatar:', author[0].avatar, '-> Resolved:', avatarUrl)
+
+      return {
+        name: author[0].name,
+        avatar: avatarUrl || undefined,
+        biography: author[0].biography,
+        job: author[0].job || undefined,
+        location: author[0].location || undefined,
+        postCount: postCountResult[0]?.count || 0,
+      }
+    }
+
+    case 'tag': {
+      // Fetch tag by name
+      const tag = await db
+        .select({
+          id: tags.id,
+          name: tags.name,
+          description: tags.description,
+          category: tags.category,
+        })
+        .from(tags)
+        .where(eq(tags.name, slug))
+        .limit(1)
+
+      if (!tag.length) {
+        throw createError({
+          statusCode: 404,
+          statusMessage: 'Tag not found',
+        })
+      }
+
+      // Count posts with this tag
+      const postCountResult = await db
+        .select({ count: count() })
+        .from(post_tags)
+        .innerJoin(posts, eq(post_tags.post_id, posts.id))
+        .where(and(
+          eq(post_tags.tag_id, tag[0].id),
+          eq(posts.status, 'published')
+        ))
+
+      return {
+        name: tag[0].name,
+        description: tag[0].description,
+        category: tag[0].category,
+        postCount: postCountResult[0]?.count || 0,
+      }
+    }
+
+    default:
+      throw createError({
+        statusCode: 400,
+        statusMessage: 'Invalid OG type',
+      })
+  }
+}

@@ -136,4 +136,18 @@ const posts = computed(() => postsData.value ?? [])
 if (authorError.value) {
   throw createError({ statusCode: 404, statusMessage: 'Author not found' })
 }
+
+const config = useRuntimeConfig()
+const ogImageUrl = computed(() => `${config.public.siteUrl}/og/author/${slug}.png`)
+
+useSeoMeta({
+  title: () => `${author.value?.name} - Corpinot`,
+  description: () => author.value?.biography || `Articles by ${author.value?.name}`,
+  ogTitle: () => author.value?.name || '',
+  ogDescription: () => author.value?.biography || `Articles by ${author.value?.name}`,
+  ogImage: ogImageUrl,
+  ogUrl: () => `${config.public.siteUrl}/authors/${slug}`,
+  twitterCard: 'summary_large_image',
+  twitterImage: ogImageUrl,
+})
 </script>

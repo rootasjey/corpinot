@@ -112,6 +112,26 @@ export default defineEventHandler(async (event) => {
     .where(eq(schema.posts.id, post.id))
     .run()
 
+  // Invalidate any legacy OG blobs for this post, then trigger immediate regeneration
+  try {
+    const { blobs } = await hb.list({ prefix: 'og/', limit: 1000 })
+    for (const blobItem of blobs) {
+      if (blobItem.pathname.includes(`/post/${post.slug}`) || blobItem.pathname.includes(`/post/${post.id}`)) {
+        await hb.delete(blobItem.pathname)
+      }
+    }
+  } catch (err) {
+    console.warn('[cover.post] Failed to invalidate OG cache for post:', post.id, err)
+  }
+
+  // Trigger synchronous OG regeneration to avoid first-request latency
+  try {
+    const baseUrl = useRuntimeConfig().public.siteUrl
+    await $fetch(`${baseUrl}/og/post/${encodeURIComponent(post.slug)}.png`)
+  } catch (err) {
+    console.warn('[cover.post] Failed to regenerate OG image for post:', post.id, err)
+  }
+
   return { 
     image: {
       alt: fileName,
