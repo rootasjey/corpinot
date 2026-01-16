@@ -1,5 +1,5 @@
 <template>
-  <div class="post-content relative">
+  <div class="post-content post-content--editor relative">
     <!-- Upload progress indicators for inline images -->
     <div v-if="uploadingImages.length > 0" class="upload-indicator fixed top-4 right-4 z-8 w-64 bg-background border border-border rounded-lg shadow-lg p-2">
       <div class="font-semibold text-sm mb-2">Uploading image{{ uploadingImages.length > 1 ? 's' : '' }}</div>
@@ -189,6 +189,7 @@ const {
 const mediaDialogOpen = ref(false)
 const mediaDialogType = ref<'audio' | 'video'>('audio')
 const uncommonNodesOpen = ref(false)
+const lastSlashTriggerPos = ref<number | null>(null)
 
 const routeForUpload = useRoute()
 
@@ -387,7 +388,14 @@ const editor = useEditor({
     TableHeader,
     TableCell,
   ],
-  editorProps: { attributes: { class: 'prose prose-lg max-w-none focus:outline-none' } },
+  editorProps: {
+    attributes: { class: 'prose prose-lg max-w-none focus:outline-none' },
+    handleTextInput: (_view, from, to, text) => {
+      if (text === '/' && from === to) lastSlashTriggerPos.value = from + 1
+      else lastSlashTriggerPos.value = null
+      return false
+    },
+  },
   onUpdate: ({ editor }) => {
     suppressNextContentSync = true
     emit('update:content', editor.getJSON())
@@ -395,7 +403,22 @@ const editor = useEditor({
 })
 
 // Expose editor when ready
-watch(() => editor.value, (ed) => { if (ed) emit('editor-ready', ed) }, { immediate: true })
+let cleanupSelectionListener: (() => void) | null = null
+
+watch(() => editor.value, (ed) => {
+  if (cleanupSelectionListener) {
+    cleanupSelectionListener()
+    cleanupSelectionListener = null
+  }
+  if (ed) emit('editor-ready', ed)
+  if (!ed) return
+  const onSelectionUpdate = () => {
+    if (lastSlashTriggerPos.value === null) return
+    if (ed.state.selection.from !== lastSlashTriggerPos.value) lastSlashTriggerPos.value = null
+  }
+  ed.on('selectionUpdate', onSelectionUpdate)
+  cleanupSelectionListener = () => ed.off('selectionUpdate', onSelectionUpdate)
+}, { immediate: true })
 
 async function handleFiles(currentEditor: any, files: File[], pos: number) {
   const identifier = String(routeForUpload.params.identifier ?? '')
@@ -594,6 +617,7 @@ function shouldShowFloatingMenu(props: any) {
   const { selection } = state
   if (!selection.empty) return false
   const pos = selection.from; if (typeof pos !== 'number' || pos <= 0) return false
+  if (lastSlashTriggerPos.value !== pos) return false
   // don't show when caret is inside a code block
   if (props.editor?.isActive?.('codeBlock')) return false
   try { return state.doc.textBetween(pos - 1, pos, '', '\n') === '/' } catch { return false }
@@ -712,7 +736,10 @@ watch(() => props.content, (newContent) => {
   editor.value.commands.setContent(normalized)
 })
 
-onBeforeUnmount(() => editor.value?.destroy())
+onBeforeUnmount(() => {
+  cleanupSelectionListener?.()
+  editor.value?.destroy()
+})
 </script>
 
 <style scoped>

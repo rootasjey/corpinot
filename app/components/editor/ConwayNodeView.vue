@@ -24,24 +24,39 @@
     </div>
 
     <div class="conway-controls">
-      <NTooltip :content="isRunning ? 'Pause Simulation' : 'Start Simulation'">
+      <NTooltip>
+        <template #content>
+          <span class="font-600">{{ isRunning ? 'Pause Simulation' : 'Start Simulation' }}</span>
+        </template>
         <NButton btn="solid-gray" icon @click.prevent="toggleRunning" class="hover:scale-105 active:scale-99 transition-transform">
           <NIcon v-if="isRunning" name="i-lucide-pause" />
           <NIcon v-else name="i-lucide-play" />
           <span class="sr-only">{{ isRunning ? 'Pause' : 'Start' }}</span>
         </NButton>
       </NTooltip>
-      <NTooltip content="Randomize Grid">
+      <NTooltip>
+        <template #content>
+          <span class="font-600">Randomize Grid</span>
+        </template>
         <NButton btn="solid-gray" label="i-lucide-shuffle" icon @click.prevent="randomizeGrid" class="hover:scale-105 active:scale-99 transition-transform" />
       </NTooltip>
-      <NTooltip content="Reset Grid">
+      <NTooltip>
+        <template #content>
+          <span class="font-600">Reset Grid</span>
+        </template>
         <NButton btn="solid-gray" label="i-lucide-rotate-ccw" icon @click.prevent="resetGrid" class="hover:scale-105 active:scale-99 transition-transform" />
       </NTooltip>
-      <NTooltip content="Export Seed to Clipboard">
+      <NTooltip>
+        <template #content>
+          <span class="font-600">Export Seed to Clipboard</span>
+        </template>
         <NButton btn="solid-gray" label="i-lucide-clipboard" icon @click.prevent="exportSeed" class="hover:scale-105 active:scale-99 transition-transform" />
       </NTooltip>
       <div class="speed">
-        <NTooltip content="Update simulation speed (ms/generation)">
+        <NTooltip>
+          <template #content>
+            <span class="font-600">Update simulation speed (ms/generation)</span>
+          </template>
           <div class="speed-input" role="group" aria-label="Simulation speed control">
             <button type="button" class="spin-btn" @click.prevent="decrementSpeed" aria-label="Decrease speed">
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M18 12H6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -61,7 +76,6 @@
               <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 6v12M6 12h12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
             </button>
           </div>
-
         </NTooltip>
         <div class="font-600 text-sm text-slate-500 dark:text-slate-400 flex items-center gap-1 opacity-[0.85]">GEN: {{ generation }}</div>
       </div>
@@ -354,6 +368,10 @@ const selected = computed(() => !!props.selected)
   border: 1px solid var(--un-border-color, #e5e7eb);
   background: var(--un-background-color, #fff);
 }
+.dark .btn {
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(75,85,99,0.35);
+}
 
 .speed { display: flex; align-items: center; gap: 0.5rem; }
 .speed-label { font-weight: 600; font-size: 0.9rem; margin-right: 0.25rem; }
@@ -380,10 +398,18 @@ const selected = computed(() => !!props.selected)
   color: var(--un-body-color, #111827);
   outline: none;
   border-radius: 9999px;
+
+  &:focus {
+    box-shadow: 0 0 0 4px rgba(59,130,246,0.08);
+  }
 }
 
-.speed-input__field:focus {
-  box-shadow: 0 0 0 4px rgba(59,130,246,0.08);
+.dark .speed-input__field {
+  color: var(--un-body-color, #f9fafb);
+
+  &:focus {
+    box-shadow: 0 0 0 2px rgba(255,255,246,0.52);
+  }
 }
 
 .spin-btn {
@@ -416,7 +442,6 @@ const selected = computed(() => !!props.selected)
   border: 1px solid rgba(75,85,99,0.35);
 }
 
-
 .conway-grid {
   display: inline-block;
   background: var(--un-background-color, #fff);
@@ -424,6 +449,9 @@ const selected = computed(() => !!props.selected)
   padding: 10px;
   overflow: auto;
   margin: 0 auto;
+}
+.dark .conway-grid {
+  background: rgba(255,255,255,0.02);
 }
 
 .row { display: flex; }

@@ -208,6 +208,15 @@ node .output/server/index.mjs
 
 ---
 
+## 🖼️ Open Graph Images URLs
+Dynamic Open Graph images are generated for the following URL pattern:
+
+- home: http://localhost:3000/og/home/default.png
+- tags: http://localhost:3000/og/tag/{tag}.png
+- author: http://localhost:3000/og/author/{author}.png
+- post: http://localhost:3000/og/post/{postId}.png
+- clear cache: http://localhost:3000/api/admin/clear-og-cache?key=NUXT_OG_CACHE_RESET_KEY
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.

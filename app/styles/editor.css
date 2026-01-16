@@ -55,22 +55,28 @@
 .post-content .ProseMirror h2 { @apply text-3xl font-serif font-800 mt-10 mb-5 leading-snug; }
 .post-content .ProseMirror h3 { @apply text-2xl font-serif font-500 mt-8 mb-4; }
 .post-content .ProseMirror h4 { @apply text-xl font-serif font-500 mt-6 mb-3; }
-.post-content .ProseMirror p { @apply text-base md:text-lg leading-relaxed mb-8 text-foreground/80 font-body font-500; }
+.post-content .ProseMirror p { @apply text-base md:text-lg leading-relaxed mb-8 text-foreground/80 font-text font-500; }
 .post-content .ProseMirror ul[data-type="taskList"] p { @apply mb-0; line-height: 1rem; }
 .post-content .ProseMirror a { @apply text-primary hover:text-primary/80 underline decoration-2 underline-offset-2 transition-colors; }
 .post-content .ProseMirror strong { @apply font-800 text-foreground; }
 .post-content .ProseMirror em { @apply italic; }
-.post-content .ProseMirror blockquote { @apply border-l-4 border-primary/40 pl-6 py-4 my-8 italic text-lg md:text-xl text-slate-500 dark:text-slate-400 bg-muted/20 rounded-r-lg; }
+.post-content .ProseMirror blockquote { @apply border-l-4 border-primary/40 pl-6 py-4 my-8 italic text-lg md:text-xl text-slate-500 dark:text-slate-400 bg-muted/20 rounded-r-lg font-text; }
 .post-content .ProseMirror blockquote p { @apply mb-0; }
 .post-content .ProseMirror ul, .post-content .ProseMirror ol { @apply my-6 pl-6 space-y-2; }
 .post-content .ProseMirror ul { @apply list-disc; }
 .post-content .ProseMirror ol { @apply list-decimal; }
-.post-content .ProseMirror li { @apply text-base md:text-lg leading-relaxed text-foreground/90; }
+.post-content .ProseMirror li { @apply text-base md:text-lg leading-relaxed text-foreground/90 font-text; }
 .post-content .ProseMirror li > p { @apply mb-2; }
 .post-content .ProseMirror code { @apply bg-muted px-2 py-1 rounded text-sm font-mono text-primary; }
 .post-content .ProseMirror pre { @apply bg-muted rounded-lg overflow-x-auto my-6; }
 .post-content .ProseMirror pre code { @apply bg-transparent p-0 text-foreground; }
 .post-content .ProseMirror img { @apply w-full h-auto rounded-xl my-8 shadow-lg cursor-pointer; }
+
+/* Use General Sans for body content in both editor and viewer */
+.post-content .ProseMirror td,
+.post-content .ProseMirror th {
+  @apply font-text;
+}
 
 /* Highlight selected image node */
 .post-content img.ProseMirror-selectednode {
@@ -115,8 +121,8 @@
 
 /* Table */
 .post-content .ProseMirror table { @apply w-full my-8 border-collapse; }
-.post-content .ProseMirror th { @apply bg-muted font-semibold text-left p-3 border border-border; }
-.post-content .ProseMirror td { @apply p-3 border border-border; }
+.post-content .ProseMirror th { @apply bg-muted font-semibold text-left p-3 border border-border font-text; }
+.post-content .ProseMirror td { @apply p-3 border border-border font-text; }
 
 /* Drag handle */
 .post-content :is(.tiptap-drag-handle, .drag-handle) {

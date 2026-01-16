@@ -1,195 +1,119 @@
 <template>
   <div class="bg-white dark:bg-gray-950 text-gray-800 dark:text-gray-100">
-    <!-- Hero -->
-    <section class="relative overflow-hidden">
-      <div class="absolute inset-0 pointer-events-none select-none" aria-hidden="true">
-        <div class="absolute -top-40 -right-20 w-[36rem] h-[36rem] rounded-full bg-yellow-300/20 blur-3xl"></div>
-        <div class="absolute -bottom-40 -left-20 w-[36rem] h-[36rem] rounded-full bg-purple-400/10 blur-3xl"></div>
-      </div>
-      <div class="max-w-6xl mx-auto px-4 py-16 md:py-24">
-        <div class="flex items-center gap-4">
-          <p class="uppercase tracking-widest text-xs md:text-sm text-gray-500 dark:text-gray-400">ABOUT</p>
-          <p class="uppercase tracking-widest text-xs md:text-sm font-500 text-gray-500 dark:text-gray-400">v{{ appVersion }}</p>
-        </div>
-        <h1 class="font-title text-4xl md:text-5xl lg:text-6xl font-extrabold leading-tight">
-          We're Woords — crafted for curious minds and creative builders.
-        </h1>
-        <p class="mt-6 max-w-2xl text-base md:text-lg text-gray-600 dark:text-gray-300">
-          Our mission is simple: publish sharp, practical ideas — and make them delightful to read. No fluff. No clickbait. Just signal.
-        </p>
-      </div>
-    </section>
+    <section class="max-w-7xl mx-auto px-6 py-28">
+      <div class="grid md:grid-cols-2 gap-12 items-center">
+        <!-- Typographic hero -->
+        <div class="order-2 md:order-1">
+          <div class="inline-flex items-center gap-3 mb-6">
+            <p class="uppercase tracking-widest text-xs md:text-sm font-500 text-gray-700 dark:text-gray-400">About</p>
+            <span class="inline-flex items-center text-xs bg-gray-100 dark:bg-gray-800 font-600 text-gray-700 dark:text-gray-200 rounded-full px-3 py-1">v{{ appVersion }}</span>
+          </div>
 
-    <!-- Intro split -->
-    <section class="py-10 md:py-16">
-      <div class="max-w-6xl mx-auto px-4 grid md:grid-cols-2 gap-10 items-center">
-        <div>
-          <h2 class="text-2xl md:text-3xl font-serif font-bold mb-4">What we do</h2>
-          <p class="text-gray-600 dark:text-gray-300 leading-relaxed">
-            We cover engineering, product, design, AI, and the systems that power modern software. Expect weekly deep-dives, practical tutorials, and thoughtful takes on what matters next.
-          </p>
-          <ul class="mt-6 space-y-3 text-gray-700 dark:text-gray-200">
-            <li class="flex items-start gap-3"><div class="i-ph-check-circle-duotone text-yellow-500 w-5 h-5 mt-0.5"></div><span>Hands‑on guides and patterns you can use today</span></li>
-            <li class="flex items-start gap-3"><div class="i-ph-check-circle-duotone text-yellow-500 w-5 h-5 mt-0.5"></div><span>Interviews with practitioners building real products</span></li>
-            <li class="flex items-start gap-3"><div class="i-ph-check-circle-duotone text-yellow-500 w-5 h-5 mt-0.5"></div><span>Opinionated essays — data‑informed, never dogmatic</span></li>
-          </ul>
+          <h1 class="font-title font-extrabold text-5xl md:text-7xl lg:text-8xl leading-tight tracking-tighter text-slate-900 dark:text-white animate-entrance" style="animation-delay:80ms;">A small collection of writing —<br class="hidden lg:block" />on code, craft, and culture.</h1>
+
+          <p class="mt-6 text-lg md:text-xl text-gray-700 dark:text-gray-300 max-w-2xl animate-entrance" style="animation-delay:220ms;">I’m <strong class="font-semibold">Jérémie Corpinot</strong> — the sole developer and writer of this site. I build the platform and write the posts, focusing on technical depth and cultural perspective.</p>
+
+          <div class="mt-8 flex flex-wrap items-center gap-3 animate-entrance" style="animation-delay:360ms;">
+            <NuxtLink to="/posts" class="btn btn-lg inline-flex items-center gap-2">Browse posts</NuxtLink>
+            <a href="https://github.com/rootasjey/corpinot" target="_blank" rel="noopener" class="inline-flex items-center gap-2 text-sm underline underline-offset-4">Open source on GitHub <span class="i-ph-github-logo w-4 h-4"></span></a>
+          </div>
+
+          <div class="mt-10 grid grid-cols-3 gap-4 max-w-md">
+            <div class="text-sm font-semibold">Technology</div>
+            <div class="text-sm font-semibold">Programming</div>
+            <div class="text-sm font-semibold">Films & Books</div>
+          </div>
+
+          <div class="mt-8 text-sm text-gray-500 dark:text-gray-400 max-w-md">This space is intentionally small — fewer, better pieces. Expect practical guides, essays, and recommendations that bridge engineering and the arts.</div>
+
+          <!-- Metrics -->
+          <div class="mt-8">
+            <div class="grid grid-cols-3 gap-6">
+              <div class="p-4 rounded-xl bg-white/60 dark:bg-gray-900/40 border border-gray-200/40 text-center animate-entrance" style="animation-delay:420ms;">
+                <div class="text-center p-4 rounded-xl bg-white/60 dark:bg-gray-900/40 border border-gray-200/40 animate-entrance" style="animation-delay:420ms;">
+                <div ref="postsEl" class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white" aria-live="polite">{{ postsCount.display }}</div>
+                <div class="mt-1 text-sm text-gray-600 dark:text-gray-300">Published posts</div>
+                </div>
+              </div>
+
+              <div class="p-4 rounded-xl bg-white/60 dark:bg-gray-900/40 border border-gray-200/40 text-center animate-entrance" style="animation-delay:560ms;">
+                <div ref="projectsEl" class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white" aria-live="polite">{{ projectsCount.display }}</div>
+                <div class="mt-1 text-sm text-gray-600 dark:text-gray-300">Projects</div>
+              </div>
+
+              <div class="p-4 rounded-xl bg-white/60 dark:bg-gray-900/40 border border-gray-200/40 text-center animate-entrance" style="animation-delay:700ms;">
+                <div ref="authorsEl" class="text-3xl md:text-4xl font-extrabold text-slate-900 dark:text-white" aria-live="polite">{{ authorsCount.display }}</div>
+                <div class="mt-1 text-sm text-gray-600 dark:text-gray-300">Active authors</div>
+              </div>
+            </div>
+          </div>
         </div>
-        <div class="relative">
-          <div class="aspect-[4/3] rounded-2xl bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-900 dark:to-gray-800 border border-gray-200/60 dark:border-gray-800/60 flex items-center justify-center">
-            <div class="text-center px-6">
-              <div class="i-ph-newspaper-duotone w-16 h-16 text-gray-400 mx-auto mb-4"></div>
-              <p class="text-gray-500 dark:text-gray-400">Stories, guides, and ideas — carefully edited and beautifully presented.</p>
+
+        <!-- Cover image -->
+        <div class="order-1 md:order-2">
+          <div class="relative rounded-3xl overflow-hidden shadow-2xl">
+            <NuxtImg src="/images/corpinot-cover.jpeg" alt="Corpinot cover" class="w-full h-80 object-cover md:h-[36rem] lg:h-[44rem]" />
+            <div class="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent mix-blend-multiply"></div>
+            <div class="absolute bottom-6 left-6 text-white">
+              <div class="text-sm uppercase tracking-widest">Corpinot</div>
+              <div class="text-lg font-semibold">Code & Culture</div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Stats -->
-    <section class="py-10 md:py-16 border-y border-gray-200/60 dark:border-gray-800/60 bg-gray-50/60 dark:bg-gray-900/40">
-      <div class="max-w-6xl mx-auto px-4 grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-8 text-center">
-        <div>
-          <div class="text-3xl md:text-4xl font-extrabold">250+</div>
-          <div class="mt-1 text-xs uppercase tracking-widest text-gray-500">Posts</div>
-        </div>
-        <div>
-          <div class="text-3xl md:text-4xl font-extrabold">120k</div>
-          <div class="mt-1 text-xs uppercase tracking-widest text-gray-500">Monthly readers</div>
-        </div>
-        <div>
-          <div class="text-3xl md:text-4xl font-extrabold">35</div>
-          <div class="mt-1 text-xs uppercase tracking-widest text-gray-500">Contributors</div>
-        </div>
-        <div>
-          <div class="text-3xl md:text-4xl font-extrabold">48</div>
-          <div class="mt-1 text-xs uppercase tracking-widest text-gray-500">Countries</div>
-        </div>
+    <section class="py-10 border-t border-gray-200/60 dark:border-gray-800/60">
+      <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-8xl font-serif font-bold">Open Source & Contribution</h2>
+        <p class="mt-3 text-gray-600 dark:text-gray-300">The full source code is available on <a href="https://github.com/rootasjey/corpinot" target="_blank" rel="noopener" class="underline">GitHub</a>. Issues, PRs, or design suggestions are welcome — see the repository for contribution guidelines.</p>
       </div>
     </section>
 
-    <!-- Values -->
-    <section class="py-10 md:py-16">
-      <div class="max-w-6xl mx-auto px-4">
-        <h2 class="text-2xl md:text-3xl font-serif font-bold mb-8">What we believe</h2>
-        <div class="grid md:grid-cols-3 gap-6">
-          <div class="p-6 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60">
-            <div class="i-ph-target-duotone text-yellow-500 w-7 h-7"></div>
-            <h3 class="mt-3 font-bold text-lg">Signal over noise</h3>
-            <p class="mt-2 text-gray-600 dark:text-gray-300">We value clarity and depth. If it’s not useful or delightful, it doesn’t ship.</p>
-          </div>
-          <div class="p-6 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60">
-            <div class="i-ph-lightbulb-duotone text-yellow-500 w-7 h-7"></div>
-            <h3 class="mt-3 font-bold text-lg">Curiosity wins</h3>
-            <p class="mt-2 text-gray-600 dark:text-gray-300">We chase good questions and follow them wherever they lead.</p>
-          </div>
-          <div class="p-6 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60">
-            <div class="i-ph-hand-heart-duotone text-yellow-500 w-7 h-7"></div>
-            <h3 class="mt-3 font-bold text-lg">Respect readers</h3>
-            <p class="mt-2 text-gray-600 dark:text-gray-300">Your time is precious. We edit ruthlessly and design for calm.</p>
-          </div>
-        </div>
+    <section class="py-12 border-t border-gray-200/60 dark:border-gray-800/60">
+      <div class="max-w-7xl mx-auto px-4">
+        <h2 class="text-8xl font-serif font-bold mb-6">FAQ</h2>
+
+        <NAccordion type="single" default-value="q1" accordion="divider border" class="bg-transparent text-2xl">
+          <NAccordionItem value="q1" label="Who runs this site?">
+            <template #content>
+              <p class="mt-2 text-gray-600 dark:text-gray-300">I do — I’m the sole developer and writer: Jérémie Corpinot. I handle code, publishing, and site design.</p>
+            </template>
+          </NAccordionItem>
+
+          <NAccordionItem value="q2" label="What topics do you write about?">
+            <template #content>
+              <p class="mt-2 text-gray-600 dark:text-gray-300">Mostly technology, development and programming. I also write about art and culture — films, books, and podcasts that influence my thinking.</p>
+            </template>
+          </NAccordionItem>
+
+          <NAccordionItem value="q3" label="Is the project open source?">
+            <template #content>
+              <p class="mt-2 text-gray-600 dark:text-gray-300">Yes — the project is open source on GitHub: <a class="underline" href="https://github.com/rootasjey/corpinot" target="_blank" rel="noopener">github.com/rootasjey/corpinot</a>.</p>
+            </template>
+          </NAccordionItem>
+
+          <NAccordionItem value="q4" label="Can I contribute or pitch a post?">
+            <template #content>
+              <p class="mt-2 text-gray-600 dark:text-gray-300">Yes. Open a GitHub issue or send a short pitch to <a class="underline" href="mailto:hello@corpinot.cc">hello@corpinot.cc</a>. I’m particularly interested in practical, experience-driven pieces.</p>
+            </template>
+          </NAccordionItem>
+
+          <NAccordionItem value="q5" label="Is there a newsletter?">
+            <template #content>
+              <p class="mt-2 text-gray-600 dark:text-gray-300">Yes — subscribe for weekly highlights and occasional deep dives.</p>
+            </template>
+          </NAccordionItem>
+        </NAccordion>
       </div>
     </section>
 
-    <!-- Timeline -->
-    <section class="py-10 md:py-16 border-t border-gray-200/60 dark:border-gray-800/60">
-      <div class="max-w-6xl mx-auto px-4">
-        <h2 class="text-2xl md:text-3xl font-serif font-bold mb-8">Our path</h2>
-        <ol class="relative border-s border-gray-200 dark:border-gray-800 ml-1">
-          <li class="mb-10 ms-6">
-            <span class="absolute -start-3 flex items-center justify-center w-6 h-6 bg-yellow-400 rounded-full ring-8 ring-white dark:ring-gray-900"></span>
-            <h3 class="font-semibold">2023 — The spark</h3>
-            <p class="text-gray-600 dark:text-gray-300 mt-1">We launched Woords to explore modern product, engineering, and AI in public.</p>
-          </li>
-          <li class="mb-10 ms-6">
-            <span class="absolute -start-3 flex items-center justify-center w-6 h-6 bg-yellow-400 rounded-full ring-8 ring-white dark:ring-gray-900"></span>
-            <h3 class="font-semibold">2024 — Growing with readers</h3>
-            <p class="text-gray-600 dark:text-gray-300 mt-1">Introduced weekly digests and opened to guest contributors.</p>
-          </li>
-          <li class="mb-10 ms-6">
-            <span class="absolute -start-3 flex items-center justify-center w-6 h-6 bg-yellow-400 rounded-full ring-8 ring-white dark:ring-gray-900"></span>
-            <h3 class="font-semibold">2025 — Beyond posts</h3>
-            <p class="text-gray-600 dark:text-gray-300 mt-1">Publishing playbooks and mini‑courses, focused on pragmatic craft.</p>
-          </li>
-          <li class="ms-6">
-            <span class="absolute -start-3 flex items-center justify-center w-6 h-6 bg-yellow-400 rounded-full ring-8 ring-white dark:ring-gray-900"></span>
-            <h3 class="font-semibold">Next — Where you come in</h3>
-            <p class="text-gray-600 dark:text-gray-300 mt-1">Have a story or idea? We’d love to hear it.</p>
-          </li>
-        </ol>
-      </div>
-    </section>
-
-    <!-- Team -->
-    <section class="py-10 md:py-16">
-      <div class="max-w-6xl mx-auto px-4">
-        <h2 class="text-2xl md:text-3xl font-serif font-bold mb-8">Team</h2>
-        <div class="grid sm:grid-cols-2 md:grid-cols-3 gap-6">
-          <div class="p-6 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-yellow-400 to-orange-400 text-black font-bold grid place-items-center">RJ</div>
-            <h3 class="mt-4 font-semibold">Root Asjey</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-300">Editor & Engineer</p>
-          </div>
-          <div class="p-6 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-purple-400 to-indigo-500 text-black font-bold grid place-items-center">GP</div>
-            <h3 class="mt-4 font-semibold">Guest Partners</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-300">Contributors</p>
-          </div>
-          <div class="p-6 rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60">
-            <div class="w-16 h-16 rounded-full bg-gradient-to-br from-teal-400 to-emerald-500 text-black font-bold grid place-items-center">YC</div>
-            <h3 class="mt-4 font-semibold">You, the Community</h3>
-            <p class="text-sm text-gray-600 dark:text-gray-300">Ideas, feedback, and support</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- FAQ -->
-    <section class="py-10 md:py-16 border-t border-gray-200/60 dark:border-gray-800/60">
-      <div class="max-w-6xl mx-auto px-4">
-        <h2 class="text-2xl md:text-3xl font-serif font-bold mb-8">FAQ</h2>
-        <div class="space-y-4">
-          <details class="group rounded-xl border border-gray-200/60 dark:border-gray-800/60 p-5">
-            <summary class="cursor-pointer list-none flex items-center justify-between">
-              <span class="font-medium">Can I pitch an article?</span>
-              <div class="i-ph-caret-down group-open:rotate-180 transition-transform"></div>
-            </summary>
-            <p class="mt-3 text-gray-600 dark:text-gray-300">Absolutely. Share a one‑paragraph outline and why it matters. We welcome practical, original ideas.</p>
-          </details>
-          <details class="group rounded-xl border border-gray-200/60 dark:border-gray-800/60 p-5">
-            <summary class="cursor-pointer list-none flex items-center justify-between">
-              <span class="font-medium">Do you accept sponsorships?</span>
-              <div class="i-ph-caret-down group-open:rotate-180 transition-transform"></div>
-            </summary>
-            <p class="mt-3 text-gray-600 dark:text-gray-300">Selective, relevant sponsors only — tools we’d personally use and recommend.</p>
-          </details>
-          <details class="group rounded-xl border border-gray-200/60 dark:border-gray-800/60 p-5">
-            <summary class="cursor-pointer list-none flex items-center justify-between">
-              <span class="font-medium">Is there a newsletter?</span>
-              <div class="i-ph-caret-down group-open:rotate-180 transition-transform"></div>
-            </summary>
-            <p class="mt-3 text-gray-600 dark:text-gray-300">Yes — weekly highlights and bonuses. Subscribe below.</p>
-          </details>
-        </div>
-      </div>
-    </section>
-
-    <!-- Newsletter CTA -->
     <NewsletterSubscription />
 
-    <!-- Contact CTA -->
-    <section class="py-14">
-      <div class="max-w-3xl mx-auto px-4 text-center">
-        <h2 class="text-2xl md:text-3xl font-serif font-bold">Say hello</h2>
-        <p class="mt-3 text-gray-600 dark:text-gray-300">Questions, pitches, ideas? Email us at
-          <a href="mailto:hello@corpinot.cc" class="underline decoration-yellow-400 underline-offset-4">hello@corpinot.cc</a>
-        </p>
-      </div>
-    </section>
-
-    <section class="py-6">
-      <div class="max-w-6xl mx-auto px-4 text-center">
-        <p class="text-sm text-gray-500 dark:text-gray-400">Version v{{ appVersion }}</p>
+    <section class="py-12">
+      <div class="max-w-4xl mx-auto px-4 text-center">
+        <h2 class="text-2xl font-serif font-bold">Get in touch</h2>
+        <p class="mt-3 text-gray-600 dark:text-gray-300">Questions, pitches, or bugs? Email <a href="mailto:hello@corpinot.cc" class="underline">hello@corpinot.cc</a>.</p>
       </div>
     </section>
   </div>
@@ -197,12 +121,58 @@
 
 <script setup lang="ts">
 useSeoMeta({
-  title: 'About — Woords',
-  ogTitle: 'About — Woords',
-  description: 'Who we are, what we publish, and how we work. Meet Woords.',
-  ogDescription: 'Who we are, what we publish, and how we work. Meet Woords.',
+  title: 'About — Jérémie Corpinot',
+  ogTitle: 'About — Jérémie Corpinot',
+  description: 'About Jérémie Corpinot — developer, writer, and creator of Corpinot.',
+  ogDescription: 'About Jérémie Corpinot — developer, writer, and creator of Corpinot.',
 })
 
 const config = useRuntimeConfig()
 const appVersion = (config.public?.appVersion as string) || '0.0.0'
+
+// fetch small site stats for metrics
+const { data: stats, pending: statsPending, error: statsError } = await useFetch('/api/stats')
+
+import { ref, computed } from 'vue'
+import { useCountUp } from '~/composables/useCountUp'
+
+// refs to attach to DOM nodes so animation starts on intersection
+const postsEl = ref<HTMLElement | null>(null)
+const projectsEl = ref<HTMLElement | null>(null)
+const authorsEl = ref<HTMLElement | null>(null)
+
+// composable instances
+const postsCount = useCountUp(postsEl, computed(() => stats?.value?.posts))
+const projectsCount = useCountUp(projectsEl, computed(() => stats?.value?.projects))
+const authorsCount = useCountUp(authorsEl, computed(() => stats?.value?.authorsWithPosts ?? stats?.value?.authorsTotal))
+
+function formatNumber(n: number | undefined | null) {
+  if (n === null || n === undefined) return '—'
+  return new Intl.NumberFormat().format(n)
+}
 </script>
+
+<style scoped>
+/* subtle entrance animation */
+.animate-entrance {
+  opacity: 0;
+  transform: translateY(8px) scale(0.996);
+  animation: entrance 640ms cubic-bezier(0.2,0.9,0.2,1) forwards;
+}
+
+@keyframes entrance {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-entrance {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+</style>

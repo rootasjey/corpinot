@@ -195,7 +195,7 @@ const hasVisiblePosts = computed(() => enhancedPosts.value.length > 0)
 const isLoadingVisible = computed(() => pending.value)
 
 useHead({
-  title: 'Projects - Woords',
+  title: 'Projects — corpinot',
   meta: [
     { name: 'description', content: 'Browse our project posts and showcases.' }
   ]

@@ -509,9 +509,9 @@ const isLoadingVisible = computed(() => {
 })
 
 useHead({
-  title: 'Posts - Woords',
+  title: 'Posts — corpinot',
   meta: [
-    { name: 'description', content: 'Explore our latest articles on travel, culture, and lifestyle.' }
+    { name: 'description', content: 'Explore our latest articles on product, engineering, and ideas.' }
   ]
 })
 
