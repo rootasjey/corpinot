@@ -52,16 +52,21 @@
       <div
         v-for="(chunk, chunkIndex) in projectChunks"
         :key="chunkIndex"
-        class="grid grid-cols-2 gap-3 min-w-[calc(100vw-4rem)] flex-shrink-0 snap-start rounded-3xl border border-gray-200/60 bg-white/80 p-4 dark:border-white/10 dark:bg-gray-900/80"
+        class="grid grid-cols-2 gap-3 p-2 min-w-[calc(100vw-4rem)] flex-shrink-0 snap-start rounded-3xl border border-gray-200/60 bg-white/80 dark:border-white/10 dark:bg-gray-900/80"
       >
         <NuxtLink
           v-for="project in chunk"
           :key="project.slug"
           :to="`/posts/${project.slug}`"
-          class="flex flex-col items-center gap-3 rounded-2xl bg-gradient-to-b from-slate-50/80 to-white/90 p-3 text-center transition hover:border-primary/60 dark:border-white/10 dark:from-white/5 dark:to-white/0"
+          class="h-48 w-38 flex flex-col items-center gap-3 rounded-2xl bg-gradient-to-b from-slate-50/80 to-white/90 
+            p-1 text-center transition hover:border-primary/60 dark:border-white/10 
+            dark:from-white/5 dark:to-white/0"
         >
-          <div class="h-26 w-26 rounded-2xl overflow-hidden bg-slate-100 dark:bg-slate-800 shadow-md hover:shadow-lg hover:scale-105 active:scale-99 active:shadow-none transition-all">
+          <div class="rounded-2xl overflow-hidden flex-1 
+            bg-slate-100 dark:bg-slate-800 shadow-md 
+            hover:shadow-lg hover:scale-105 active:scale-99 active:shadow-none transition-all duration-300">
             <NuxtImg
+              :provider="project.image.startsWith('/posts/') ? 'hubblob' : undefined"
               :src="project.image"
               :alt="project.title"
               class="h-full w-full object-cover"

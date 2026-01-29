@@ -29,7 +29,8 @@
             <!-- Image left -->
             <div class="md:col-span-6">
               <div v-if="featuredPosts[0].image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3]">
-                <img
+                <NuxtImg
+                  :provider="featuredPosts[0].image.src.startsWith('/posts/') ? 'hubblob' : undefined"
                   :src="featuredPosts[0].image.src"
                   :alt="featuredPosts[0].image.alt || featuredPosts[0].name"
                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
@@ -67,7 +68,8 @@
         >
           <NuxtLink :to="`/posts/${post.slug}`" class="block flex flex-col h-full">
             <div v-if="post.image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
-              <img
+              <NuxtImg
+                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
                 :src="post.image.src"
                 :alt="post.image.alt || post.name"
                 class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"

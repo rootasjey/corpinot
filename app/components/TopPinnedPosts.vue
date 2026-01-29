@@ -33,7 +33,8 @@
           <NuxtLink :to="`/posts/${post.slug}`" class="flex gap-3 md:gap-4 items-start">
             <!-- Image on Left (smaller) -->
             <div v-if="post.image?.src" class="relative overflow-hidden rounded-xl w-24 h-24 md:w-28 md:h-28 xl:w-24 xl:h-24 flex-shrink-0">
-              <img
+              <NuxtImg
+                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
                 :src="post.image.src"
                 :alt="post.image.alt || post.name"
                 class="w-full h-full object-cover"
@@ -50,6 +51,7 @@
                 <span>—</span>
                 <span>{{ post.user?.name }}</span>
               </div>
+              <span class="line-clamp-2 text-size-4 font-500 text-gray-700 dark:text-gray-300">{{ post.description }}</span>
             </div>
           </NuxtLink>
         </article>
@@ -61,7 +63,8 @@
           <div class="flex gap-3 md:gap-4 items-start">
             <!-- Image placeholder on Left -->
             <div class="relative overflow-hidden rounded-xl w-24 h-24 md:w-28 md:h-28 xl:w-24 xl:h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-800">
-              <img
+              <NuxtImg
+                :provider="item.img.src.startsWith('/posts/') ? 'hubblob' : undefined"
                 v-if="item.img.src"
                 :src="item.img.src"
                 alt="Placeholder image"

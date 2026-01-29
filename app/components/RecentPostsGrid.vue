@@ -107,6 +107,7 @@
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
+import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 
 const { enhancePost } = usePost()
 
@@ -120,7 +121,7 @@ const hasMore = ref(false)
 const loadingMore = ref(false)
 
 async function load(pageToLoad = 1) {
-  const params = { page: pageToLoad, limit }
+  const params = { page: pageToLoad, limit, exclude: EXCLUDED_TAGS.join(',') }
   try {
     if (pageToLoad === 1) {
       pending.value = true
@@ -143,7 +144,11 @@ async function load(pageToLoad = 1) {
 
 await load(1)
 
-const enhancedPosts = computed(() => items.value.map(p => enhancePost(p)))
+const enhancedPosts = computed(() => {
+  const posts = items.value.map(p => enhancePost(p))
+  const excludeSet = new Set(EXCLUDED_TAGS.map(t => t.toLowerCase()))
+  return posts.filter(post => !(post.tags?.some(tag => excludeSet.has(tag.name.toLowerCase()))))
+})
 
 const today = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
 

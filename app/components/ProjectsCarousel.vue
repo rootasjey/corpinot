@@ -58,7 +58,8 @@
           <NuxtLink :to="`/posts/${project.slug}`" class="block">
             <!-- Taller image with overlayed text -->
             <div class="relative overflow-hidden rounded-xl aspect-[4/5]">
-              <img
+              <NuxtImg
+                :provider="project.image.startsWith('/posts/') ? 'hubblob' : undefined"
                 :src="project.image"
                 :alt="project.title"
                 class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"

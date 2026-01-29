@@ -45,6 +45,7 @@
               </NBadge>
 
               <NCombobox
+                ref="tagCombobox"
                 v-if="editingTagActive"
                 v-model="selectedTag"
                 :items="comboboxItems"
@@ -56,7 +57,11 @@
                   placeholder: 'Search or create tag...',
                   modelValue: editingTagName,
                   'onUpdate:modelValue': (v: string) => editingTagName = v,
+                  onKeydown: handleComboboxInputKeydown,
                   autofocus: true,
+                }"
+                :_combobox-empty="{
+                  class: 'py-2',
                 }"
                 size="xs"
                 class="inline-block min-w-48"
@@ -71,6 +76,26 @@
                   <div class="flex items-center gap-2">
                     <NIcon v-if="item.id === -1" name="i-ph-plus-circle" class="text-xs" />
                     <span class="uppercase font-semibold text-xs">{{ item.name }}</span>
+                  </div>
+                </template>
+
+                <template #empty>
+                  <div class="px-2">
+                    <div v-if="isCreateActionAvailable" class="flex items-center">
+                      <NButton
+                        size="xs"
+                        btn="ghost-gray"
+                        class="w-full justify-start text-left focus:outline-none focus:bg-gray-300 dark:focus:bg-gray-800 focus:ring-0 focus:border-none"
+                        :class="{ 'bg-gray-200 dark:bg-gray-800': isCreateActionHighlighted }"
+                        tabindex="0"
+                        @keydown="handleCreateButtonKeydown"
+                        @click="addTagByName(trimmedEditingTagName)"
+                      >
+                        <NIcon name="i-ph-plus-circle" class="mr-2" />
+                        <span class="uppercase font-semibold text-xs">Create "{{ trimmedEditingTagName }}"</span>
+                      </NButton>
+                    </div>
+                    <div v-else class="px-3 text-sm text-slate-500">This tag is already added.</div>
                   </div>
                 </template>
               </NCombobox>
@@ -99,7 +124,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watch, onMounted } from 'vue'
+import { computed, nextTick, ref, watch, onMounted, type ComponentPublicInstance } from 'vue'
 import { useTagStore } from '~/stores/tags'
 import type { ApiTag } from '~~/shared/types/tags'
 
@@ -141,6 +166,7 @@ const editingTagName = ref('')
 const isAssigningTags = ref(false)
 const selectedTag = ref<ApiTag | null>(null)
 const comboboxOpen = ref(false)
+const tagCombobox = ref<ComponentPublicInstance | null>(null)
 
 const filteredTagSuggestions = computed(() => {
   const query = (editingTagName.value || '').trim()
@@ -152,8 +178,8 @@ const comboboxItems = computed(() => {
   const suggestions = filteredTagSuggestions.value
   const query = (editingTagName.value || '').trim()
   
-  // If there's a query and no exact match, add "Create new" option
-  if (query && !tagStore.findTagByName(query)) {
+  // If there's a query and no exact match, add "Create new" option only when suggestions exist
+  if (query && !tagStore.findTagByName(query) && suggestions.length > 0) {
     return [
       ...suggestions,
       { id: -1, name: `Create "${query}"` }
@@ -161,6 +187,46 @@ const comboboxItems = computed(() => {
   }
   
   return suggestions
+})
+
+const trimmedEditingTagName = computed(() => (editingTagName.value || '').trim())
+const isCreateActionAvailable = computed(() => {
+  const query = trimmedEditingTagName.value
+  return !!query && !tagStore.findTagByName(query) && filteredTagSuggestions.value.length === 0
+})
+
+const isCreateActionHighlighted = ref(false)
+
+const handleComboboxInputKeydown = (evt: KeyboardEvent) => {
+  if (!isCreateActionAvailable.value) return
+
+  if (evt.key === 'Enter') {
+    evt.preventDefault()
+    addTagByName(trimmedEditingTagName.value)
+    return
+  }
+
+  if (evt.key === 'ArrowDown' || evt.key === 'ArrowUp') {
+    evt.preventDefault()
+    isCreateActionHighlighted.value = !isCreateActionHighlighted.value
+  }
+}
+
+const handleCreateButtonKeydown = (evt: KeyboardEvent) => {
+  if (!isCreateActionAvailable.value) return
+  if (evt.key === 'ArrowDown' || evt.key === 'ArrowUp') {
+    evt.preventDefault()
+    isCreateActionHighlighted.value = false
+    const rootEl = (evt.currentTarget as HTMLElement | null)?.closest('[data-slot="combobox"]')
+    const inputEl = rootEl?.querySelector('input') as HTMLInputElement | null
+    inputEl?.focus()
+  }
+}
+
+watch(isCreateActionAvailable, (isAvailable) => {
+  if (!isAvailable) {
+    isCreateActionHighlighted.value = false
+  }
 })
 
 const addTagByName = async (name: string) => {
@@ -177,12 +243,19 @@ const addTagByName = async (name: string) => {
     const assigned = await tagStore.assignPostTags(props.postId as number, tagIds)
     localTags.value = assigned
     emit('update:tags', assigned)
-    editingTagActive.value = false
+    // Keep combobox active so users can add more tags quickly
     editingTagName.value = ''
+    selectedTag.value = null
+    isCreateActionHighlighted.value = false
+    comboboxOpen.value = true
+    await nextTick()
+    const rootEl = (tagCombobox.value as any)?.$el ?? (tagCombobox.value as any)
+    const inputEl = rootEl?.querySelector('input') as HTMLInputElement | null
+    inputEl?.focus()
   } finally {
     isAssigningTags.value = false
   }
-}
+} 
 
 const addTag = async (tag: ApiTag | undefined | null) => {
   if (!props.postId || !tag) return
@@ -192,10 +265,17 @@ const addTag = async (tag: ApiTag | undefined | null) => {
     const assigned = await tagStore.assignPostTags(props.postId as number, tagIds)
     localTags.value = assigned
     emit('update:tags', assigned)
+    // Keep combobox active to allow adding more tags
+    editingTagName.value = ''
+    selectedTag.value = null
+    isCreateActionHighlighted.value = false
+    comboboxOpen.value = true
+    await nextTick()
+    const rootEl = (tagCombobox.value as any)?.$el ?? (tagCombobox.value as any)
+    const inputEl = rootEl?.querySelector('input') as HTMLInputElement | null
+    inputEl?.focus()
   } finally {
     isAssigningTags.value = false
-    editingTagActive.value = false
-    editingTagName.value = ''
   }
 }
 
@@ -216,6 +296,8 @@ const startNewTag = async () => {
   editingTagActive.value = true
   editingTagName.value = ''
   selectedTag.value = null
+  // Ensure tags are loaded so the create option shows even when there are no items yet
+  await tagStore.initialize()
   comboboxOpen.value = true
   await nextTick()
 }
