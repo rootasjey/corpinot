@@ -22,6 +22,27 @@
   background-color: #E7E5E4;
 }
 
+:focus, .dark :focus {
+  outline: initial;
+  box-shadow: initial;
+}
+
+button:not([role="switch"]):not(class*="reka"):focus, .dark button:not([role="switch"]):not(class*="reka"):focus {
+  outline: initial;
+  box-shadow: initial;
+  border-style: dashed;
+  border-color: transparent;
+}
+
+input:focus, .dark input:focus,
+textarea:focus, .dark textarea:focus,
+select:focus, .dark select:focus {
+  outline: initial;
+  box-shadow: initial;
+  border-color: #6366F1;
+  border-width: 2px;
+}
+
 /* Small colored letter used as the leading icon for color items in dropdown menus */
 .color-letter::before {
   content: 'A';

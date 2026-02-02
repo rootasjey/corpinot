@@ -119,13 +119,17 @@
           <NButton
             icon
             btn="ghost-gray"
-            type="button"
             class="hover:scale-105 active:scale-99 transition-transform"
+            :class="{
+              'color-white': scrollY === 0 && router.currentRoute.value.path === '/',
+            }"
             @click="toggleTheme"
             aria-label="Toggle theme"
           >
-            <span class="i-ph-moon-duotone block dark:hidden text-lg" />
-            <span class="i-ph-sun-duotone hidden dark:block text-lg" />
+            <!-- SSR friendly: render both icons and toggle with CSS `dark:` utilities to avoid hydration mismatch. -->
+            <div class="i-ph-moon-bold block dark:hidden w-6 h-6"></div>
+            <div class="i-ph-sun-bold hidden dark:block w-6 h-6"></div>
+            <span class="sr-only">Toggle theme</span>
           </NButton>
         </div>
       </div>
@@ -267,7 +271,7 @@ const isAdmin = computed(() => isLoggedIn.value && currentUser.value?.role === '
 
 const isMobileMenuOpen = ref(false)
 const colorMode = useColorMode()
-const { isScrolled } = useHeaderScroll({ threshold: 12 })
+const { isScrolled, y: scrollY } = useHeaderScroll({ threshold: 12 })
 const siteSettingsDrawerOpen = ref(false)
 
 const desktopThemeMenu = createThemeMenuController()
@@ -302,12 +306,13 @@ async function handleLogout() {
 
 const dropdownItems = computed(() => {
   const items = [
+    { label: 'Settings', onSelect: () => { router.push('/settings') } },
     { label: 'Profile', onSelect: () => { router.push('/profile') } },
     { label: 'Logout', onSelect: async () => { await handleLogout() } },
   ]
 
   if (isAdmin.value) {
-    items.unshift({ label: 'Site settings', onSelect: () => { siteSettingsDrawerOpen.value = true } })
+    items.unshift({ label: 'Site socials', onSelect: () => { siteSettingsDrawerOpen.value = true } })
   }
 
   return items
@@ -372,8 +377,21 @@ function closeMobileMenu() {
 }
 
 function toggleTheme() {
-  colorMode.value = colorMode.value === 'light' ? 'dark' : 'light'
-  setThemePreference(colorMode.value as ThemePreference)
+  let newColorMode: ThemePreference = 'light'
+  switch  (colorMode.preference) {
+    case 'light':
+      newColorMode = 'dark'
+      break
+    case 'dark':
+      newColorMode = 'system'
+      break
+    case 'system':
+      newColorMode = 'light'
+      break
+  }
+  colorMode.value = newColorMode
+  console.log('Toggling theme to', colorMode.value)
+  setThemePreference(newColorMode)
 }
 
 function createThemeMenuController() {

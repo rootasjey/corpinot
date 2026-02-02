@@ -5,22 +5,24 @@
     <div v-for="(s, i) in draft" :key="i" class="flex flex-col gap-3 rounded-xl border border-gray-100 dark:border-gray-800 p-3">
       <div class="flex items-center gap-3">
         <NIcon :name="platformIcon(s.platform)" />
-        <NInput v-model="s.platform" placeholder="Platform (e.g. Twitter)" input="outline" class="w-42" />
-        <NInput v-model="s.url" placeholder="https://..." input="outline" class="flex-1" />
-        <NButton @click="removeRow(i)" btn="soft-gray" size="sm" icon label="i-ph-x" />
+        <NInput v-model="s.platform" placeholder="Platform (e.g. Twitter)" input="~" class="social-input w-42 focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
+        <NInput v-model="s.url" placeholder="https://..." input="~" class="social-input flex-1 focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
+        <NTooltip content="Remove this social link">
+          <NButton @click="removeRow(i)" btn="soft-gray" size="sm" icon label="i-ph-trash" />
+        </NTooltip>
       </div>
       <div class="ml-8 flex gap-3 items-center">
-        <NInput v-model="s.label" placeholder="Label (optional)" input="outline" class="w-42" />
-        <NInput v-model.number="s.order" type="number" placeholder="Order" input="outline" />
+        <NInput v-model="s.label" placeholder="Label (optional)" input="~" class="social-input w-42 focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
+        <NInput v-model.number="s.order" type="number" placeholder="Order" input="~" class="social-input focus:ring-0 border b-dashed focus:border-solid focus:shadow-sm transition-property-shadow" />
         <div class="flex items-center gap-2">
-          <NSwitch v-model="s.enabled" />
+          <NSwitch switch-checked="blue" v-model="s.enabled" />
           <span class="text-xs font-body uppercase font-700 text-gray-700 dark:text-gray-300">{{ s.enabled ? 'Enabled' : 'Disabled' }}</span>
         </div>
       </div>
     </div>
 
     <div class="flex items-center gap-2">
-      <NButton @click="addRow" btn="soft" size="xs" class="px-6 font-600" label="Add" />
+      <NButton @click="addRow" btn="soft" size="xs" class="px-6 font-600" label="Add social link" leading="i-ph-plus-bold" />
       <div class="ml-auto flex items-center gap-2">
         <NButton @click="emitCancel" btn="ghost-gray" size="xs" :disabled="saving" class="font-600">Cancel</NButton>
         <NButton @click="emitSave" :disabled="saving" btn="soft-pink" size="xs">
@@ -112,3 +114,11 @@ function emitCancel() {
   emit('cancel')
 }
 </script>
+
+<style scoped>
+:deep(.social-input) {
+  &::selection {
+    background-color: black;
+  }
+}
+</style>

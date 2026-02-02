@@ -31,9 +31,9 @@
 
             <div class="flex items-center justify-end gap-2 pt-2">
               <NButton @click="close" btn="ghost-gray">Cancel</NButton>
-              <NButton :disabled="!name || creating" @click="create" btn="solid-primary">
+              <NButton :disabled="!name || creating" @click="create" btn="solid-primary" title="Cmd/Ctrl + Enter">
                 <NIcon :name="creating ? 'i-lucide-loader' : 'i-lucide-plus'" :class="{ 'animate-spin': creating }" />
-                <span class="ml-2">Create</span>
+                <span class="ml-2">Create <span class="ml-1 text-xs text-slate-500 dark:text-slate-400">⌘↵</span></span>
               </NButton>
             </div>
           </div>
@@ -71,9 +71,9 @@
             <div class="flex items-center justify-end gap-2 pt-2">
               <NDialogFooter class="flex items-center gap-2 justify-end p-0">
                 <NButton @click="close" btn="ghost-gray">Cancel</NButton>
-                <NButton :disabled="!name || creating" @click="create" btn="soft-blue">
+                <NButton :disabled="!name || creating" @click="create" btn="soft-blue" title="Cmd/Ctrl + Enter">
                   <NIcon :name="creating ? 'i-lucide-loader' : 'i-lucide-plus'" :class="{ 'animate-spin': creating }" />
-                  <span class="ml-2">Create</span>
+                  <span class="ml-2">Create <span class="ml-1 text-xs text-slate-500 dark:text-slate-400">⌘↵</span></span>
                 </NButton>
               </NDialogFooter>
             </div>
@@ -85,7 +85,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, computed } from 'vue'
+import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 
 const props = defineProps({ modelValue: { type: Boolean, default: false }, defaultTag: { type: String, required: false } })
@@ -99,6 +99,17 @@ const name = ref('')
 const description = ref('')
 const tagsText = ref('')
 const creating = ref(false)
+
+const onKeydown = (e: KeyboardEvent) => {
+  if (!open.value) return
+  if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+    e.preventDefault()
+    if (!creating.value && name.value) create()
+  }
+}
+
+onMounted(() => window.addEventListener('keydown', onKeydown))
+onBeforeUnmount(() => window.removeEventListener('keydown', onKeydown))
 
 const router = useRouter()
 const toast = useToast()

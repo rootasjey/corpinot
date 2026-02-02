@@ -30,6 +30,7 @@
                 </NTooltip>
               </template>
               <input ref="fileInput" type="file" accept=".zip,application/zip,application/json,application/*" class="hidden" @change="onImportFileSelected" />
+              <input ref="coverFileInput" type="file" accept="image/*" class="hidden" @change="onCoverFileSelected" />
               <NewPostDrawer v-model="isNewDrawerOpen" @created="onPostCreated" />
             </div>
 
@@ -74,18 +75,49 @@
       </ClientOnly>
       
       <!-- Page Header -->
-      <div v-if="(posts?.length || 0) > 0 && activeTab === 'published'" class="mb-12 md:mb-16">
-        <h1 class="text-size-4xl md:text-size-24 font-bold line-height-28">
-          Latest Posts
-        </h1>
+      <div class="mb-12 md:mb-16">
+        <div v-if="activeTab === 'published'">
+          <h1 class="font-title text-size-24 font-bold line-height-28 overflow-hidden">
+            <TypewriterText :text="'Published'" :auto-hide-cursor="true" />
+          </h1>
         <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
           Explore stories, ideas, and insights from our writers
         </p>
       </div>
+        <div v-else-if="activeTab === 'drafts'">
+          <h1 class="font-title text-size-24 font-bold line-height-24 overflow-hidden">
+            <TypewriterText :text="'Drafts'" :auto-hide-cursor="true" />
+          </h1>
+          <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
+            These posts are not visible to the public
+          </p>
+        </div>
+        <div v-else-if="activeTab === 'archived'">
+          <h1 class="font-title text-size-24 font-bold line-height-24 overflow-hidden">
+            <TypewriterText :text="'Archived'" :auto-hide-cursor="true" />
+          </h1>
+          <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
+            These posts are archived and not visible to the public
+          </p>
+        </div>
+      </div>
 
       <!-- Posts list (grid cards) -->
       <div v-if="activeTab === 'published' && posts && posts.length > 0" class="max-w-7xl mx-auto columns-1 sm:columns-2 lg:columns-3">
-        <div v-for="post in enhancedPosts" :key="post.slug" class="relative inline-block w-full mb-6 break-inside-avoid" @pointerdown="startLongPress(post.slug)" @pointerup="cancelLongPress" @pointercancel="cancelLongPress" @mouseleave="cancelLongPress">
+        <div v-for="(post, i) in enhancedPosts" :key="post.slug" 
+          :class="[
+            'group relative inline-block w-full mb-6 break-inside-avoid transition-all duration-500 ease-out will-change-transform', 
+            { 
+              'opacity-0 translate-y-3': !entered, 
+              'opacity-100 translate-y-0': entered, 
+            }
+          ]" 
+          :style="{ transitionDelay: `${i * 35}ms` }" 
+          @pointerdown="startLongPress(post.slug)" 
+          @pointerup="cancelLongPress" 
+          @pointercancel="cancelLongPress" 
+          @mouseleave="cancelLongPress"
+        >
           <ClientOnly>
             <div v-if="isAdmin && selectionMode" class="absolute right-12 top-5 z-2">
               <NCheckbox :model-value="selectedSlugs.has(post.slug)" @update:model-value="toggleSelected(post.slug)" />
@@ -104,64 +136,64 @@
             :aria-busy="duplicatingPosts.has(post.slug)"
           >
             <article class="h-full flex flex-col items-stretch relative">
-            <div v-if="post.image?.src" class="w-full overflow-hidden flex-shrink-0">
-              <NuxtImg
-                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
-                :src="post.image.src"
-                :alt="post.image.alt || post.name"
-                class="w-full h-full object-cover aspect-[16/10] transition-transform duration-500 group-hover:scale-110"
-              />
-            </div>
-
-            <!-- Content -->
-            <div class="flex-1 p-6 flex flex-col">
-              <!-- Admin dropdown control is rendered outside the link to avoid being blocked by overlay -->
-              
-              <div v-if="duplicatingPosts.has(post.slug)" class="absolute inset-0 pointer-events-auto duplicate-overlay z-0" aria-hidden="true" />
-              <div class="flex items-center gap-2 mb-2" v-if="duplicatingPosts.has(post.slug)">
-                <NBadge badge="soft" color="warning">Duplicating…</NBadge>
-              </div>
-              <!-- Title -->
-              <h2 class="text-2xl font-bold mb-3 line-clamp-2">
-                {{ post.name }}
-              </h2>
-
-              <!-- Excerpt -->
-              <p v-if="post.description" class="text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 flex-1">
-                {{ post.description }}
-              </p>
-
-              <!-- Tags -->
-              <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
-                <NBadge
-                  v-for="tag in post.tags.slice(0, 3)"
-                  :key="tag.id"
-                  size="xs"
-                  badge="soft-gray"
-                >
-                  {{ tag.name }}
-                </NBadge>
+              <div v-if="post.image?.src" class="w-full overflow-hidden flex-shrink-0">
+                <NuxtImg
+                  :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
+                  :src="post.image.src"
+                  :alt="post.image.alt || post.name"
+                  class="w-full h-full object-cover aspect-[16/10] transition-transform duration-500 group-hover:scale-110"
+                />
               </div>
 
-              <!-- Meta -->
-              <div class="flex items-center justify-between pt-4 border-t b-dashed border-border mt-4">
-                <div v-if="post.user" class="flex items-center gap-3">
-                  <NuxtImg
-                    v-if="post.user.avatar"
-                    :src="post.user.avatar"
-                    :alt="post.user.name || 'User'"
-                    class="w-8 h-8 rounded-full"
-                  />
-                  <span class="text-sm font-medium">{{ post.user.name }}</span>
+              <!-- Content -->
+              <div class="flex-1 p-6 flex flex-col">
+                <!-- Admin dropdown control is rendered outside the link to avoid being blocked by overlay -->
+                
+                <div v-if="duplicatingPosts.has(post.slug)" class="absolute inset-0 pointer-events-auto duplicate-overlay z-0" aria-hidden="true" />
+                <div class="flex items-center gap-2 mb-2" v-if="duplicatingPosts.has(post.slug)">
+                  <NBadge badge="soft" color="warning">Duplicating…</NBadge>
                 </div>
-                <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
-                  <time>{{ post.formattedDate }}</time>
-                  <span>•</span>
-                  <span>{{ post.readingTime }}</span>
+                <!-- Title -->
+                <h2 class="text-2xl font-bold mb-3 line-clamp-2">
+                  {{ post.name }}
+                </h2>
+
+                <!-- Excerpt -->
+                <p v-if="post.description" class="text-slate-500 dark:text-slate-400 mb-4 line-clamp-2 flex-1">
+                  {{ post.description }}
+                </p>
+
+                <!-- Tags -->
+                <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
+                  <NBadge
+                    v-for="tag in post.tags.slice(0, 3)"
+                    :key="tag.id"
+                    size="xs"
+                    badge="soft-gray"
+                  >
+                    {{ tag.name }}
+                  </NBadge>
+                </div>
+
+                <!-- Meta -->
+                <div class="flex items-center justify-between pt-4 border-t b-dashed border-border mt-4">
+                  <div v-if="post.user" class="flex items-center gap-3">
+                    <NuxtImg
+                      v-if="post.user.avatar"
+                      :src="post.user.avatar"
+                      :alt="post.user.name || 'User'"
+                      class="w-8 h-8 rounded-full"
+                    />
+                    <span class="text-sm font-medium">{{ post.user.name }}</span>
+                  </div>
+                  <div class="flex items-center gap-2 text-sm text-slate-500 dark:text-slate-400">
+                    <time>{{ post.formattedDate }}</time>
+                    <span>•</span>
+                    <span>{{ post.readingTime }}</span>
+                  </div>
                 </div>
               </div>
-            </div>
-          </article>
+            </article>
           </NLink>
 
           <!-- Admin controls outside the link so overlay can block link but not menu -->
@@ -170,8 +202,10 @@
             <div v-if="isAdmin" class="absolute right-3 top-3 z-10">
               <NDropdownMenu :items="menuItemsForPost(post)">
                 <template #default>
-                  <NButton :disabled="duplicatingPosts.has(post.slug)" icon btn="ghost" size="xs" @click.stop.prevent>
-                    <NIcon name="i-ph-dots-three-vertical" />
+                  <NButton :disabled="duplicatingPosts.has(post.slug)" icon btn="~" size="xs" @click.stop.prevent
+                    class="group-hover:bg-blue-600 transition-colors duration-200"
+                  >
+                    <NIcon name="i-ph-dots-three-vertical-bold" />
                   </NButton>
                 </template>
               </NDropdownMenu>
@@ -216,17 +250,8 @@
       <!-- Drafts (admin tab) -->
       <ClientOnly>
         <div v-if="isAdmin && activeTab === 'drafts'" class="mt-6 max-w-7xl mx-auto">
-        <div class="mb-12">
-          <h2 class="font-title text-size-24 font-bold line-height-24">
-            Drafts
-          </h2>
-          <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
-            These posts are not visible to the public
-          </p>
-        </div>
-
         <div v-if="enhancedDrafts.length > 0" class="columns-1 sm:columns-2 lg:columns-3">
-          <div v-for="post in enhancedDrafts" :key="post.slug" class="relative inline-block w-full mb-6 break-inside-avoid" @pointerdown="startLongPress(post.slug)" @pointerup="cancelLongPress" @pointercancel="cancelLongPress" @mouseleave="cancelLongPress">
+          <div v-for="(post, i) in enhancedDrafts" :key="post.slug" :class="['relative inline-block w-full mb-6 break-inside-avoid transition-all duration-500 ease-out will-change-transform', { 'opacity-0 translate-y-3': !entered, 'opacity-100 translate-y-0': entered }]" :style="{ transitionDelay: `${i * 35}ms` }" @pointerdown="startLongPress(post.slug)" @pointerup="cancelLongPress" @pointercancel="cancelLongPress" @mouseleave="cancelLongPress">
             <div v-if="isAdmin && selectionMode" class="absolute right-12 top-5 z-2">
               <NCheckbox :model-value="selectedSlugs.has(post.slug)" @update:model-value="toggleSelected(post.slug)" />
             </div>
@@ -287,9 +312,8 @@
 
       <ClientOnly>
         <div v-if="isAdmin && activeTab === 'archived'" class="mt-6 max-w-7xl mx-auto">
-        <h2 class="text-2xl font-bold mb-6 flex items-center gap-2"><span class="i-ph-archive" />Archived</h2>
         <div v-if="enhancedArchived.length > 0" class="max-w-7xl mx-auto columns-1 sm:columns-2 lg:columns-3">
-            <div v-for="post in enhancedArchived" :key="post.slug" class="relative inline-block w-full mb-6 break-inside-avoid" @pointerdown="startLongPress(post.slug)" @pointerup="cancelLongPress" @pointercancel="cancelLongPress" @mouseleave="cancelLongPress">
+            <div v-for="(post, i) in enhancedArchived" :key="post.slug" :class="['relative inline-block w-full mb-6 break-inside-avoid transition-all duration-500 ease-out will-change-transform', { 'opacity-0 translate-y-3': !entered, 'opacity-100 translate-y-0': entered }]" :style="{ transitionDelay: `${i * 35}ms` }" @pointerdown="startLongPress(post.slug)" @pointerup="cancelLongPress" @pointercancel="cancelLongPress" @mouseleave="cancelLongPress">
               <div v-if="isAdmin && selectionMode" class="absolute right-12 top-5 z-2">
                 <NCheckbox :model-value="selectedSlugs.has(post.slug)" @update:model-value="toggleSelected(post.slug)" />
               </div>
@@ -357,8 +381,10 @@
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
-import { onMounted, onUnmounted } from 'vue'
+import { onMounted, onUnmounted, watch, nextTick } from 'vue'
 import { useStorage } from '@vueuse/core'
+import { usePostsApi } from '~/composables/usePostsApi'
+import TypewriterText from '~/components/TypewriterText.vue' 
 
 const router = useRouter()
 const confirmDialogOpen = ref(false)
@@ -388,9 +414,64 @@ function onPostCreated(p: Post) {
 
 // Import file handling
 const fileInput = ref<HTMLInputElement | null>(null)
+const coverFileInput = ref<HTMLInputElement | null>(null)
+const coverTargetPost = ref<Post | null>(null)
+const coverUploadingPosts = ref(new Set<string | number>())
+const { uploadCoverFile, deleteCover } = usePostsApi()
 
 function triggerImportFile() {
   fileInput.value?.click()
+}
+
+function triggerCoverUpload(post: Post) {
+  coverTargetPost.value = post
+  coverFileInput.value?.click()
+}
+
+async function onCoverFileSelected(e: Event) {
+  const inputEl = e.target as HTMLInputElement | null
+  const file = inputEl?.files?.[0]
+  const target = coverTargetPost.value
+  if (!file || !target) return
+  const identifier = target.slug || String(target.id)
+  coverUploadingPosts.value = new Set([...coverUploadingPosts.value, identifier])
+  try {
+    const res = await uploadCoverFile(identifier, file)
+    if (res?.success && res.image) {
+      if (!target.image) target.image = { alt: '', ext: '', src: '' }
+      target.image.src = res.image.src ?? target.image.src ?? ''
+      target.image.alt = res.image.alt ?? target.image.alt ?? ''
+    }
+  } catch (err) {
+    console.error('Cover upload failed', err)
+    alert('Cover upload failed: ' + String(err))
+  } finally {
+    coverTargetPost.value = null
+    if (inputEl) inputEl.value = ''
+    const next = new Set(coverUploadingPosts.value)
+    next.delete(identifier)
+    coverUploadingPosts.value = next
+  }
+}
+
+async function removeCover(post: Post) {
+  if (!post?.image?.src) return
+  const identifier = post.slug || String(post.id)
+  coverUploadingPosts.value = new Set([...coverUploadingPosts.value, identifier])
+  try {
+    await deleteCover(identifier)
+    if (post.image) {
+      post.image.src = ''
+      post.image.alt = ''
+    }
+  } catch (err) {
+    console.error('Failed to remove cover', err)
+    alert('Failed to remove cover: ' + String(err))
+  } finally {
+    const next = new Set(coverUploadingPosts.value)
+    next.delete(identifier)
+    coverUploadingPosts.value = next
+  }
 }
 
 async function onImportFileSelected(e: Event) {
@@ -493,6 +574,10 @@ onUnmounted(() => {
   cancelLongPress()
 })
 
+// subtle entrance animation state for post cards
+const entered = ref(false)
+
+
 // Whether currently visible content contains any posts (used for empty-state logic)
 const hasVisiblePosts = computed(() => {
   if (activeTab.value === 'published') return enhancedPosts.value.length > 0
@@ -507,6 +592,26 @@ const isLoadingVisible = computed(() => {
   if (activeTab.value === 'archived') return archivedPending.value
   return false
 })
+
+// trigger entrance animations only after loading state and visible posts are ready
+watch(
+  [() => visiblePosts.value.length, () => isLoadingVisible.value, () => activeTab.value],
+  async ([len, loading]) => {
+    // only animate when content is ready
+    if (loading) return
+    entered.value = false
+    await nextTick()
+    // small rAF+timeout ensures DOM & initial styles are flushed before toggling
+    if (import.meta.client) {
+      const raf = typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame : (cb: FrameRequestCallback) => setTimeout(cb, 16)
+      raf(() => setTimeout(() => { entered.value = true }, 30))
+    } else {
+      // Server / non-browser: mark entered immediately to avoid calling browser APIs (prevents SSR errors)
+      entered.value = true
+    }
+  },
+  { immediate: true }
+)
 
 useHead({
   title: 'Posts — corpinot',
@@ -656,6 +761,7 @@ function editPost(post: Post) {
 
 function menuItemsForPost(post: Post) {
   const isDup = duplicatingPosts.value.has(post.slug)
+  const isCoverBusy = coverUploadingPosts.value.has(post.slug)
   return [
     {
       label: 'Status',
@@ -664,6 +770,13 @@ function menuItemsForPost(post: Post) {
         { label: 'Published', trailing: post.status === 'published' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'published'), disabled: isDup },
         { label: 'Archived', trailing: post.status === 'archived' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'archived'), disabled: isDup },
       ]
+    },
+    {
+      label: 'Cover',
+      items: [
+        { label: post.image?.src ? 'Replace cover' : 'Add cover', leading: 'i-ph-image', onSelect: () => !isDup && !isCoverBusy && triggerCoverUpload(post), disabled: isDup || isCoverBusy },
+        { label: 'Remove cover', leading: 'i-ph-trash', onSelect: () => !isDup && !isCoverBusy && removeCover(post), disabled: isDup || isCoverBusy || !post.image?.src, color: 'danger' },
+      ],
     },
     { label: 'Preview', onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
     { label: 'Select', onSelect: () => (selectionMode.value = true, toggleSelected(post.slug)), leading: 'i-ph-check', disabled: isDup },

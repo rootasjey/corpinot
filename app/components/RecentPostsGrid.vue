@@ -95,9 +95,17 @@
         </article>
       </div>
       <!-- Load More -->
-      <div v-if="!pending && hasMore" class="mt-8 flex justify-center">
-        <NButton :disabled="loadingMore" @click="loadMore">
+      <div v-if="!pending && hasMore" class="mt-12 flex justify-center">
+        <NButton
+          btn="ghost"
+          :disabled="loadingMore"
+          class="group/btn px-8 py-3 uppercase tracking-[0.25em] font-800 text-slate-900 dark:text-slate-300 border-2 border-slate-600 dark:border-slate-700 rounded-full 
+            hover:border-slate-400 dark:hover:border-slate-600 hover:text-slate-900 dark:hover:text-slate-100 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed
+            hover:shadow-md hover:scale-105 active:shadow-none active:scale-99 transform"
+          @click="loadMore"
+        >
           <span v-if="loadingMore" class="i-ph-circle-notch animate-spin mr-2" />
+          <span v-else class="i-ph-arrow-down mr-2 group-hover/btn:translate-y-0.5 transition-transform duration-300" />
           {{ loadingMore ? 'Loading…' : 'Load more' }}
         </NButton>
       </div>

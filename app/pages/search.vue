@@ -75,8 +75,19 @@
             <li
               v-for="post in enhancedRecentPosts"
               :key="post.slug"
-              class="flex items-start justify-between"
+              class="flex items-start gap-3"
             >
+              <NuxtImg
+                v-if="post.image?.src"
+                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
+                :src="post.image.src"
+                :alt="post.image.alt || post.name"
+                class="h-14 w-14 shrink-0 rounded-xl object-cover bg-gray-100 dark:bg-gray-900"
+                loading="lazy"
+                decoding="async"
+                format="webp"
+              />
+              <div v-else class="h-14 w-14 shrink-0 rounded-xl bg-gray-200 dark:bg-gray-800" />
               <NuxtLink :to="`/posts/${post.slug}`" class="flex-1">
                 <div class="text-base font-semibold text-gray-900 dark:text-gray-100 line-clamp-2">{{ post.name }}</div>
                 <div class="text-xs text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-2">

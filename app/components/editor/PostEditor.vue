@@ -74,6 +74,7 @@
       :editable="true"
       :should-show="shouldShowFloatingMenu"
       :actions="floatingActions"
+      :vertical="slashMenuVertical"
       @select="selectFloatingAction"
       :onInsertImages="onInsertImages"
       :onInsertGallery="onInsertGallery"
@@ -138,6 +139,7 @@ import type { EditorState } from '@tiptap/pm/state'
 import type { BlockType } from '~~/shared/types/nodes'
 import type { AICommand } from '~/composables/useAIWriter'
 import { useLowlight } from '~/composables/useCodeHighlight'
+import { useEditorSettings } from '~/composables/useEditorSettings'
 import { useEditorVideos } from '~/composables/useEditorVideos'
 import { useEditorAudio } from '~/composables/useEditorAudio'
 import { generatePosterFromVideoFile } from '~/composables/generateVideoPoster' 
@@ -540,6 +542,8 @@ async function handleFiles(currentEditor: any, files: File[], pos: number) {
   }
 }
 
+const { slashMenuVertical } = useEditorSettings()
+
 const blockTypes: BlockType[] = [
   { label: 'Text', icon: 'i-lucide-pilcrow', isActive: () => editor.value?.isActive('paragraph'), action: () => editor.value?.chain().focus().setParagraph().run() },
   { label: 'Heading 1', icon: 'i-lucide-heading-1', isActive: () => !!editor.value?.isActive('heading', { level: 1 }), action: () => editor.value?.chain().focus().toggleHeading({ level: 1 }).run() },
@@ -552,28 +556,29 @@ const blockTypes: BlockType[] = [
   { label: 'Code Block', icon: 'i-lucide-code-2', isActive: () => editor.value?.isActive('codeBlock'), action: () => editor.value?.chain().focus().toggleCodeBlock().run() },
 ]
 
-interface FloatingAction { label: string; icon?: string; isActive?: () => boolean; action: () => void | Promise<void>; ask?: (prompt: string) => void | Promise<void> }
+interface FloatingAction { label: string; icon?: string; description?: string; isActive?: () => boolean; action: () => void | Promise<void>; ask?: (prompt: string) => void | Promise<void> }
 const floatingActions = computed<FloatingAction[]>(() => {
   const actions: FloatingAction[] = [
-    { label: 'H1', icon: 'i-lucide-heading-1', isActive: () => editor.value?.isActive('heading', { level: 1 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 1 }).run() },
-    { label: 'H2', icon: 'i-lucide-heading-2', isActive: () => editor.value?.isActive('heading', { level: 2 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 2 }).run() },
-    { label: 'H3', icon: 'i-lucide-heading-3', isActive: () => editor.value?.isActive('heading', { level: 3 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 3 }).run() },
-    { label: 'Bulleted', icon: 'i-lucide-list', isActive: () => editor.value?.isActive('bulletList') ?? false, action: () => toggleBulletListWithEnter() },
-    { label: 'Numbered', icon: 'i-lucide-list-ordered', isActive: () => editor.value?.isActive('orderedList') ?? false, action: () => editor.value?.chain().focus().toggleOrderedList().run() },
-    { label: 'Code Block', icon: 'i-lucide-code-2', isActive: () => editor.value?.isActive('codeBlock') ?? false, action: () => editor.value?.chain().focus().toggleCodeBlock().run() },
-    { label: 'To-do', icon: 'i-lucide-check-square', isActive: () => editor.value?.isActive('taskList') ?? false, action: () => editor.value?.chain().focus().toggleTaskList().run() },
-    { label: 'Blockquote', icon: 'i-lucide-quote', isActive: () => editor.value?.isActive('blockquote') ?? false, action: () => editor.value?.chain().focus().toggleBlockquote().run() },
-    { label: 'Gallery', icon: 'i-lucide-layout-grid', action: () => { /* drop-in handled by FloatingSlashMenu via file input */ } },
-    { label: 'Image', icon: 'i-lucide-image', action: () => addImage() },
-    { label: 'Video', icon: 'i-lucide-film', action: () => addVideo() },
-    { label: 'Audio', icon: 'i-lucide-mic', action: () => addAudio() },
-    { label: 'Separator', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator' }).run() },
-    { label: 'Uncommon', icon: 'i-lucide-box', action: () => (uncommonNodesOpen.value = true) },
+    { label: 'H1', description: 'Large heading', icon: 'i-lucide-heading-1', isActive: () => editor.value?.isActive('heading', { level: 1 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 1 }).run() },
+    { label: 'H2', description: 'Medium heading', icon: 'i-lucide-heading-2', isActive: () => editor.value?.isActive('heading', { level: 2 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 2 }).run() },
+    { label: 'H3', description: 'Small heading', icon: 'i-lucide-heading-3', isActive: () => editor.value?.isActive('heading', { level: 3 }) ?? false, action: () => editor.value?.chain().focus().toggleHeading({ level: 3 }).run() },
+    { label: 'Bulleted', description: 'Unordered list', icon: 'i-lucide-list', isActive: () => editor.value?.isActive('bulletList') ?? false, action: () => toggleBulletListWithEnter() },
+    { label: 'Numbered', description: 'Ordered list', icon: 'i-lucide-list-ordered', isActive: () => editor.value?.isActive('orderedList') ?? false, action: () => editor.value?.chain().focus().toggleOrderedList().run() },
+    { label: 'Code Block', description: 'Insert code snippet', icon: 'i-lucide-code-2', isActive: () => editor.value?.isActive('codeBlock') ?? false, action: () => editor.value?.chain().focus().toggleCodeBlock().run() },
+    { label: 'To-do', description: 'Task list item', icon: 'i-lucide-check-square', isActive: () => editor.value?.isActive('taskList') ?? false, action: () => editor.value?.chain().focus().toggleTaskList().run() },
+    { label: 'Blockquote', description: 'Quoted text', icon: 'i-lucide-quote', isActive: () => editor.value?.isActive('blockquote') ?? false, action: () => editor.value?.chain().focus().toggleBlockquote().run() },
+    { label: 'Gallery', description: 'Insert image gallery', icon: 'i-lucide-layout-grid', action: () => { /* drop-in handled by FloatingSlashMenu via file input */ } },
+    { label: 'Image', description: 'Insert an image', icon: 'i-lucide-image', action: () => addImage() },
+    { label: 'Video', description: 'Insert a video', icon: 'i-lucide-film', action: () => addVideo() },
+    { label: 'Audio', description: 'Insert audio clip', icon: 'i-lucide-mic', action: () => addAudio() },
+    { label: 'Separator', description: 'Insert divider', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator' }).run() },
+    { label: 'Uncommon', description: 'More node types', icon: 'i-lucide-box', action: () => (uncommonNodesOpen.value = true) },
   ]
 
   if (props.aiEnabled && props.onAiCommand) {
     actions.unshift({
       label: 'AI',
+      description: 'Continue or ask AI',
       icon: 'i-lucide-sparkles',
       action: () => props.onAiCommand?.('continue'),
       ask: (prompt: string) => props.onAiCommand?.({ action: 'ask', prompt }),

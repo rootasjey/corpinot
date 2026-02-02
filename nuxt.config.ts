@@ -91,17 +91,17 @@ export default defineNuxtConfig({
     theme: {
       colors: {
         primary: {
-          DEFAULT: '#687FE5',
-          50: '#F4F5FF',
-          100: '#E9EDFF',
-          200: '#DDE2FF',
-          300: '#CDD4FF',
-          400: '#BCC7FF',
-          500: '#687FE5',
-          600: '#576ED3',
-          700: '#4659B7',
-          800: '#2E3E93',
-          900: '#161F70',
+          DEFAULT: '#145DFC',
+          50: '#F2F6FF',
+          100: '#E6EEFF',
+          200: '#CFE0FF',
+          300: '#A3C5FF',
+          400: '#5F96FF',
+          500: '#145DFC',
+          600: '#1148B0',
+          700: '#0C3790',
+          800: '#082569',
+          900: '#04163A',
         },
         // Colors used by generated "wrapper-43" utilities (checkbox shortcuts)
         'wrapper-43': {

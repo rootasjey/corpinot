@@ -43,7 +43,7 @@
 
             <!-- Content on Right -->
             <div class="flex-1 min-w-0">
-              <h2 class="text-base md:text-lg xl:text-base font-text font-bold mb-2 group-hover:underline transition-all line-clamp-2 md:line-clamp-2">
+              <h2 class="text-base md:text-lg xl:text-base font-text font-bold mb-2 group-hover:underline transition-all line-clamp-1 md:line-clamp-1">
                 {{ post.name }}
               </h2>
               <div class="flex items-center gap-2 font-600 text-xs text-gray-500 dark:text-gray-400">

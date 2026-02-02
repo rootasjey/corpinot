@@ -1,146 +1,319 @@
 <template>
   <section class="min-h-screen bg-white dark:bg-gray-950">
     <!-- Sticky toolbar -->
-    <div class="sticky top-0 z-30 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-      <div class="container mx-auto px-4 md:px-8 py-3">
-        <div class="flex items-center justify-between gap-2">
-          <NButton link to="/" btn="ghost-gray" size="xs">← Back</NButton>
-          <div class="flex items-center gap-4">
-            <div class="min-w-0 sm:min-w-[220px]">
-              <div v-if="successMessage" class="text-sm truncate text-green-600 dark:text-green-400">{{ successMessage }}</div>
-              <div v-else-if="errorMessage" class="text-sm truncate text-red-600 dark:text-red-400">{{ errorMessage }}</div>
-            </div>
-            <div class="flex items-center gap-2">
-              <NButton :disabled="!hasChanges || isSaving" @click="onSubmit" btn="soft-gray" size="sm">
-                <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-                <span class="ml-2">Save</span>
-              </NButton>
-              <NButton @click="resetForm" btn="ghost-gray" size="sm">Cancel</NButton>
-            </div>
+    <div class="sticky top-0 z-30 border-b bg-background/95 backdrop-blur-lg supports-[backdrop-filter]:bg-background/80">
+      <div class="container mx-auto px-4 md:px-8 py-3 sm:py-4">
+        <div class="flex items-center justify-between gap-3">
+          <!-- Mobile: compact layout with title in center -->
+          <NButton link to="/" btn="ghost-gray" size="sm" icon label="i-lucide-arrow-left" class="md:hidden" />
+          <NButton link to="/" btn="ghost-gray" size="sm" class="hidden md:flex">
+            <NIcon name="i-lucide-arrow-left" />
+            <span class="ml-2">Back</span>
+          </NButton>
+          
+          <div class="flex-1 text-center md:hidden">
+            <div class="text-base font-semibold text-gray-900 dark:text-gray-100">Profile</div>
+          </div>
+          
+          <div class="flex items-center gap-2">
+            <NButton 
+              :disabled="!hasChanges || isSaving" 
+              @click="onSubmit" 
+              btn="soft-blue" 
+              size="sm"
+              class="hidden md:flex"
+            >
+              <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
+              <span class="ml-2">{{ isSaving ? 'Saving…' : 'Save' }}</span>
+            </NButton>
+            
+            <!-- Mobile: Icon-only save button -->
+            <NButton 
+              :disabled="!hasChanges || isSaving" 
+              @click="onSubmit" 
+              btn="soft-blue" 
+              size="sm"
+              icon
+              label="i-lucide-save"
+              class="md:hidden"
+            />
+          </div>
+        </div>
+        
+        <!-- Status messages below toolbar on mobile -->
+        <div v-if="successMessage || errorMessage" class="mt-3 md:mt-0 md:absolute md:top-1/2 md:left-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
+          <div v-if="successMessage" class="text-xs sm:text-sm text-center text-green-600 dark:text-green-400 px-3 py-1.5 rounded-full bg-green-50 dark:bg-green-900/20">
+            {{ successMessage }}
+          </div>
+          <div v-else-if="errorMessage" class="text-xs sm:text-sm text-center text-red-600 dark:text-red-400 px-3 py-1.5 rounded-full bg-red-50 dark:bg-red-900/20">
+            {{ errorMessage }}
           </div>
         </div>
       </div>
     </div>
-    <div class="container mx-auto px-6 max-w-7xl py-10">
-      <!-- Hero area: big name left, large avatar right -->
-      <div class="flex flex-col md:flex-row items-center md:items-start gap-8">
-        <div class="flex-1 md:max-w-3xl">
-          <!-- Big editable name styled like the design -->
+    
+    <div class="container mx-auto px-4 sm:px-6 max-w-7xl py-4 sm:py-6 md:py-10 pb-24 md:pb-10">
+      <!-- Mobile-first hero: avatar on top, name below -->
+      <div class="flex flex-col md:flex-row items-center md:items-start gap-4 sm:gap-6 md:gap-8 animate-entrance" style="animation-delay:80ms;">
+        <!-- Avatar section - appears first on mobile -->
+        <div class="w-full md:w-auto md:order-2 flex justify-center">
+          <button
+            type="button"
+            class="relative group w-48 h-48 sm:w-64 sm:h-64 md:w-72 md:h-72 lg:w-96 lg:h-96 rounded-3xl overflow-hidden bg-gradient-to-br from-pink-50 to-pink-100 dark:from-pink-900/20 dark:to-pink-800/20 flex items-center justify-center border-2 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-pink-400/60 focus:ring-offset-2 focus:ring-offset-white dark:focus:ring-offset-gray-950"
+            :class="avatarDragOver ? 'border-pink-400 dark:border-pink-500 scale-105' : 'border-pink-200/50 dark:border-pink-800/30'"
+            @dragover.prevent="onAvatarDragOver"
+            @dragleave.prevent="onAvatarDragLeave"
+            @drop.prevent="onAvatarDrop"
+            @click="openAvatarDrawer"
+            aria-label="Edit avatar"
+          >
+            <NuxtImg v-if="displayAvatar" provider="hubblob" :src="displayAvatar" :alt="form.name" class="object-cover w-full h-full" />
+            <div v-else class="w-full h-full flex items-center justify-center text-5xl sm:text-6xl md:text-7xl font-bold text-pink-300 dark:text-pink-600">
+              {{ userInitials }}
+            </div>
+            
+            <div v-if="avatarUploading" class="absolute left-0 bottom-0 w-full h-1.5 bg-black/20 overflow-hidden">
+              <div class="h-full bg-pink-500 transition-all duration-300" :style="{ width: avatarUploadProgress + '%' }" />
+            </div>
+            <input ref="avatarFileInput" type="file" accept="image/*" class="hidden" @change="handleAvatarFileChange" />
+          </button>
+        </div>
+
+        <!-- Name and bio section - appears second on mobile -->
+        <div class="flex-1 w-full md:max-w-3xl md:order-1">
+          <!-- Big editable name -->
           <textarea
             ref="nameTextarea"
             v-model="form.name"
             rows="1"
-            class="w-full resize-none overflow-hidden text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-800 leading-none bg-transparent outline-none focus:outline-none uppercase text-pink-500"
+            class="w-full resize-none overflow-hidden text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-800 leading-tight bg-transparent outline-none focus:outline-none uppercase text-center md:text-left placeholder:text-pink-300 dark:placeholder:text-pink-700"
             placeholder="Your name"
             @input="autoResizeName"
           />
-          <NInput v-model="form.job" placeholder="Add a job title" input="~" class="mt-2 bg-transparent outline-none w-full text-gray-700 dark:text-gray-300" />
+          <NInput 
+            v-model="form.job" 
+            placeholder="Add a job title" 
+            input="~" 
+            class="mt-3 sm:mt-4 bg-transparent text-center md:text-left text-base sm:text-lg text-gray-700 dark:text-gray-300 placeholder:text-gray-400" 
+          />
           <NInput
             input="~"
             v-model="form.biography"
             type="textarea"
-            :rows="4"
-            class="bg-transparent outline-none w-full text-gray-700 dark:text-gray-300"
+            :rows="3"
+            class="mt-3 sm:mt-4 bg-transparent text-center md:text-left text-sm sm:text-base text-gray-600 dark:text-gray-400 placeholder:text-gray-400"
             placeholder="Write a short biography about yourself..."
           />
         </div>
-
-        <div
-          class="relative group w-48 sm:w-64 md:w-72 lg:w-96 rounded-3xl overflow-hidden bg-pink-50 dark:bg-pink-900/20 flex items-center justify-center border transition-colors"
-          :class="avatarDragOver ? 'border-primary/60 bg-pink-100 dark:bg-pink-900/40' : 'border-transparent'"
-          @dragover.prevent="onAvatarDragOver"
-          @dragleave.prevent="onAvatarDragLeave"
-          @drop.prevent="onAvatarDrop"
-        >
-          <NuxtImg v-if="displayAvatar" provider="hubblob" :src="displayAvatar" :alt="form.name" class="object-cover w-full h-full" />
-          <div v-else class="w-full h-40 md:h-64 flex items-center justify-center text-3xl sm:text-4xl font-bold text-gray-600 dark:text-gray-200">{{ userInitials }}</div>
-          <div class="absolute top-3 right-3 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <NButton @click="triggerAvatarFileInput" btn="solid-white" size="sm" leading="i-ph-image" :disabled="avatarUploading">
-              {{ avatarUploading ? 'Uploading…' : displayAvatar ? 'Change' : 'Add' }}
-            </NButton>
-            <NButton @click="openDeleteAvatarDialog" :disabled="!displayAvatar" btn="solid-gray" size="sm" leading="i-ph-trash" color="danger">Remove</NButton>
-          </div>
-          <div v-if="avatarUploading" class="absolute left-0 bottom-0 w-full h-1 bg-black/10 rounded-b-2xl overflow-hidden">
-            <div class="h-full bg-primary transition-all duration-300" :style="{ width: avatarUploadProgress + '%' }" />
-          </div>
-          <input ref="avatarFileInput" type="file" accept="image/*" class="hidden" @change="handleAvatarFileChange" />
-        </div>
       </div>
 
-      <div class="bg-white dark:bg-gray-950 rounded-2xl mt-8">
+      <!-- Profile fields in card format -->
+      <div class="mt-6 sm:mt-8 md:mt-10 animate-entrance" style="animation-delay:180ms;">
         <form @submit.prevent="onSubmit">
-          <div class="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <!-- Mobile: stacked cards, Desktop: grid -->
+          <div class="flex flex-col md:grid gap-3 sm:gap-4 md:gap-6 md:grid-cols-2 lg:grid-cols-3">
             <!-- Email -->
-            <div class="flex flex-col items-start gap-4 p-6 rounded-xl border b-dashed hover:b-solid border-gray-50 dark:border-gray-800 bg-background/50">
-              <NIcon name="i-lucide-mail" class="text-pink-500 text-3xl sm:text-4xl" />
-              <div class="uppercase text-lg sm:text-xl font-bold text-pink-500">Email</div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">Your contact address</div>
-              <NInput v-model="form.email" placeholder="email@domain.com" input="~" class="bg-transparent outline-none w-full" type="email" />
+            <div class="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900/50 dark:to-gray-900/30 transition-all duration-300">
+              <div class="flex items-center justify-between">
+                <NIcon name="i-lucide-mail" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
+                <div class="text-xs uppercase font-bold tracking-wide">Required</div>
+              </div>
+              <div class="uppercase text-lg sm:text-xl font-bold">Email</div>
+              <NInput 
+                v-model="form.email" 
+                placeholder="your@email.com" 
+                input="outline" 
+                type="email"
+                class="w-full"
+                size="md"
+              />
             </div>
 
             <!-- Location -->
-            <div class="flex flex-col items-start gap-4 p-6 rounded-xl border b-dashed hover:b-solid border-gray-50 dark:border-gray-800 bg-background/50">
-              <NIcon name="i-lucide-map-pin" class="text-pink-500 text-3xl sm:text-4xl" />
-              <div class="uppercase text-lg sm:text-xl font-bold text-pink-500">Location</div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">Where you’re based</div>
-              <NInput v-model="form.location" placeholder="City, Country" input="~" class="bg-transparent outline-none w-full" />
-            </div>
-
-            <!-- Avatar URL -->
-            <div class="flex flex-col items-start gap-4 p-6 rounded-xl border b-dashed hover:b-solid border-gray-50 dark:border-gray-800 bg-background/50">
-              <NIcon name="i-ph-image" class="text-pink-500 text-3xl sm:text-4xl" />
-              <div class="uppercase text-lg sm:text-xl font-bold text-pink-500">Avatar</div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">Image URL to use as avatar</div>
-              <NInput v-model="form.avatar" placeholder="https://..." input="~" class="bg-transparent outline-none w-full" />
+            <div class="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900/50 dark:to-gray-900/30 transition-all duration-300">
+              <div class="flex items-center justify-between">
+                <NIcon name="i-lucide-map-pin" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
+              </div>
+              <div class="uppercase text-lg sm:text-xl font-bold">Location</div>
+              <NInput 
+                v-model="form.location" 
+                placeholder="City, Country" 
+                input="outline"
+                class="w-full"
+                size="md"
+              />
             </div>
 
             <!-- Job -->
-            <div class="flex flex-col items-start gap-4 p-6 rounded-xl border b-dashed hover:b-solid border-gray-50 dark:border-gray-800 bg-background/50">
-              <NIcon name="i-lucide-briefcase" class="text-pink-500 text-3xl sm:text-4xl" />
-              <div class="uppercase text-lg sm:text-xl font-bold text-pink-500">Job</div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">Your current title</div>
-              <NInput v-model="form.job" placeholder="Job title" input="~" class="bg-transparent outline-none w-full" />
+            <div class="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900/50 dark:to-gray-900/30 transition-all duration-300">
+              <div class="flex items-center justify-between">
+                <NIcon name="i-lucide-briefcase" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
+              </div>
+              <div class="uppercase text-lg sm:text-xl font-bold">Job</div>
+              <NInput 
+                v-model="form.job" 
+                placeholder="Your role" 
+                input="outline"
+                class="w-full"
+                size="md"
+              />
             </div>
 
             <!-- Language -->
-            <div class="flex flex-col items-start gap-4 p-6 rounded-xl border b-dashed hover:b-solid border-gray-50 dark:border-gray-800 bg-background/50">
-              <NIcon name="i-lucide-globe" class="text-pink-500 text-3xl sm:text-4xl" />
-              <div class="uppercase text-lg sm:text-xl font-bold text-pink-500">Language</div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">Preferred language code</div>
-              <NInput v-model="form.language" placeholder="en" input="~" class="bg-transparent outline-none w-full" />
+            <div class="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900/50 dark:to-gray-900/30 transition-all duration-300">
+              <div class="flex items-center justify-between">
+                <NIcon name="i-lucide-globe" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
+              </div>
+              <div class="uppercase text-lg sm:text-xl font-bold">Language</div>
+              <NInput 
+                v-model="form.language" 
+                placeholder="en, fr, es..." 
+                input="outline"
+                class="w-full"
+                size="md"
+              />
             </div>
 
             <!-- Socials -->
-            <div class="flex flex-col items-start gap-4 p-6 rounded-xl border b-dashed hover:b-solid border-gray-50 dark:border-gray-800 bg-background/50">
-              <NIcon name="i-lucide-link" class="text-pink-500 text-3xl sm:text-4xl" />
-              <div class="uppercase text-lg sm:text-xl font-bold text-pink-500">Socials</div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">Manage your social profiles</div>
-              <div class="w-full flex items-center gap-3">
-                <NButton @click="openSocialsDialog" btn="soft" size="sm">Edit socials</NButton>
-                <div class="text-sm text-gray-600 dark:text-gray-400">{{ socialsSummary }}</div>
+            <div class="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900/50 dark:to-gray-900/30 transition-all duration-300">
+              <div class="flex items-center justify-between">
+                <NIcon name="i-lucide-link" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
+                <NBadge v-if="socialsSummary !== 'No socials'" badge="soft-lime" size="sm">{{ socialsSummary }}</NBadge>
               </div>
+              <div class="uppercase text-lg sm:text-xl font-bold">Socials</div>
+              <NButton 
+                @click="openSocialsDialog" 
+                btn="outline-gray" 
+                size="md"
+                class="w-full justify-center"
+              >
+                <NIcon name="i-lucide-edit" />
+                <span class="ml-2">Edit socials</span>
+              </NButton>
+            </div>
+
+            <!-- Avatar URL -->
+            <div class="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900/50 dark:to-gray-900/30 transition-all duration-300">
+              <div class="flex items-center justify-between">
+                <NIcon name="i-ph-image" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
+              </div>
+              <div class="uppercase text-lg sm:text-xl font-bold">Avatar URL</div>
+              <NInput 
+                v-model="form.avatar" 
+                placeholder="https://..." 
+                input="outline"
+                class="w-full"
+                size="md"
+              />
             </div>
 
             <!-- Biography (full-width) -->
-            <div class="sm:col-span-2 lg:col-span-3 flex flex-col items-start gap-4 p-6 rounded-xl border b-dashed hover:b-solid border-gray-50 dark:border-gray-800 bg-background/50">
-              <NIcon name="i-lucide-align-left" class="text-pink-500 text-3xl sm:text-4xl" />
-              <div class="uppercase text-lg sm:text-xl font-bold text-pink-500">Biography</div>
-              <div class="text-sm text-gray-500 dark:text-gray-400">A short bio shown on your profile</div>
-              <NInput v-model="form.biography" input="~" type="textarea" :rows="6" class="bg-transparent outline-none w-full" />
+            <div class="md:col-span-2 lg:col-span-3 group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900/50 dark:to-gray-900/30 transition-all duration-300">
+              <div class="flex items-center justify-between">
+                <NIcon name="i-lucide-align-left" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
+              </div>
+              <div class="uppercase text-lg sm:text-xl font-bold">Biography</div>
+              <NInput 
+                v-model="form.biography" 
+                input="outline" 
+                type="textarea" 
+                :rows="4"
+                class="w-full"
+                placeholder="Tell us about yourself..."
+              />
             </div>
           </div>
 
-          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 mt-6">
-            <NButton :disabled="isSaving || !hasChanges" type="submit" btn="soft-gray" class="w-full sm:w-auto">{{ isSaving ? 'Saving…' : 'Save' }}</NButton>
-            <NButton @click="resetForm" btn="ghost-gray" class="w-full sm:w-auto">Reset</NButton>
-
-            <div class="mt-2 sm:mt-0 ml-0 sm:ml-auto min-w-0 sm:min-w-[220px] text-sm">
-              <div v-if="errorMessage" class="text-sm truncate text-red-600 dark:text-red-400">{{ errorMessage }}</div>
-              <div v-if="successMessage" class="text-sm truncate text-green-600 dark:text-green-400">{{ successMessage }}</div>
-            </div>
+          <!-- Desktop action buttons -->
+          <div class="hidden md:flex items-center gap-3 mt-6 lg:mt-8">
+            <NButton 
+              :disabled="isSaving || !hasChanges" 
+              type="submit" 
+              btn="solid" 
+              size="lg"
+            >
+              <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
+              <span class="ml-2">{{ isSaving ? 'Saving…' : 'Save changes' }}</span>
+            </NButton>
+            <NButton 
+              @click="resetForm" 
+              btn="outline-gray" 
+              size="lg"
+              :disabled="isSaving || !hasChanges"
+            >
+              Reset
+            </NButton>
           </div>
         </form>
       </div>
+
+      <!-- Mobile sticky bottom action bar (outside form for proper fixed positioning) -->
+      <div class="fixed bottom-0 left-0 right-0 z-2 p-4 bg-white/95 dark:bg-gray-950/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 md:hidden">
+        <div class="container mx-auto max-w-7xl">
+          <div class="flex gap-2">
+            <NTooltip content="Reset changes">
+              <NButton 
+                @click="resetForm" 
+                btn="soft-gray" 
+                size="md"
+                icon
+                label="i-ph-arrow-arc-left"
+                :disabled="isSaving || !hasChanges"
+              />
+            </NTooltip>
+            <NButton 
+              :disabled="isSaving || !hasChanges" 
+              @click="onSubmit" 
+              btn="solid-blue" 
+              size="md"
+              class="flex-1"
+            >
+              <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
+              <span class="ml-2">{{ isSaving ? 'Saving…' : 'Save changes' }}</span>
+            </NButton>
+          </div>
+        </div>
+      </div>
+
+      <!-- Avatar actions drawer (mobile) -->
+      <NDrawer v-model:open="avatarDrawerOpen" placement="bottom">
+        <template #body>
+          <div class="p-5 space-y-3">
+            <div class="flex justify-between items-center mb-2">
+              <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">Avatar</div>
+              <NButton
+                @click="avatarDrawerOpen = false"
+                btn="ghost-gray"
+                size="md"
+                icon
+                label="i-ph-x-bold"
+              />
+            </div>
+
+            <NButton
+              @click="onAvatarChange"
+              btn="solid-blue"
+              size="md"
+              class="w-full justify-center"
+              :disabled="avatarUploading"
+            >
+              <NIcon name="i-ph-image" />
+              <span class="ml-2">{{ avatarUploading ? 'Uploading…' : displayAvatar ? 'Change avatar' : 'Add avatar' }}</span>
+            </NButton>
+            <NButton
+              @click="onAvatarRemove"
+              btn="outline-gray"
+              color="danger"
+              size="md"
+              class="w-full justify-center"
+              :disabled="!displayAvatar"
+            >
+              <NIcon name="i-ph-trash" />
+              <span class="ml-2">Remove avatar</span>
+            </NButton>
+          </div>
+        </template>
+      </NDrawer>
       
       <!-- Socials editor dialog -->
       <NDialog v-model:open="socialsDialogOpen" :closeOnEsc="true">
@@ -255,6 +428,7 @@ const avatarFileInput = ref<HTMLInputElement | null>(null)
 const avatarUploading = ref(false)
 const avatarUploadProgress = ref(0)
 const avatarDragOver = ref(false)
+const avatarDrawerOpen = ref(false)
   // Preview avatar shown immediately after upload until the session/user data refreshes
   const previewAvatar = ref<string | null>(null)
   // Delete avatar confirmation dialog state & loading indicator
@@ -355,6 +529,21 @@ function resetForm() {
 }
 
 const triggerAvatarFileInput = () => avatarFileInput.value?.click()
+
+function openAvatarDrawer() {
+  if (import.meta.client && window.innerWidth >= 768) return
+  avatarDrawerOpen.value = true
+}
+
+function onAvatarChange() {
+  avatarDrawerOpen.value = false
+  triggerAvatarFileInput()
+}
+
+function onAvatarRemove() {
+  avatarDrawerOpen.value = false
+  openDeleteAvatarDialog()
+}
 
 const onAvatarDragOver = () => { avatarDragOver.value = true }
 const onAvatarDragLeave = () => { avatarDragOver.value = false }
@@ -614,4 +803,26 @@ function handleGlobalKeydown(e: KeyboardEvent) {
 }
 </script>
 
-<style scoped></style>
+<style scoped>
+.animate-entrance {
+  opacity: 0;
+  transform: translateY(8px) scale(0.996);
+  animation: entrance 640ms cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes entrance {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-entrance {
+    transition: none !important;
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+</style>

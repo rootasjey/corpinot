@@ -17,8 +17,8 @@
 
       <!-- Page Header -->
       <div v-if="(posts?.length || 0) > 0" class="mb-12 md:mb-16">
-        <h1 class="text-size-4xl md:text-size-24 font-bold line-height-28">
-          Projects
+        <h1 class="font-title text-size-24 font-bold line-height-28">
+          <TypewriterText :text="'Projects'" :auto-hide-cursor="true" />
         </h1>
         <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
           Showcasing our collection of project posts and case studies.
@@ -27,7 +27,7 @@
 
       <!-- Projects list (grid cards) -->
       <div v-if="posts && posts.length > 0" class="max-w-7xl mx-auto grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div v-for="post in enhancedPosts" :key="post.slug" class="relative">
+        <div v-for="(post, i) in enhancedPosts" :key="post.slug" :class="['relative mb-6 transition-all duration-500 ease-out will-change-transform', { 'opacity-0 translate-y-3': !entered, 'opacity-100 translate-y-0': entered }]" :style="{ transitionDelay: `${i * 35}ms` }">
           <NuxtLink
             :to="`/posts/${post.slug}`"
             :class="[
@@ -41,8 +41,9 @@
           >
             <article class="h-full flex flex-col items-stretch relative">
             <!-- Image -->
-            <div v-if="post.image?.src" class="w-full md:w-48 overflow-hidden flex-shrink-0">
-              <img
+            <div v-if="post.image?.src" class="w-full overflow-hidden flex-shrink-0">
+              <NuxtImg
+                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
                 :src="post.image.src"
                 :alt="post.image.alt || post.name"
                 class="w-full h-full object-cover aspect-[16/10] transition-transform duration-500 group-hover:scale-110"
@@ -58,14 +59,14 @@
 
               <!-- Tags -->
               <div v-if="post.tags && post.tags.length > 0" class="flex flex-wrap gap-2 mb-3">
-                <NButton
+                <NBadge
                   v-for="tag in post.tags.slice(0, 3)"
                   :key="tag.id"
                   size="xs"
-                  variant="soft"
+                  badge="soft-gray"
                 >
                   {{ tag.name }}
-                </NButton>
+                </NBadge>
               </div>
 
               <!-- Title -->
@@ -167,6 +168,7 @@
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
+import { onMounted, onUnmounted, watch, nextTick } from 'vue'
 const router = useRouter()
 const confirmDialogOpen = ref(false)
 const postPendingDelete = ref<Post | null>(null)
@@ -183,8 +185,27 @@ function onPostCreated(p: Post) {
   else posts.value.unshift(p)
 }
 
-// Fetch project posts from API (tag=project)
-const { data: posts, pending, error } = await useFetch<Post[]>('/api/posts?tag=project')
+const projectTags = ['project', 'featured project']
+
+async function fetchProjectPosts() {
+  const results = await Promise.all(
+    projectTags.map(tag => $fetch<Post[]>(`/api/posts?tag=${encodeURIComponent(tag)}`))
+  )
+  const merged = new Map<string, Post>()
+  for (const list of results) {
+    for (const post of list) {
+      merged.set(post.slug, post)
+    }
+  }
+  return Array.from(merged.values()).sort((a, b) => {
+    const aTime = Date.parse(a.createdAt || '') || 0
+    const bTime = Date.parse(b.createdAt || '') || 0
+    return bTime - aTime
+  })
+}
+
+// Fetch project posts from API (tags: project + featured project)
+const { data: posts, pending, error } = await useAsyncData('project-posts', fetchProjectPosts)
 
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
 
@@ -193,6 +214,27 @@ const enhancedPosts = computed(() => posts.value ? posts.value.map(p => enhanceP
 
 const hasVisiblePosts = computed(() => enhancedPosts.value.length > 0)
 const isLoadingVisible = computed(() => pending.value)
+
+// subtle entrance animation state for project cards
+const entered = ref(false)
+
+// trigger entrance animations once projects are loaded and visible
+watch(
+  [() => enhancedPosts.value.length, () => isLoadingVisible.value],
+  async ([len, loading]) => {
+    if (loading) return
+    entered.value = false
+    await nextTick()
+    if (import.meta.client) {
+      const raf = typeof requestAnimationFrame !== 'undefined' ? requestAnimationFrame : (cb: FrameRequestCallback) => setTimeout(cb, 16)
+      raf(() => setTimeout(() => { entered.value = true }, 30))
+    } else {
+      // Server: mark entered immediately to avoid calling browser APIs
+      entered.value = true
+    }
+  },
+  { immediate: true }
+)
 
 useHead({
   title: 'Projects — corpinot',
@@ -203,7 +245,7 @@ useHead({
 
 async function refreshAllLists() {
   try {
-    posts.value = await $fetch('/api/posts?tag=project')
+    posts.value = await fetchProjectPosts()
   } catch (e) {
     console.error('Failed to refresh posts', e)
   }

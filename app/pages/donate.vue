@@ -1,8 +1,10 @@
 <template>
-  <div class="mx-auto max-w-4xl px-6 py-12">
+  <transition name="page-entrance" appear>
+    <div class="mx-auto max-w-4xl px-6 py-12 page-entrance-target">
     <div class="text-center mb-8">
       <h1 class="font-title text-3xl font-bold mb-2">Support Corpinot</h1>
       <p class="text-slate-600 dark:text-slate-400">Help keep independent writing thriving. Your support funds development and editorial work.</p>
+      <NBadge badge="solid-pink" class="mt-4">This feature is not yet available.</NBadge>
     </div>
 
     <div v-if="donationCompleted" class="rounded-lg p-6 border b-dashed border-gray-200 dark:border-gray-800 text-center" role="status" aria-live="polite">
@@ -79,6 +81,7 @@
       </div>
     </div>
   </div>
+  </transition>
 </template>
 
 <script setup lang="ts">
@@ -186,7 +189,25 @@ function donateAgain() {
   60%, 100% { transform: scale(1) rotate(0) translateX(0); }
 }
 
+/* Page entrance animation */
+.page-entrance-enter-active,
+.page-entrance-appear-active {
+  transition: opacity 320ms cubic-bezier(.2,.8,.2,1), transform 320ms cubic-bezier(.2,.8,.2,1);
+}
+.page-entrance-enter-from,
+.page-entrance-appear-from {
+  opacity: 0;
+  transform: translateY(12px) scale(0.998);
+}
+.page-entrance-enter-to,
+.page-entrance-appear-to {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .confetti-icon { animation: none; }
+  .page-entrance-enter-active,
+  .page-entrance-appear-active { transition: none; }
 }
 </style>

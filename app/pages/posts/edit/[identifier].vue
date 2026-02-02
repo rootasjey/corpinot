@@ -277,10 +277,10 @@ import { usePostsApi } from '~/composables/usePostsApi'
 import { usePostImages } from '~/composables/usePostImages'
 import { useSlugValidation } from '~/composables/useSlugValidation'
 import { usePostAI } from '~/composables/usePostAI'
+import { useAISettings } from '~/composables/useAISettings'
 import { deriveSlugFromName } from '~/utils/slug'
 import { useTagStore } from '~/stores/tags'
 import { useAIWriter } from '~/composables/useAIWriter'
-import { useStorage } from '@vueuse/core'
 import AiProviderDialog from '~/components/editor/AiProviderDialog.vue'
 
 const route = useRoute()
@@ -321,7 +321,7 @@ const articleContent = ref({})
 const runtimeConfig = useRuntimeConfig()
 const aiEnabled = computed(() => runtimeConfig.public?.features?.aiWriter === true)
 const aiLength = ref<AILength>('medium')
-const aiProvider = useStorage<'cloudflare' | 'openrouter'>('ai-provider', 'cloudflare')
+const { provider: aiProvider, getModelForAction } = useAISettings()
 const aiProviderDialogOpen = ref(false)
 
 const editor = ref<any | null>(null)
@@ -392,6 +392,7 @@ const {
   aiEnabled,
   aiLength,
   aiProvider,
+  getModelForAction,
   sourceLanguage,
   streamSuggestion,
   cancelStream: cancel,

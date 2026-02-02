@@ -25,6 +25,7 @@ interface UsePostAIOptions {
   aiLength: Ref<AILength>
   sourceLanguage: ComputedRef<string>
   aiProvider: Ref<'cloudflare' | 'openrouter'>
+  getModelForAction?: (action: AIAction, providerForAction: 'cloudflare' | 'openrouter') => string | undefined
   streamSuggestion: (input: {
     action: AIAction
     content: string
@@ -129,6 +130,10 @@ export function usePostAI(options: UsePostAIOptions) {
     }
 
     try {
+      const providerForAction = (action === 'translate' || action === 'summarize')
+        ? 'cloudflare'
+        : options.aiProvider.value
+
       const iterator = await options.streamSuggestion({
         action,
         content,
@@ -136,7 +141,8 @@ export function usePostAI(options: UsePostAIOptions) {
         postIdentifier: options.identifier.value,
         targetLanguage: payload.targetLanguage,
         sourceLanguage: payload.sourceLanguage,
-        provider: options.aiProvider.value,
+        provider: providerForAction,
+        model: options.getModelForAction?.(action, providerForAction),
       })
 
       // Helper: strip common model-added prefixes so the editor receives

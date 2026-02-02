@@ -166,7 +166,15 @@ const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
   query: { tag: FEATURED_POST_TAG, limit: 5 },
 })
 
-const featuredPosts = computed(() => (data.value ?? []).map(p => enhancePost(p)))
+const featuredPosts = computed(() => (data.value ?? []).map(p => enhancePost(p)).sort((a, b) => {
+  // Put posts with 'hero' tag first
+  const aIsHero = a.tags?.some(t => t.name.toLowerCase() === 'hero')
+  const bIsHero = b.tags?.some(t => t.name.toLowerCase() === 'hero')
+  if (aIsHero && !bIsHero) return -1
+  if (!aIsHero && bIsHero) return 1
+  // Otherwise sort by date descending
+  return new Date(b.publishedAt ?? '').getTime() - new Date(a.publishedAt ?? '').getTime()
+}))
 
 const today = new Date().toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
 

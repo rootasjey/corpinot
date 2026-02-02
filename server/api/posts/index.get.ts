@@ -9,6 +9,7 @@ export default defineEventHandler(async (event) => {
   const search = query.search as string
   const tag = query.tag as string
   const author = query.author as string
+  const exclude = query.exclude as string
   // Pagination
   const pageRaw = query.page as string
   const limitRaw = query.limit as string
@@ -20,6 +21,24 @@ export default defineEventHandler(async (event) => {
   if (limit > 50) limit = 50
   const offset = (page - 1) * limit
   const conditions = [eq(schema.posts.status, 'published')]
+
+  const excludedTags = exclude
+    ? exclude
+        .split(',')
+        .map(tagName => tagName.trim().toLowerCase())
+        .filter(Boolean)
+    : []
+
+  if (excludedTags.length) {
+    const placeholders = excludedTags.map(tagName => sql`${tagName}`)
+    const exclusion = sql`NOT EXISTS (
+      SELECT 1 FROM ${schema.post_tags}
+      INNER JOIN ${schema.tags} ON ${schema.tags.id} = ${schema.post_tags.tag_id}
+      WHERE ${schema.post_tags.post_id} = ${schema.posts.id}
+        AND LOWER(${schema.tags.name}) IN (${sql.join(placeholders, sql`, `)})
+    )`
+    conditions.push(exclusion)
+  }
 
   if (search && search.trim()) {
     const pattern = `%${search.trim()}%`

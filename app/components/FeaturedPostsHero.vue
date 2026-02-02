@@ -23,6 +23,7 @@
             >
               <NuxtImg
                 v-if="post.image?.src"
+                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
                 :src="post.image.src"
                 :alt="post.image.alt || post.name"
                 class="absolute inset-0 h-full w-full object-cover"

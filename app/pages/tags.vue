@@ -1,6 +1,7 @@
 <template>
-  <div>
-    <section class="py-12 md:py-16 bg-white dark:bg-gray-950">
+  <Transition name="page" appear>
+    <div>
+      <section class="py-12 md:py-16 bg-white dark:bg-gray-950">
       <div class="container mx-auto px-6 max-w-7xl">
         <h1 class="text-3xl md:text-4xl font-serif font-800 mb-2">Tags</h1>
         <div class="flex items-center justify-between mb-8">
@@ -53,8 +54,8 @@
                 description="We couldn't fetch tags right now. Try again later."
               />
 
-              <ul v-else class="space-y-3 max-h-[60vh] overflow-y-auto">
-                <li v-for="tag in filteredTags" :key="tag.id">
+              <TransitionGroup v-else name="tags" tag="ul" class="space-y-3 max-h-[60vh] overflow-y-auto" appear>
+                <li v-for="(tag, i) in filteredTags" :key="tag.id" :style="{ '--enter-delay': `${i * 40}ms` }">
                   <div class="flex items-center justify-between p-1 rounded-xl">
                     <button
                       @click="selectTag(tag.name)"
@@ -88,7 +89,7 @@
                     </div>
                   </div>
                 </li>
-              </ul>
+              </TransitionGroup>
             </div>
           </aside>
 
@@ -109,8 +110,8 @@
             />
 
             <!-- Posts grid -->
-            <div v-else class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-6 gap-y-8">
-              <article v-for="post in visiblePosts" :key="post.slug" class="group flex flex-col">
+            <TransitionGroup v-else name="list" tag="div" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-x-6 gap-y-8" appear>
+              <article v-for="(post, i) in visiblePosts" :key="post.slug" :style="{ '--enter-delay': `${i * 50}ms` }" class="group flex flex-col">
                 <NuxtLink :to="`/posts/${post.slug}`" class="block flex flex-col h-full">
                   <div v-if="post.image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
                     <NuxtImg
@@ -131,7 +132,7 @@
                   </div>
                 </NuxtLink>
               </article>
-            </div>
+            </TransitionGroup> 
 
             <div v-if="!visiblePosts.length && !postsPending && !postsError" class="mt-12 text-center text-gray-600 dark:text-gray-400">
               <h2 class="text-size-12 font-200">No posts found for this tag.</h2>
@@ -209,7 +210,8 @@
       </NDialogFooter>
     </NDialogContent>
   </NDialog>
-  </div>
+    </div>
+  </Transition>
 </template>
 
 <script setup lang="ts">
@@ -454,4 +456,73 @@ async function confirmDelete() {
 /* small scrollbar hide for aesthetics */
 .scrollbar-hide::-webkit-scrollbar { display: none; }
 .scrollbar-hide { -ms-overflow-style: none; scrollbar-width: none; }
+.page-enter-from {
+  opacity: 0;
+  transform: translateY(8px) scale(0.997);
+}
+.page-enter-active {
+  transition: opacity 280ms cubic-bezier(0.2, 0, 0.2, 1), transform 280ms cubic-bezier(0.2, 0, 0.2, 1);
+}
+.page-enter-to {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .page-enter-from,
+  .page-enter-to,
+  .page-enter-active {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Staggered list item entrance */
+.list-enter-from {
+  opacity: 0;
+  transform: translateY(10px) scale(0.997);
+}
+.list-enter-active {
+  transition: opacity 320ms cubic-bezier(0.2, 0, 0.2, 1), transform 320ms cubic-bezier(0.2, 0, 0.2, 1);
+  /* per-item delay via CSS variable set inline on each item */
+  transition-delay: var(--enter-delay, 0ms);
+}
+.list-enter-to {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .list-enter-from,
+  .list-enter-to,
+  .list-enter-active {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
+/* Tags column staggered entrance */
+.tags-enter-from {
+  opacity: 0;
+  transform: translateY(6px) scale(0.985);
+}
+.tags-enter-active {
+  transition: opacity 260ms cubic-bezier(0.2, 0, 0.2, 1), transform 260ms cubic-bezier(0.2, 0, 0.2, 1);
+  transition-delay: var(--enter-delay, 0ms);
+}
+.tags-enter-to {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tags-enter-from,
+  .tags-enter-to,
+  .tags-enter-active {
+    transition: none !important;
+    transform: none !important;
+  }
+}
+
 </style>

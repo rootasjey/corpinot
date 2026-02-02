@@ -13,7 +13,7 @@
         <div class="p-4">
           <div class="grid gap-3">
             <NButton @click="select('conway')" btn="outline" class="justify-start">
-              <NIcon name="i-lucide-grid" class="mr-2" /> Conway
+              <NIcon name="i-ph-circles-three-duotone" class="mr-2" /> Conway
             </NButton>
           </div>
         </div>
@@ -31,7 +31,7 @@
         <div class="mt-2 p-2">
           <div class="grid gap-3">
             <NButton @click="select('conway')" btn="outline" class="justify-start">
-              <NIcon name="i-lucide-grid" class="mr-2" /> Conway
+              <NIcon name="i-ph-circles-three-duotone" class="mr-2" /> Conway
             </NButton>
           </div>
         </div>

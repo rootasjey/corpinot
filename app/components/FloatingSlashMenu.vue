@@ -4,15 +4,16 @@
     v-if="editor && editable"
     :editor="editor"
     :should-show="shouldShow"
-    class="floating-menu"
+    :class="['floating-menu', { 'floating-menu--vertical': vertical }]"
     role="menubar"
+    :aria-orientation="vertical ? 'vertical' : 'horizontal'"
     aria-label="slash menu"
     @keydown.stop.prevent="onKeydown"
   >
     <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="onFilesChange" />
     <input ref="fileInputGallery" type="file" accept="image/*" multiple class="hidden" @change="onGalleryFilesChange" />
     <template v-for="(item, idx) in actions" :key="item.label">
-      <div v-if="item.ask" class="relative inline-flex">
+      <div v-if="item.ask" class="menu-item-wrapper">
         <button
           :ref="(el) => registerButton(el, idx)"
           @click.stop.prevent="toggleAiMenu(idx)"
@@ -22,8 +23,12 @@
           tabindex="-1"
           :title="item.label"
         >
-          <span v-if="item.icon" :class="item.icon" aria-hidden="true" />
-          <span class="sr-only">{{ item.label }}</span>
+          <span v-if="item.icon" :class="['menu-item-icon', item.icon]" aria-hidden="true" />
+          <span v-if="vertical" class="menu-item-text">
+            <span class="menu-item-label">{{ item.label }}</span>
+            <span v-if="item.description" class="menu-item-description">{{ item.description }}</span>
+          </span>
+          <span v-else class="sr-only">{{ item.label }}</span>
         </button>
 
         <div v-if="aiMenuIndex === idx" 
@@ -98,8 +103,12 @@
         tabindex="-1"
         :title="item.label"
       >
-        <span v-if="item.icon" :class="item.icon" aria-hidden="true" />
-        <span class="sr-only">{{ item.label }}</span>
+        <span v-if="item.icon" :class="['menu-item-icon', item.icon]" aria-hidden="true" />
+        <span v-if="vertical" class="menu-item-text">
+          <span class="menu-item-label">{{ item.label }}</span>
+          <span v-if="item.description" class="menu-item-description">{{ item.description }}</span>
+        </span>
+        <span v-else class="sr-only">{{ item.label }}</span>
       </button>
     </template>
   </FloatingMenu>
@@ -114,6 +123,7 @@ import type { Editor } from '@tiptap/vue-3'
 interface FloatingAction {
   label: string
   icon?: string
+  description?: string
   isActive?: () => boolean
   action: () => void | Promise<void>
   ask?: (prompt: string) => void | Promise<void>
@@ -127,10 +137,12 @@ const props = withDefaults(defineProps<{
   onInsertImages?: (files: FileList) => void
   onInsertGallery?: (files: FileList) => void
   onConfigureModels?: () => void
+  vertical?: boolean
 }>(), {
   editable: false,
   shouldShow: () => false,
   onConfigureModels: undefined,
+  vertical: false,
 })
 
 const emit = defineEmits<{
@@ -190,8 +202,50 @@ const registerButton = (el: Element | ComponentPublicInstance | null, idx: numbe
 
 const focusButton = (i: number) => {
   if (!buttons.value.length) return
-  index.value = ((i % buttons.value.length) + buttons.value.length) % buttons.value.length
-  buttons.value[index.value]?.focus()
+
+  const prev = index.value
+  const newIndex = ((i % buttons.value.length) + buttons.value.length) % buttons.value.length
+  index.value = newIndex
+  const btn = buttons.value[newIndex]
+
+  // Focus without causing the browser to auto-scroll the element into view.
+  // Prefer the preventScroll option when available and fall back to normal focus.
+  try {
+    btn?.focus?.({ preventScroll: true })
+  } catch {
+    btn?.focus?.()
+  }
+
+  // If we're in vertical mode, make sure the focused button is visible using smooth scrolling inside the menu container
+  if ((props as any).vertical && btn) {
+    try {
+      const wrapped = (prev === 0 && newIndex === buttons.value.length - 1) || (prev === buttons.value.length - 1 && newIndex === 0)
+      const container = btn.closest('.floating-menu--vertical') as HTMLElement | null
+
+      if (container) {
+        if (wrapped) {
+          const top = Math.max(btn.offsetTop - container.clientHeight / 2 + btn.offsetHeight / 2, 0)
+          container.scrollTo({ top, behavior: 'smooth' })
+        } else {
+          const btnTop = btn.offsetTop
+          const btnBottom = btnTop + btn.offsetHeight
+          const viewTop = container.scrollTop
+          const viewBottom = viewTop + container.clientHeight
+          const padding = 8
+          if (btnTop < viewTop + padding) {
+            container.scrollTo({ top: Math.max(btnTop - padding, 0), behavior: 'smooth' })
+          } else if (btnBottom > viewBottom - padding) {
+            container.scrollTo({ top: Math.min(btnBottom - container.clientHeight + padding, container.scrollHeight), behavior: 'smooth' })
+          }
+        }
+      } else if (btn.scrollIntoView) {
+        // Fallback to element scrollIntoView if no container is found
+        btn.scrollIntoView({ behavior: 'smooth', block: wrapped ? 'center' : 'nearest' })
+      }
+    } catch {
+      // ignore if scrolling throws
+    }
+  }
 }
 
 const closeAiMenu = (returnFocus = true) => {
@@ -405,8 +459,44 @@ watch(
 </script>
 
 <style scoped>
+.floating-menu--vertical {
+  @apply flex flex-col gap-1 p-2 max-h-[60vh] overflow-y-auto scroll-smooth;
+}
+
+.menu-item-wrapper {
+  @apply relative inline-flex;
+}
+
+.floating-menu--vertical .menu-item-wrapper {
+  @apply w-full block;
+}
+
 .floating-menu .menu-item {
   @apply p-1.5 rounded-md text-foreground/80 hover:bg-muted transition-colors flex items-center justify-center min-w-[28px];
+}
+
+.floating-menu--vertical .menu-item {
+  @apply w-full justify-start gap-3 px-2.5 py-2 text-left min-w-[220px];
+}
+
+.menu-item-icon {
+  @apply text-base;
+}
+
+.floating-menu--vertical .menu-item-icon {
+  @apply text-lg mt-0.5;
+}
+
+.menu-item-text {
+  @apply flex flex-col gap-0.5;
+}
+
+.menu-item-label {
+  @apply text-sm font-500 text-foreground;
+}
+
+.menu-item-description {
+  @apply text-xs text-slate-500 dark:text-slate-400 leading-snug;
 }
 
 .floating-menu .menu-item:focus {

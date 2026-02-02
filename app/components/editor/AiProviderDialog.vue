@@ -40,9 +40,14 @@
         </button>
       </div>
 
-      <NDialogFooter class="flex items-center justify-end gap-2 mt-6">
-        <NButton btn="ghost-gray" size="sm" @click="emit('update:open', false)">Cancel</NButton>
-        <NButton btn="solid-blue" size="sm" class="min-w-24 font-600" @click="confirm">Save</NButton>
+      <NDialogFooter class="flex items-center justify-between gap-2 mt-6">
+        <NuxtLink to="/settings/ai" class="text-sm text-slate-500 dark:text-slate-400 hover:underline">
+          Manage models per action
+        </NuxtLink>
+        <div class="flex items-center gap-2">
+          <NButton btn="ghost-gray" size="sm" @click="emit('update:open', false)">Cancel</NButton>
+          <NButton btn="solid-blue" size="sm" class="min-w-24 font-600" @click="confirm">Save</NButton>
+        </div>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>

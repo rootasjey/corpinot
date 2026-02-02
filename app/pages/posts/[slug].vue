@@ -234,6 +234,26 @@ const { loggedIn, user } = useUserSession()
 
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
 
+const isEditableTarget = (target: EventTarget | null) => {
+  if (!target || !(target instanceof HTMLElement)) return false
+  const tag = target.tagName
+  return (
+    tag === 'INPUT' ||
+    tag === 'TEXTAREA' ||
+    target.isContentEditable ||
+    target.getAttribute('role') === 'textbox'
+  )
+}
+
+const handleEditShortcut = (event: KeyboardEvent) => {
+  if (!isAdmin.value || !post.value) return
+  if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return
+  if (isEditableTarget(event.target)) return
+  if (event.key.toLowerCase() !== 'e') return
+  event.preventDefault()
+  navigateTo(editPostUrl.value)
+}
+
 // Fetch post data from API
 const { data: post, error } = await useFetch<Post>(`/api/posts/${slug}`)
 if (error.value || !post.value) {
@@ -242,6 +262,8 @@ if (error.value || !post.value) {
     statusMessage: 'Post not found'
   })
 }
+
+const editPostUrl = computed(() => `/posts/edit/${post.value?.slug || post.value?.id}`)
 
 // Enhance post with computed properties
 const enhancedPost = computed(() => enhancePost(post.value!))
@@ -438,6 +460,10 @@ watch(lightboxImage, (value) => {
 onBeforeUnmount(() => {
   removeLightboxListeners()
 })
+
+if (import.meta.client) {
+  useEventListener(document, 'keydown', handleEditShortcut)
+}
 
 const config = useRuntimeConfig()
 const ogImageUrl = computed(() => {
