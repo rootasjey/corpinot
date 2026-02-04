@@ -1,5 +1,5 @@
 <template>
-  <section class="py-12 md:py-16">
+  <section class="py-12 md:py-16 animate-entrance">
     <div class="container mx-auto px-4 max-w-7xl">
       <div class="flex items-center justify-between px-1 mb-6">
         <NuxtLink to="/posts" class="inline-block">
@@ -36,7 +36,7 @@
 
       <!-- Empty: dummy grid matching final UI -->
       <div v-else-if="!enhancedPosts.length" class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-8 md:gap-y-12">
-        <article v-for="i in 6" :key="i" class="group flex flex-col">
+        <article v-for="i in 6" :key="i" class="group flex flex-col animate-entrance-item" :style="{ animationDelay: `${(i - 1) * 40}ms` }">
           <!-- Image placeholder -->
           <div class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4 bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
             <div class="i-ph-image-duotone text-3xl text-gray-400" />
@@ -57,19 +57,15 @@
       <!-- Grid layout for posts -->
       <div v-else class="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-x-4 sm:gap-x-6 gap-y-8 md:gap-y-12">
         <article
-          v-for="post in enhancedPosts"
+          v-for="(post, i) in enhancedPosts"
           :key="post.slug"
-          class="group flex flex-col"
+          class="group flex flex-col animate-entrance-item"
+          :style="{ animationDelay: `${i * 40}ms` }"
         >
           <NuxtLink :to="`/posts/${post.slug}`" class="block flex flex-col h-full">
             <!-- Image -->
             <div v-if="post.image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
-              <NuxtImg
-                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
-                :src="post.image.src"
-                :alt="post.image.alt || post.name"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
+              <PostImage :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
             </div>
 
             <!-- Content -->

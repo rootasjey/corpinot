@@ -77,9 +77,8 @@
               :key="post.slug"
               class="flex items-start gap-3"
             >
-              <NuxtImg
+              <PostImage
                 v-if="post.image?.src"
-                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
                 :src="post.image.src"
                 :alt="post.image.alt || post.name"
                 class="h-14 w-14 shrink-0 rounded-xl object-cover bg-gray-100 dark:bg-gray-900"

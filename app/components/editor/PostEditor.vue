@@ -124,6 +124,7 @@ import ImageGallery from './ImageGallery'
 import { Video } from './Video'
 import { Audio } from './Audio'
 import { Conway } from './Conway'
+import { HorizontalCard } from './HorizontalCard'
 import NodeRange from '@tiptap/extension-node-range'
 import Separator from './Separator'
 import EditorDragHandleMenu from './EditorDragHandleMenu.vue'
@@ -361,6 +362,9 @@ const editor = useEditor({
     }),
     Placeholder.configure({
       placeholder: ({ node }) => {
+        console.log('Placeholder check for node:', node)
+        // Paragraph with an explicit placeholder attribute should show that placeholder
+        if (node.type.name === 'paragraph' && node.attrs?.placeholder) return node.attrs.placeholder
         if (node.type.name === 'paragraph') return `${new Date().toLocaleTimeString()} - Here are my thoughts about... (/ for commands)`
         if (node.type.name === 'heading') return 'Heading...'
         return ''
@@ -379,6 +383,7 @@ const editor = useEditor({
     Video,
     Audio,
     Conway,
+    HorizontalCard,
     Separator,
     Table.configure({ resizable: true }),
     TextStyle,
@@ -569,6 +574,7 @@ const floatingActions = computed<FloatingAction[]>(() => {
     { label: 'Blockquote', description: 'Quoted text', icon: 'i-lucide-quote', isActive: () => editor.value?.isActive('blockquote') ?? false, action: () => editor.value?.chain().focus().toggleBlockquote().run() },
     { label: 'Gallery', description: 'Insert image gallery', icon: 'i-lucide-layout-grid', action: () => { /* drop-in handled by FloatingSlashMenu via file input */ } },
     { label: 'Image', description: 'Insert an image', icon: 'i-lucide-image', action: () => addImage() },
+    { label: 'Horizontal Card', description: 'Image + text card', icon: 'i-lucide-rectangle-horizontal', action: () => { editor.value?.chain().focus().run(); (editor.value as any)?.commands?.insertHorizontalCard?.() } },
     { label: 'Video', description: 'Insert a video', icon: 'i-lucide-film', action: () => addVideo() },
     { label: 'Audio', description: 'Insert audio clip', icon: 'i-lucide-mic', action: () => addAudio() },
     { label: 'Separator', description: 'Insert divider', icon: 'i-lucide-minus', action: () => editor.value?.chain().focus().insertContent({ type: 'separator' }).run() },

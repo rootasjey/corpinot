@@ -45,6 +45,43 @@
       </div>
     </template>
 
+    <!-- Horizontal card actions (formatting + alignment) -->
+    <template v-else-if="horizontalCardSelected">
+      <div class="flex items-center gap-2">
+        <!-- Formatting -->
+        <button type="button" @click.prevent="toggleCardHeading" :class="{ 'is-active': isHeadingActive }" title="Title (H3)">H</button>
+        <button type="button" @click.prevent="toggleCardBold" :class="{ 'is-active': isBoldActive }" title="Bold"><strong>B</strong></button>
+        <button type="button" @click.prevent="toggleCardItalic" :class="{ 'is-active': isItalicActive }" title="Italic"><em>I</em></button>
+        <button type="button" @click.prevent="toggleCardStrike" :class="{ 'is-active': isStrikeActive }" title="Strikethrough"><s>S</s></button>
+
+        <div class="divider" />
+
+        <!-- Alignment -->
+        <button
+          type="button"
+          @click="setHorizontalCardImagePosition('left')"
+          :class="{ 'is-active': currentHorizontalCardPosition === 'left' }"
+          title="Image left"
+          aria-label="Image left"
+        >
+          <span class="i-lucide-align-left" />
+        </button>
+        <button
+          type="button"
+          @click="setHorizontalCardImagePosition('right')"
+          :class="{ 'is-active': currentHorizontalCardPosition === 'right' }"
+          title="Image right"
+          aria-label="Image right"
+        >
+          <span class="i-lucide-align-right" />
+        </button>
+
+        <button type="button" @click="deleteSelectedHorizontalCard" title="Delete card">
+          <span class="i-lucide-trash" />
+        </button>
+      </div>
+    </template>
+
     <!-- Separator node actions -->
     <template v-else-if="separatorSelected">
       <div class="flex items-center gap-2">
@@ -279,6 +316,12 @@ const separatorSelected = computed(() => {
   return !!sel && !!sel.node && sel.node.type?.name === 'separator'
 })
 
+// Check if a horizontal card node is selected
+const horizontalCardSelected = computed(() => {
+  const sel = props.editor?.state.selection as any | undefined
+  return !!sel && !!sel.node && sel.node.type?.name === 'horizontalCard'
+})
+
 // Check if a code block is currently active
 const codeBlockSelected = computed(() => props.editor?.isActive('codeBlock'))
 
@@ -323,6 +366,20 @@ const currentSeparatorDashed = computed(() => {
   const v = props.editor.getAttributes('separator')?.dashed
   return v === true || v === 'true'
 })
+
+const currentHorizontalCardPosition = computed(() => props.editor?.getAttributes('horizontalCard')?.imagePosition || 'left')
+function setHorizontalCardImagePosition(position: 'left' | 'right') {
+  if (!props.editor) return
+  props.editor.chain().focus().updateAttributes('horizontalCard', { imagePosition: position }).run()
+}
+
+// Formatting state and helpers for bubble menu when inside a horizontal card
+const isBoldActive = computed(() => props.editor?.isActive('bold'))
+const isItalicActive = computed(() => props.editor?.isActive('italic'))
+const isStrikeActive = computed(() => props.editor?.isActive('strike'))
+const isHeadingActive = computed(() => props.editor?.isActive('heading', { level: 3 }))
+
+
 
 // Upload helpers (shared composable state)
 const { addUploading, updateUploading, removeUploading, uploadFileWithProgress } = useEditorImages()
@@ -383,11 +440,31 @@ function shouldShowMenu(ctx: { state: EditorState; editor: TiptapEditor }) {
   const selectionIsSeparator = !!sel && !!sel.node && sel.node.type?.name === 'separator'
   if (selectionIsSeparator) return true
 
+  const selectionIsHorizontalCard = !!sel && !!sel.node && sel.node.type?.name === 'horizontalCard'
+  if (selectionIsHorizontalCard) return true
+
   // For formatting menu: only show if there is an actual range selection (not a collapsed cursor),
   // or when the link editor/color popover is active.
   const { empty } = state.selection
   return !empty || (editor.isActive('link') && manualLinkOpen.value) || colorVisible.value
 }
+
+// Ensure the caret is positioned inside the horizontal card's inner paragraph when toggling marks
+function ensureInnerSelectionForCard() {
+  if (!props.editor) return
+  try {
+    const sel = props.editor.state.selection as any
+    if (sel && sel.node && sel.node.type?.name === 'horizontalCard') {
+      const pos = sel.from
+      props.editor.chain().focus().setTextSelection(pos + 2).run()
+    }
+  } catch (e) { /* ignore */ }
+}
+
+function toggleCardBold() { ensureInnerSelectionForCard(); if (!props.editor) return; props.editor.chain().focus().toggleBold().run() }
+function toggleCardItalic() { ensureInnerSelectionForCard(); if (!props.editor) return; props.editor.chain().focus().toggleItalic().run() }
+function toggleCardStrike() { ensureInnerSelectionForCard(); if (!props.editor) return; props.editor.chain().focus().toggleStrike().run() }
+function toggleCardHeading() { ensureInnerSelectionForCard(); if (!props.editor) return; if (props.editor.isActive('heading', { level: 3 })) props.editor.chain().focus().setParagraph().run(); else props.editor.chain().focus().setHeading({ level: 3 }).run() }
 
 function downloadSelectedImage() {
   const src = props.editor?.getAttributes('image')?.src
@@ -511,6 +588,11 @@ function toggleSeparatorDashed() {
 }
 
 function deleteSelectedSeparator() {
+  if (!props.editor) return
+  props.editor.chain().focus().deleteSelection().run()
+}
+
+function deleteSelectedHorizontalCard() {
   if (!props.editor) return
   props.editor.chain().focus().deleteSelection().run()
 }

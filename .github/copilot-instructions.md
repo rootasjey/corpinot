@@ -119,6 +119,15 @@ Migrations: All schema changes must be done via SQL migrations in server/db/migr
   - Note: control the drawer's visibility using the `open` prop (e.g. `v-model:open` on `NDrawer`).
 - Don't use `muted-text` class for small/help text; it has poor contrast. Use `text-sm text-slate-500 dark:text-slate-400` instead for better readability.
 
+### UnaUI / NSelect rules
+
+When using NSelect, the model-value must be the same singular type as the items array. If items is an array of objects, model-value must be the selected object (not a primitive). If items is an array of strings, model-value must be a string.
+
+Recommended patterns:
+- If you need more control over the rendering, use object items with { text, value } and provide display via the #value / #item slots.
+- Persist the value property to storage or API, but bind the entire object to model-value.
+- Avoid mixing primitive model-value with object items.
+
 ## Auth types extension
 - `shared/types/auth.d.ts` augments `#auth-utils` `User` fields used across the app. Extend here for additional user/session types to keep types in sync.
 

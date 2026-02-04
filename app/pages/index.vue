@@ -10,13 +10,13 @@
 
     <!-- Desktop / SSR experience -->
     <div v-if="!isMobile">
-      <TopPinnedPosts />
-      <NewsletterSubscription />
-      <TrendingTagsCarousel />
-      <FeaturedPostsGrid />
-      <ProjectsCarousel />
-      <RecentPostsGrid />
-    </div>
+      <div class="animate-entrance"><TopPinnedPosts /></div>
+      <div class="animate-entrance"><NewsletterSubscription /></div>
+      <div class="animate-entrance"><TrendingTagsCarousel /></div>
+      <div class="animate-entrance"><FeaturedPostsGrid /></div>
+      <div class="animate-entrance"><ProjectsCarousel /></div>
+      <div class="animate-entrance"><RecentPostsGrid /></div>
+    </div> 
   </div>
 </template>
 

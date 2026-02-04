@@ -12,6 +12,22 @@ export const ImageGallery = Node.create({
     return {
       images: { default: [] },
       columns: { default: null },
+      height: {
+        default: null,
+        parseHTML: (element) => {
+          const raw = element.getAttribute('data-height') || element.style?.height || ''
+          const value = Number.parseInt(String(raw).replace('px', ''), 10)
+          return Number.isFinite(value) ? value : null
+        },
+        renderHTML: (attributes) => {
+          const height = Number(attributes.height ?? 0)
+          if (!height || height <= 0) return {}
+          return {
+            style: `height: ${height}px;`,
+            'data-height': String(height),
+          }
+        },
+      },
     }
   },
 
@@ -38,7 +54,12 @@ export const ImageGallery = Node.create({
       return ['img', { src, alt }]
     })
 
-    return ['div', { 'data-type': 'image-gallery', class: `image-gallery ${className}`.trim() }, ...children]
+    const merged = mergeAttributes(attrs, {
+      'data-type': 'image-gallery',
+      class: `image-gallery ${className}`.trim(),
+    })
+
+    return ['div', merged, ...children]
   },
 
   addNodeView() {

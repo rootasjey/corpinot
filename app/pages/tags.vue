@@ -15,7 +15,7 @@
           <!-- Tags column -->
           <aside class="hidden md:block md:col-span-1">
             <ClientOnly>
-              <div v-if="isAdmin" class="sticky top-6 z-20 mb-4">
+              <div v-if="isAdmin" class="sticky z-20 mb-4 transition-all duration-200" :style="{ top: `${toolbarTop}px` }">
                 <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-3 py-2 flex items-center justify-between gap-3">
                   <div class="flex items-center gap-2">
                     <NButton @click="openNewTag" btn="outline-gray" size="xs" rounded="2" leading="i-ph-plus-bold">New Tag</NButton>
@@ -114,11 +114,7 @@
               <article v-for="(post, i) in visiblePosts" :key="post.slug" :style="{ '--enter-delay': `${i * 50}ms` }" class="group flex flex-col">
                 <NuxtLink :to="`/posts/${post.slug}`" class="block flex flex-col h-full">
                   <div v-if="post.image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
-                    <NuxtImg
-                      :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
-                      :src="post.image.src" 
-                      :alt="post.name" 
-                      class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                    <PostImage :src="post.image.src" :alt="post.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
                   </div>
 
                   <div class="space-y-2 flex-1 flex flex-col">
@@ -218,6 +214,7 @@
 import { ref, computed, watch, onUnmounted } from 'vue'
 import type { ApiTag } from '~~/shared/types/tags'
 import type { Post as ApiPost } from '~~/shared/types/post'
+import { useHeaderToolbarOffset } from '~/composables/useHeaderToolbarOffset' 
 
 const { enhancePost } = usePost()
 
@@ -303,6 +300,7 @@ watch(() => route.query.tag, (t) => {
 // Admin session + UI
 const { user, loggedIn } = useUserSession()
 const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
+const { top: toolbarTop } = useHeaderToolbarOffset({ baseOffsetPx: 24 })
 
 // Tag CRUD UI state
 const tagDialogOpen = ref(false)

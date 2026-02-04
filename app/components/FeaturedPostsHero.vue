@@ -1,5 +1,5 @@
 <template>
-  <section class="-mt-15 relative isolate min-h-[88vh] overflow-hidden bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white">
+  <section class="-mt-15 relative isolate min-h-[88vh] overflow-hidden bg-gradient-to-b from-gray-900 via-gray-900 to-gray-950 text-white animate-entrance">
     <!-- Ambient glow behind the slides -->
     <div class="pointer-events-none absolute inset-0">
       <div class="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.08),transparent_35%)]" />
@@ -15,21 +15,14 @@
           <article
             v-for="(post, index) in slides"
             :key="post.slug ?? index"
-            class="relative min-w-full snap-start"
+            class="relative min-w-full snap-start animate-entrance-item"
+            :style="{ animationDelay: `${index * 100}ms` }"
           >
             <NuxtLink
               :to="post.slug ? `/posts/${post.slug}` : '#'"
               class="block h-[82vh] overflow-hidden rounded-[32px] border border-white/10 bg-slate-900"
             >
-              <NuxtImg
-                v-if="post.image?.src"
-                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
-                :src="post.image.src"
-                :alt="post.image.alt || post.name"
-                class="absolute inset-0 h-full w-full object-cover"
-                format="webp"
-                loading="lazy"
-              />
+              <PostImage v-if="post.image?.src" :src="post.image.src" :alt="post.image.alt || post.name" class="absolute inset-0 h-full w-full object-cover" format="webp" loading="lazy" />
               <div class="absolute inset-0 bg-gradient-to-b from-black/40 via-black/15 to-black/70" />
               <div class="absolute inset-0 bg-[linear-gradient(120deg,rgba(15,23,42,0.55)_0%,rgba(15,23,42,0.15)_40%,transparent_70%)]" />
 

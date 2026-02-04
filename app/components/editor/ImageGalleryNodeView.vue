@@ -1,6 +1,6 @@
 <template>
   <NodeViewWrapper :class="['image-gallery', galleryClass, selected ? 'is-selected' : '']">
-    <div class="gallery-grid relative">
+    <div ref="gridRef" class="gallery-grid relative" :style="galleryStyle">
       <div
         v-for="(img, idx) in images"
         :key="idx"
@@ -12,7 +12,11 @@
         @drop="onDrop($event, idx)"
         @dragend="onDragEnd"
       >
-        <img :src="img.attrs?.src ?? img.src" :alt="img.attrs?.alt ?? ''" :class="['gallery-img', isEditorEditable ? 'is-editable' : 'is-viewer']" />
+        <img 
+          :src="img.attrs?.src ?? img.src" 
+          :alt="img.attrs?.alt ?? ''" 
+          :class="['gallery-img', isEditorEditable ? 'is-editable' : 'is-viewer']" 
+        />
 
         <div v-if="selected && isEditorEditable" class="overlay">
           <NButton btn="solid-gray" label="i-lucide-grip-vertical" icon @mousedown.stop title="Drag to reorder" class="cursor-move" />
@@ -36,6 +40,15 @@
       </NTooltip>
     </div>
 
+    <div
+      v-if="selected && isEditorEditable"
+      class="gallery-resize-handle"
+      role="separator"
+      aria-label="Resize gallery height"
+      @mousedown.stop.prevent="onResizeStart"
+      @touchstart.prevent="onResizeStart"
+    />
+
     <!-- Hidden file inputs for replace/add -->
     <input ref="fileInputReplace" type="file" accept="image/*" class="hidden" @change="onReplaceFilesChange" />
     <input ref="fileInputAdd" type="file" accept="image/*" multiple class="hidden" @change="onAddFilesChange" />
@@ -43,7 +56,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch, onBeforeUnmount } from 'vue'
 import { nodeViewProps, NodeViewWrapper } from '@tiptap/vue-3'
 import { useEditorImages } from '~/composables/useEditorImages'
 import { useRoute } from '#imports'
@@ -55,6 +68,7 @@ const activeIndex = computed(() => Number(props.node.attrs?.activeIndex ?? 0))
 const fileInputReplace = ref<HTMLInputElement | null>(null)
 const fileInputAdd = ref<HTMLInputElement | null>(null)
 const replaceIndex = ref<number | null>(null)
+const gridRef = ref<HTMLElement | null>(null)
 
 // Detect whether the host editor is editable (viewer uses editable=false)
 import { editorIsEditable } from './editorUtils'
@@ -70,6 +84,27 @@ const galleryClass = computed(() => {
   if (count === 3) return 'image-gallery--cols-3'
   if (count > 3) return 'image-gallery--grid'
   return ''
+})
+
+const minHeight = 120
+const isResizing = ref(false)
+const startY = ref(0)
+const startHeight = ref(0)
+const currentHeight = ref<number | null>(null)
+
+watch(
+  () => props.node.attrs?.height,
+  (next) => {
+    if (isResizing.value) return
+    const height = Number(next ?? 0)
+    currentHeight.value = height > 0 ? height : null
+  },
+  { immediate: true },
+)
+
+const galleryStyle = computed(() => {
+  if (!currentHeight.value) return undefined
+  return { height: `${currentHeight.value}px` }
 })
 
 function selectNode(idx: number) {
@@ -204,6 +239,58 @@ function onDrop(e: DragEvent, dropIdx: number) {
 function onDragEnd() {
   draggedIndex.value = null
 }
+
+function getStartHeight() {
+  const heightAttr = Number(props.node.attrs?.height ?? 0)
+  if (heightAttr > 0) return heightAttr
+  const measured = gridRef.value?.getBoundingClientRect().height ?? 0
+  return Math.round(measured || minHeight)
+}
+
+function onResizeStart(e: MouseEvent | TouchEvent) {
+  if (!isEditorEditable.value) return
+  const point = 'touches' in e ? e.touches[0] : e
+  if (!point) return
+  isResizing.value = true
+  startY.value = point.clientY
+  startHeight.value = getStartHeight()
+  currentHeight.value = startHeight.value
+  const pos = props.getPos?.()
+  if (typeof pos === 'number') props.editor.commands.setNodeSelection(pos)
+  window.addEventListener('mousemove', onResizeMove)
+  window.addEventListener('mouseup', onResizeEnd)
+  window.addEventListener('touchmove', onResizeMove)
+  window.addEventListener('touchend', onResizeEnd)
+}
+
+function onResizeMove(e: MouseEvent | TouchEvent) {
+  if (!isResizing.value) return
+  const point = 'touches' in e ? e.touches[0] : e
+  if (!point) return
+  if ('touches' in e) e.preventDefault()
+  const delta = point.clientY - startY.value
+  const next = Math.max(minHeight, Math.round(startHeight.value + delta))
+  currentHeight.value = next
+}
+
+function onResizeEnd() {
+  if (!isResizing.value) return
+  isResizing.value = false
+  if (currentHeight.value && currentHeight.value > 0) {
+    props.updateAttributes({ height: currentHeight.value })
+  }
+  window.removeEventListener('mousemove', onResizeMove)
+  window.removeEventListener('mouseup', onResizeEnd)
+  window.removeEventListener('touchmove', onResizeMove)
+  window.removeEventListener('touchend', onResizeEnd)
+}
+
+onBeforeUnmount(() => {
+  window.removeEventListener('mousemove', onResizeMove)
+  window.removeEventListener('mouseup', onResizeEnd)
+  window.removeEventListener('touchmove', onResizeMove)
+  window.removeEventListener('touchend', onResizeEnd)
+})
 </script>
 
 <style scoped>
@@ -230,7 +317,8 @@ function onDragEnd() {
 
 .image-gallery--single .gallery-img {
   max-width: min(900px, 100%);
-  height: auto;
+  height: 100%;
+  object-fit: cover;
   border-radius: 0.75rem;
   box-shadow: 0 4px 16px rgba(0,0,0,0.1);
 }
@@ -261,6 +349,24 @@ function onDragEnd() {
   cursor: default;
 }
 .gallery-img.is-editable { cursor: pointer; }
+
+.gallery-resize-handle {
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  transform: translateX(-50%);
+  width: 70px;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--un-primary-color, #3b82f6);
+  opacity: 0.8;
+  cursor: ns-resize;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+}
+
+.gallery-resize-handle:hover {
+  opacity: 1;
+}
 
 .overlay {
   position: absolute;

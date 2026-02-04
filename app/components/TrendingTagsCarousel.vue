@@ -1,6 +1,6 @@
 <template>
   <!-- Trending Tags Carousel -->
-  <section class="bg-white dark:bg-gray-950">
+  <section class="bg-white dark:bg-gray-950 animate-entrance">
     <div class="container mx-auto px-10">
       <div class="flex items-center justify-between mb-2">
         <h2 class="text-sm md:text-sm font-text font-600 uppercase">Trending tags</h2>
@@ -79,9 +79,10 @@
         style="scrollbar-width: none; -ms-overflow-style: none"
       >
         <div
-          v-for="tag in placeholderTags"
+          v-for="(tag, i) in placeholderTags"
           :key="tag"
-          class="flex-shrink-0 w-72 md:w-80"
+          class="flex-shrink-0 w-72 md:w-80 animate-entrance-item"
+          :style="{ animationDelay: `${i * 60}ms` }"
         >
           <div
             class="flex flex-col h-full p-5 md:p-6 rounded-2xl"
@@ -107,9 +108,10 @@
         style="scrollbar-width: none; -ms-overflow-style: none"
       >
           <div
-          v-for="tag in trendingTags"
+          v-for="(tag, i) in trendingTags"
           :key="tag.id"
-          class="flex-shrink-0 w-72 md:w-80"
+          class="flex-shrink-0 w-72 md:w-80 animate-entrance-item"
+          :style="{ animationDelay: `${i * 60}ms` }"
         >
           <NuxtLink
             :to="{ path: '/tags', query: { ...(route.query || {}), tag: tag.name } }"

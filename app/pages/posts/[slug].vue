@@ -3,26 +3,26 @@
     <!-- Hero Section - Dark Header with Title -->
     <div class="py-16 md:py-24">
       <div class="container mx-auto px-4 md:px-8">
-        <div class="max-w-4xl mx-auto text-center">
+          <div class="max-w-4xl mx-auto text-center animate-entrance">
           <!-- Date and Reading Time -->
-          <div class="font-600 text-md text-gray-400 flex items-center justify-center gap-3 mb-6">
+          <div class="font-600 text-md text-gray-400 flex items-center justify-center gap-3 mb-6 animate-entrance-item" style="animation-delay: 80ms;">
             <time>{{ formatPostDate(post.publishedAt || post.createdAt) }}</time>
             <span>—</span>
             <span>{{ enhancedPost.readingTime }}</span>
           </div>
           
           <!-- Title -->
-          <h1 class="max-w-3xl mx-auto text-4xl md:text-5xl lg:text-4xl font-serif font-700 mb-6 leading-tight">
-            {{ post.name }}
+          <h1 class="max-w-3xl mx-auto text-4xl md:text-5xl lg:text-4xl font-serif font-700 mb-6 leading-tight animate-entrance-item" style="animation-delay: 160ms;">
+            <TypewriterText :text="post.name" :speed="50" auto-hide-cursor />
           </h1>
           
           <!-- Excerpt/Description -->
-          <p class="font-body font-600 color-gray-500 text-base md:text-lg leading-relaxed mb-8 max-w-3xl mx-auto">
+          <p class="font-body font-600 color-gray-500 text-base md:text-lg leading-relaxed mb-8 max-w-3xl mx-auto animate-entrance-item" style="animation-delay: 240ms;">
             {{ post.description }}
           </p>
 
           <!-- Tags/Badges -->
-          <div class="flex items-center justify-center flex-wrap gap-3">
+          <div class="flex items-center justify-center flex-wrap gap-3 animate-entrance-item" style="animation-delay: 320ms;">
             <NuxtLink
               v-for="tag in post.tags"
               :key="tag.id"
@@ -53,13 +53,8 @@
     </div>
 
     <!-- Featured Image -->
-    <div v-if="post.image?.src" class="w-full px-4">
-      <NuxtImg
-        provider="hubblob"
-        :src="post.image.src" 
-        :alt="post.image.alt || post.name"
-        class="w-full h-auto max-h-[90vh] object-cover rounded-2xl"
-      />
+    <div v-if="post.image?.src" class="w-full px-4 animate-entrance" style="animation-delay: 360ms;">
+      <PostImage provider="hubblob" :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-auto max-h-[90vh] object-cover rounded-2xl" />
     </div>
 
     <!-- Post Info Bar Below Image -->
@@ -69,13 +64,7 @@
           <div class="flex items-center justify-between flex-wrap gap-4">
             <!-- Author Info -->
             <NLink v-if="post.user" :to="`/authors/${post.user.slug || post.user.id}`" class="flex items-center gap-3">
-              <NuxtImg 
-                provider="hubblob" 
-                v-if="post.user.avatar"
-                :src="post.user.avatar" 
-                :alt="post.user.name || 'User'"
-                class="w-8 h-8 rounded-full border"
-              />
+              <PostImage provider="hubblob" v-if="post.user.avatar" :src="post.user.avatar" :alt="post.user.name || 'User'" class="w-8 h-8 rounded-full border" />
               <div v-if="post.user.name">
                 <div class="font-semibold">{{ post.user.name }}</div>
               </div>
@@ -117,10 +106,10 @@
     </div>
 
     <!-- Article Content -->
-    <article class="py-12 md:py-16 bg-background">
+    <article class="py-12 md:py-16 bg-background animate-entrance" style="animation-delay: 420ms;">
       <div class="container mx-auto px-4 md:px-8">
         <div
-          class="max-w-3xl mx-auto"
+          class="max-w-3xl mx-auto animate-entrance-item" style="animation-delay: 480ms;"
           @click="handleContentClick"
         >
           <!-- Tiptap Content Renderer -->
@@ -136,13 +125,7 @@
           <div class="flex items-center justify-between gap-8 flex-wrap md:flex-nowrap">
             <!-- Left: Avatar and Name -->
             <NLink :to="`/authors/${post.user.slug || post.user.id}`" class="flex items-center gap-6">
-              <NuxtImg 
-                provider="hubblob"
-                v-if="post.user.avatar"
-                :src="post.user.avatar" 
-                :alt="post.user.name || 'User'"
-                class="w-12 h-12 rounded-full flex-shrink-0 ring-4 ring-white/10 border"
-              />
+              <PostImage provider="hubblob" v-if="post.user.avatar" :src="post.user.avatar" :alt="post.user.name || 'User'" class="w-12 h-12 rounded-full flex-shrink-0 ring-4 ring-white/10 border" />
               <div>
                 <h3 class="text-md font-bold mb-1">{{ post.user.name }}</h3>
               </div>
@@ -257,10 +240,11 @@ const handleEditShortcut = (event: KeyboardEvent) => {
 // Fetch post data from API
 const { data: post, error } = await useFetch<Post>(`/api/posts/${slug}`)
 if (error.value || !post.value) {
-  throw createError({
-    statusCode: 404,
-    statusMessage: 'Post not found'
-  })
+  const status = (error.value as any)?.statusCode || (error.value as any)?.status || 0
+  if (status === 403) {
+    throw createError({ statusCode: 403, statusMessage: 'You are not authorized to view this post' })
+  }
+  throw createError({ statusCode: 404, statusMessage: 'Post not found' })
 }
 
 const editPostUrl = computed(() => `/posts/edit/${post.value?.slug || post.value?.id}`)

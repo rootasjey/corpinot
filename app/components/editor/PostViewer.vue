@@ -25,6 +25,7 @@ import ImageGallery from './ImageGallery'
 import { Video } from './Video'
 import { Audio } from './Audio'
 import { Conway } from './Conway'
+import { HorizontalCard } from './HorizontalCard'
 import { watch } from 'vue'
 import { useLowlight } from '~/composables/useCodeHighlight' 
 
@@ -56,6 +57,7 @@ const editor = useEditor({
     Video,
     Audio,
     Conway,
+    HorizontalCard,
     TextStyle,
     BackgroundColor,
     Color,
@@ -70,6 +72,7 @@ const editor = useEditor({
     Separator,
     Placeholder.configure({
       placeholder: ({ node }) => {
+        if (node.type.name === 'paragraph' && node.attrs?.placeholder) return node.attrs.placeholder
         if (node.type.name === 'paragraph') return 'Loading content…'
         return ''
       },

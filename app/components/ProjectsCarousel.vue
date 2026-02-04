@@ -1,6 +1,6 @@
 <template>
   <!-- Projects Carousel -->
-  <section class="relative py-12 md:py-16 bg-gray-900 dark:bg-black text-white grid-pattern">
+  <section class="relative py-12 md:py-16 bg-gray-900 dark:bg-black text-white grid-pattern animate-entrance">
     <div class="container mx-auto px-8 md:px-12 lg:px-16">
       <!-- Title centered, controls on the right -->
       <div class="relative mb-6 md:mb-8">
@@ -51,19 +51,15 @@
         style="scrollbar-width: none; -ms-overflow-style: none"
       >
         <article
-          v-for="project in projects"
+          v-for="(project, i) in projects"
           :key="project.slug"
-          class="flex-shrink-0 w-72 md:w-80 lg:w-[22rem] group"
+          class="flex-shrink-0 w-72 md:w-80 lg:w-[22rem] group animate-entrance-item"
+          :style="{ animationDelay: `${i * 60}ms` }"
         >
           <NuxtLink :to="`/posts/${project.slug}`" class="block">
             <!-- Taller image with overlayed text -->
             <div class="relative overflow-hidden rounded-xl aspect-[4/5]">
-              <NuxtImg
-                :provider="project.image.startsWith('/posts/') ? 'hubblob' : undefined"
-                :src="project.image"
-                :alt="project.title"
-                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
-              />
+              <PostImage :src="project.image" :alt="project.title" class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
               <!-- Gradient overlay for readability -->
               <div class="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent"></div>
               <!-- Labels and title -->

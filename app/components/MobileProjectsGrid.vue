@@ -65,13 +65,7 @@
           <div class="rounded-2xl overflow-hidden flex-1 
             bg-slate-100 dark:bg-slate-800 shadow-md 
             hover:shadow-lg hover:scale-105 active:scale-99 active:shadow-none transition-all duration-300">
-            <NuxtImg
-              :provider="project.image.startsWith('/posts/') ? 'hubblob' : undefined"
-              :src="project.image"
-              :alt="project.title"
-              class="h-full w-full object-cover"
-              loading="lazy"
-            />
+            <PostImage :src="project.image" :alt="project.title" class="h-full w-full object-cover" loading="lazy" />
           </div>
           <p class="max-w-34 text-sm font-500 leading-tight text-slate-900 dark:text-white line-clamp-2 max-h-[3rem] overflow-hidden">
             {{ project.title }}

@@ -1,5 +1,5 @@
 <template>
-  <section class="py-8 md:py-12 bg-[#F8F9FA] dark:bg-gray-900">
+  <section class="py-8 md:py-12 bg-[#F8F9FA] dark:bg-gray-900 animate-entrance">
     <div class="container mx-auto px-4 max-w-7xl">
       <!-- Loading -->
       <div v-if="pending" :class="scrollerClasses">
@@ -26,19 +26,15 @@
       <!-- Content -->
       <div v-else-if="topPosts.length" :class="scrollerClasses">
         <article
-          v-for="post in topPosts"
+          v-for="(post, i) in topPosts"
           :key="post.slug"
-          :class="['group', itemClass]"
+          :class="['group', itemClass, 'animate-entrance-item']"
+          :style="{ animationDelay: `${i * 60}ms` }"
         >
           <NuxtLink :to="`/posts/${post.slug}`" class="flex gap-3 md:gap-4 items-start">
             <!-- Image on Left (smaller) -->
             <div v-if="post.image?.src" class="relative overflow-hidden rounded-xl w-24 h-24 md:w-28 md:h-28 xl:w-24 xl:h-24 flex-shrink-0">
-              <NuxtImg
-                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
-                :src="post.image.src"
-                :alt="post.image.alt || post.name"
-                class="w-full h-full object-cover"
-              />
+              <PostImage :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover" />
             </div>
 
             <!-- Content on Right -->
@@ -59,17 +55,11 @@
 
       <!-- Empty: dummy row matching final UI -->
       <div v-else :class="[scrollerClasses, 'justify-items-center']">
-        <article v-for="(item, i) in dummyHero" :key="i" :class="['group w-90 xl:w-auto', itemClass]">
+        <article v-for="(item, i) in dummyHero" :key="i" :class="['group w-90 xl:w-auto', itemClass, 'animate-entrance-item']" :style="{ animationDelay: `${i * 60}ms` }">
           <div class="flex gap-3 md:gap-4 items-start">
             <!-- Image placeholder on Left -->
             <div class="relative overflow-hidden rounded-xl w-24 h-24 md:w-28 md:h-28 xl:w-24 xl:h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-800">
-              <NuxtImg
-                :provider="item.img.src.startsWith('/posts/') ? 'hubblob' : undefined"
-                v-if="item.img.src"
-                :src="item.img.src"
-                alt="Placeholder image"
-                class="w-full h-full object-cover"
-              />
+              <PostImage v-if="item.img.src" :src="item.img.src" alt="Placeholder image" class="w-full h-full object-cover" />
               <div v-else class="w-full h-full flex items-center justify-center">
                 <div class="i-ph-image-duotone text-2xl text-gray-400" />
               </div>
@@ -97,7 +87,7 @@
 import type { Post } from '~~/shared/types/post'
 
 const { enhancePost } = usePost()
-const TOP_PINNED_TAG = 'top pinned'
+const TOP_PINNED_TAG = 'top pinned' 
 
 const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
   query: { tag: TOP_PINNED_TAG, limit: 4 },

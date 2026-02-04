@@ -73,18 +73,52 @@ export const createArticle = () => {
  */
 export async function getPostByIdentifier(db: any, identifier: string | number) {
   const isNumericId = typeof identifier === "number" || /^\d+$/.test(String(identifier))
-  const whereClause = isNumericId
-    ? eq(schema.posts.id, Number(identifier))
-    : eq(schema.posts.slug, String(identifier))
 
-  const rows = await db
+  // If numeric id, query by id directly
+  if (isNumericId) {
+    const rows = await db
+      .select({ post: schema.posts, user_avatar: schema.users.avatar, user_name: schema.users.name, user_slug: schema.users.slug })
+      .from(schema.posts)
+      .innerJoin(schema.users, eq(schema.users.id, schema.posts.user_id))
+      .where(eq(schema.posts.id, Number(identifier)))
+      .limit(1)
+
+    const row = (rows as any[])[0]
+    if (!row) return null
+
+    return {
+      ...(row.post as ApiPost),
+      user_avatar: row.user_avatar,
+      user_name: row.user_name,
+      user_slug: row.user_slug,
+    }
+  }
+
+  // Try exact slug match first
+  let rows = await db
     .select({ post: schema.posts, user_avatar: schema.users.avatar, user_name: schema.users.name, user_slug: schema.users.slug })
     .from(schema.posts)
     .innerJoin(schema.users, eq(schema.users.id, schema.posts.user_id))
-    .where(whereClause)
+    .where(eq(schema.posts.slug, String(identifier)))
     .limit(1)
 
-  const row = (rows as any[])[0]
+  let row = (rows as any[])[0]
+
+  // If not found, try a sanitized slug fallback (handles punctuation/diacritics differences)
+  if (!row) {
+    const normalized = sanitizeSlug(String(identifier))
+    if (normalized && normalized !== String(identifier)) {
+      rows = await db
+        .select({ post: schema.posts, user_avatar: schema.users.avatar, user_name: schema.users.name, user_slug: schema.users.slug })
+        .from(schema.posts)
+        .innerJoin(schema.users, eq(schema.users.id, schema.posts.user_id))
+        .where(eq(schema.posts.slug, normalized))
+        .limit(1)
+
+      row = (rows as any[])[0]
+    }
+  }
+
   if (!row) return null
 
   // Merge post fields with optional user info to match previous shape

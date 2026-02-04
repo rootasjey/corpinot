@@ -1,6 +1,6 @@
 <template>
   <!-- Newsletter Subscription -->
-  <section class="py-12 md:py-12 bg-white dark:bg-gray-950">
+  <section class="py-12 md:py-12 bg-white dark:bg-gray-950 animate-entrance">
     <div class="container mx-auto px-4 text-center">
       <h1 class="text-2xl md:text-3xl lg:text-4xl font-serif font-bold mb-6 md:mb-8 max-w-3xl mx-auto leading-tight">
         Dive into top stories, trends, and gems you'll love. Subscribe!

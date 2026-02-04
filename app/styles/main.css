@@ -35,12 +35,22 @@ button:not([role="switch"]):not(class*="reka"):focus, .dark button:not([role="sw
 }
 
 input:focus, .dark input:focus,
-textarea:focus, .dark textarea:focus,
 select:focus, .dark select:focus {
   outline: initial;
   box-shadow: initial;
   border-color: #6366F1;
   border-width: 2px;
+}
+
+.dialog-content input:focus, .dark .dialog-content input:focus,
+.dialog-content select:focus, .dark .dialog-content select:focus,
+.dialog-content textarea:focus, .dark .dialog-content textarea:focus,
+.dialog-content button:focus, .dark .dialog-content button:focus {
+  border-color: #6366F1;
+  border-width: 1px;
+  border-style: dashed;
+  outline: initial;
+  box-shadow: initial;
 }
 
 /* Small colored letter used as the leading icon for color items in dropdown menus */
@@ -111,7 +121,6 @@ select:focus, .dark select:focus {
   border-radius: 0;
 }
 
-
 /* background palette colors (for the colored 'A' leading glyphs) */
 .color-fff7ed { color: #fff7ed }
 .color-ffedd5 { color: #ffedd5 }
@@ -123,3 +132,30 @@ select:focus, .dark select:focus {
 .color-ebd6fb { color: #ebd6fb }
 .color-8f87f1 { color: #8f87f1 }
 .color-c68efd { color: #c68efd }
+
+/* Entrance animations */
+@keyframes entrance {
+  from { opacity: 0; transform: translateY(10px) scale(.995); }
+  to { opacity: 1; transform: none; }
+}
+
+.animate-entrance {
+  animation: entrance 560ms cubic-bezier(.2, .8, .2, 1) both;
+  will-change: transform, opacity;
+}
+
+.animate-entrance-item {
+  opacity: 0;
+  transform: translateY(10px);
+  animation: entrance 520ms cubic-bezier(.2, .8, .2, 1) both;
+  will-change: transform, opacity;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-entrance,
+  .animate-entrance-item {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+} 

@@ -1,10 +1,10 @@
 <template>
   <!-- Featured Posts Grid -->
-  <section class="py-12 bg-white dark:bg-gray-950">
+  <section class="py-12 bg-white dark:bg-gray-950 animate-entrance">
     <div class="container mx-auto px-4 max-w-7xl">
       <h2 class="text-xs md:text-sm font-semibold tracking-wider mb-3 uppercase text-gray-900 dark:text-gray-100">
         Featured Posts
-      </h2>
+      </h2> 
 
       <!-- Loading -->
       <div v-if="pending" class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10 md:mb-12">
@@ -23,18 +23,13 @@
       />
 
       <!-- First row: single large article with image left, text right -->
-      <article v-else-if="featuredPosts[0]" class="group mb-10 md:mb-12">
+      <article v-else-if="featuredPosts[0]" class="group mb-10 md:mb-12 animate-entrance-item" :style="{ animationDelay: '0ms' }">
         <NuxtLink :to="`/posts/${featuredPosts[0].slug}`" class="block">
           <div class="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
             <!-- Image left -->
             <div class="md:col-span-6">
               <div v-if="featuredPosts[0].image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3]">
-                <NuxtImg
-                  :provider="featuredPosts[0].image.src.startsWith('/posts/') ? 'hubblob' : undefined"
-                  :src="featuredPosts[0].image.src"
-                  :alt="featuredPosts[0].image.alt || featuredPosts[0].name"
-                  class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-                />
+                <PostImage :src="featuredPosts[0].image.src" :alt="featuredPosts[0].image.alt || featuredPosts[0].name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
               </div>
             </div>
 
@@ -62,18 +57,14 @@
       <!-- Below: remaining articles in a responsive grid -->
       <div v-if="featuredPosts.length > 1" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <article
-          v-for="post in featuredPosts.slice(1, 5)"
+          v-for="(post, i) in featuredPosts.slice(1, 5)"
           :key="post.slug"
-          class="group flex flex-col"
+          class="group flex flex-col animate-entrance-item"
+          :style="{ animationDelay: `${(i + 1) * 60}ms` }"
         >
           <NuxtLink :to="`/posts/${post.slug}`" class="block flex flex-col h-full">
             <div v-if="post.image?.src" class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4">
-              <NuxtImg
-                :provider="post.image.src.startsWith('/posts/') ? 'hubblob' : undefined"
-                :src="post.image.src"
-                :alt="post.image.alt || post.name"
-                class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
-              />
+              <PostImage :src="post.image.src" :alt="post.image.alt || post.name" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
 
             </div>
             <div class="space-y-3 flex-1 flex flex-col">
@@ -133,7 +124,7 @@
 
         <!-- Below: 4 placeholders -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <article v-for="post in placeholderPosts" :key="post.slug" class="group flex flex-col">
+          <article v-for="(post, i) in placeholderPosts" :key="post.slug" class="group flex flex-col animate-entrance-item" :style="{ animationDelay: `${i * 60}ms` }">
             <div class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4 bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
               <NuxtImg
                 :src="post.image.src"
