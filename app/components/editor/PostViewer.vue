@@ -26,6 +26,7 @@ import { Video } from './Video'
 import { Audio } from './Audio'
 import { Conway } from './Conway'
 import { HorizontalCard } from './HorizontalCard'
+import { AutoLinkPreview } from './AutoLinkPreview'
 import { watch } from 'vue'
 import { useLowlight } from '~/composables/useCodeHighlight' 
 
@@ -58,6 +59,7 @@ const editor = useEditor({
     Audio,
     Conway,
     HorizontalCard,
+    AutoLinkPreview,
     TextStyle,
     BackgroundColor,
     Color,

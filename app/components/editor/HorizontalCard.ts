@@ -8,6 +8,9 @@ export interface HorizontalCardAttributes {
   imageAlt: string
   imagePosition: 'left' | 'right'
   square: boolean
+  href?: string | null
+  title?: string
+  description?: string
 }
 
 export const HorizontalCard = Node.create({
@@ -34,6 +37,19 @@ export const HorizontalCard = Node.create({
         default: true,
         parseHTML: (element: HTMLElement) => element.getAttribute('data-image-square') !== 'false',
       },
+      // Persist original URL and optional fetched metadata
+      href: {
+        default: null,
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-href') ?? null,
+      },
+      title: {
+        default: '',
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-title') ?? '',
+      },
+      description: {
+        default: '',
+        parseHTML: (element: HTMLElement) => element.getAttribute('data-description') ?? '',
+      },
     }
   },
 
@@ -49,6 +65,10 @@ export const HorizontalCard = Node.create({
       'data-type': 'horizontal-card',
       'data-image-position': position,
       'data-image-square': isSquare ? 'true' : 'false',
+      // expose original url and metadata as data attrs for portability
+      'data-href': attrs.href ?? undefined,
+      'data-title': attrs.title ?? undefined,
+      'data-description': attrs.description ?? undefined,
       class: `horizontal-card horizontal-card--image-${position}`,
     })
 
@@ -86,6 +106,9 @@ export const HorizontalCard = Node.create({
                 imageAlt: attrs?.imageAlt ?? '',
                 imagePosition: attrs?.imagePosition ?? 'left',
                 square: attrs?.square ?? true,
+                href: attrs?.href ?? null,
+                title: attrs?.title ?? '',
+                description: attrs?.description ?? '',
               },
               paragraph ? [paragraph] : null
             )
@@ -99,6 +122,14 @@ export const HorizontalCard = Node.create({
 
             dispatch?.(tr.scrollIntoView())
             return true
+          }),
+
+      insertHorizontalCardFromUrl:
+        (url: string, initialMeta: Partial<HorizontalCardAttributes> = {}) =>
+        ({ commands, editor }: any) =>
+          commands.command((args: { tr: any; state: any; dispatch?: any }) => {
+            // Simply delegate to insertHorizontalCard but ensure href/title/description are set
+            return (commands as any).insertHorizontalCard({ href: url, ...initialMeta })
           }),
     } as any
   },

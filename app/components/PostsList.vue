@@ -1,7 +1,7 @@
 <template>
   <div>
     <!-- Cards grid -->
-    <div v-if="viewMode !== 'list'" class="max-w-7xl mx-auto columns-1 sm:columns-2 lg:columns-3">
+    <div v-if="viewMode !== 'list'" class="mx-auto columns-1 sm:columns-2 lg:columns-3">
       <PostCard
         v-for="(post, i) in posts"
         :key="post.slug"
@@ -22,7 +22,7 @@
     </div>
 
     <!-- List view -->
-    <div v-else class="max-w-7xl mx-auto space-y-4">
+    <div v-else class="mx-auto space-y-4">
       <PostRow
         v-for="(post, i) in posts"
         :key="post.slug"

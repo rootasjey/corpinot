@@ -35,6 +35,7 @@ button:not([role="switch"]):not(class*="reka"):focus, .dark button:not([role="sw
 }
 
 input:focus, .dark input:focus,
+textarea:focus, .dark textarea:focus,
 select:focus, .dark select:focus {
   outline: initial;
   box-shadow: initial;

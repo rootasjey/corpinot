@@ -10,25 +10,36 @@
     aria-label="slash menu"
     @keydown.stop.prevent="onKeydown"
   >
+    <div v-if="searchActive" class="menu-search">
+      <NInput
+        ref="searchInput"
+        v-model="searchQuery"
+        input="outline-gray"
+        placeholder="Type to filter commands"
+        aria-label="Filter commands"
+        class="menu-search-input"
+        @keydown.stop
+      />
+    </div>
     <input ref="fileInput" type="file" accept="image/*" multiple class="hidden" @change="onFilesChange" />
     <input ref="fileInputGallery" type="file" accept="image/*" multiple class="hidden" @change="onGalleryFilesChange" />
-    <template v-for="(item, idx) in actions" :key="item.label">
-      <div v-if="item.ask" class="menu-item-wrapper">
+    <template v-for="(item, idx) in filteredActions" :key="item.action.label">
+      <div v-if="item.action.ask" class="menu-item-wrapper">
         <button
           :ref="(el) => registerButton(el, idx)"
           @click.stop.prevent="toggleAiMenu(idx)"
-          :class="['menu-item', { 'is-active': item.isActive?.() } ]"
+          :class="['menu-item', { 'is-active': item.action.isActive?.() } ]"
           type="button"
           role="menuitem"
           tabindex="-1"
-          :title="item.label"
+          :title="item.action.label"
         >
-          <span v-if="item.icon" :class="['menu-item-icon', item.icon]" aria-hidden="true" />
+          <span v-if="item.action.icon" :class="['menu-item-icon', item.action.icon]" aria-hidden="true" />
           <span v-if="vertical" class="menu-item-text">
-            <span class="menu-item-label">{{ item.label }}</span>
-            <span v-if="item.description" class="menu-item-description">{{ item.description }}</span>
+            <span class="menu-item-label">{{ item.action.label }}</span>
+            <span v-if="item.action.description" class="menu-item-description">{{ item.action.description }}</span>
           </span>
-          <span v-else class="sr-only">{{ item.label }}</span>
+          <span v-else class="sr-only">{{ item.action.label }}</span>
         </button>
 
         <div v-if="aiMenuIndex === idx" 
@@ -39,7 +50,7 @@
           }"
           @keydown.stop="onAiKeydown"
         >
-          <button ref="aiContinueBtn" type="button" class="ai-option" @click="handleAiContinue(item, idx)">
+          <button ref="aiContinueBtn" type="button" class="ai-option" @click="handleAiContinue(item.action, item.sourceIndex)">
             <span class="i-lucide-pen ai-option-icon" aria-hidden="true" />
             <span>Continue writing</span>
           </button>
@@ -67,7 +78,7 @@
               v-model="aiPrompt"
               class="ai-ask-input"
               placeholder="Ask the AI..."
-              @keydown.enter.prevent="submitAiAsk(item, idx)"
+              @keydown.enter.prevent="submitAiAsk(item.action, item.sourceIndex)"
               @keydown.esc.stop="closeAiAsk()"
             />
             <div class="pt-2 flex items-center justify-end gap-2">
@@ -86,7 +97,7 @@
                 trailing="i-lucide-send"
                 class="min-w-28 py-1.5"
                 :disabled="!aiPrompt.trim().length"
-                @click="submitAiAsk(item, idx)"
+                @click="submitAiAsk(item.action, item.sourceIndex)"
               />
             </div>
           </div>
@@ -96,19 +107,19 @@
       <button
         v-else
         :ref="(el) => registerButton(el, idx)"
-        @click="onSelect(item, idx)"
-        :class="['menu-item', { 'is-active': item.isActive?.() } ]"
+        @click="onSelect(item.action, item.sourceIndex)"
+        :class="['menu-item', { 'is-active': item.action.isActive?.() } ]"
         type="button"
         role="menuitem"
         tabindex="-1"
-        :title="item.label"
+        :title="item.action.label"
       >
-        <span v-if="item.icon" :class="['menu-item-icon', item.icon]" aria-hidden="true" />
+        <span v-if="item.action.icon" :class="['menu-item-icon', item.action.icon]" aria-hidden="true" />
         <span v-if="vertical" class="menu-item-text">
-          <span class="menu-item-label">{{ item.label }}</span>
-          <span v-if="item.description" class="menu-item-description">{{ item.description }}</span>
+          <span class="menu-item-label">{{ item.action.label }}</span>
+          <span v-if="item.action.description" class="menu-item-description">{{ item.action.description }}</span>
         </span>
-        <span v-else class="sr-only">{{ item.label }}</span>
+        <span v-else class="sr-only">{{ item.action.label }}</span>
       </button>
     </template>
   </FloatingMenu>
@@ -119,6 +130,7 @@ import { FloatingMenu } from '@tiptap/vue-3/menus'
 import { nextTick } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
+import { filterFloatingActions } from '~~/app/utils/slashMenuSearch'
 
 interface FloatingAction {
   label: string
@@ -127,6 +139,11 @@ interface FloatingAction {
   isActive?: () => boolean
   action: () => void | Promise<void>
   ask?: (prompt: string) => void | Promise<void>
+}
+
+interface FilteredAction {
+  action: FloatingAction
+  sourceIndex: number
 }
 
 const props = withDefaults(defineProps<{
@@ -151,6 +168,8 @@ const emit = defineEmits<{
 
 const buttons = ref<HTMLButtonElement[]>([])
 const index = ref(-1)
+const searchQuery = ref('')
+const searchInput = ref<HTMLInputElement | null>(null)
 const fileInput = ref<HTMLInputElement | null>(null)
 const fileInputGallery = ref<HTMLInputElement | null>(null)
 const aiMenuIndex = ref(-1)
@@ -162,6 +181,12 @@ const aiContinueBtn = ref<HTMLButtonElement | HTMLButtonElement[] | null>(null)
 const aiAskBtn = ref<HTMLButtonElement | HTMLButtonElement[] | null>(null)
 const aiConfigureBtn = ref<HTMLButtonElement | HTMLButtonElement[] | null>(null)
 const aiPopoverFocusIndex = ref(0) // 0: Continue, 1: Ask, 2: Configure
+
+const searchActive = computed(() => searchQuery.value.trim().length > 0)
+
+const filteredActions = computed<FilteredAction[]>(() =>
+  filterFloatingActions(props.actions, searchQuery.value)
+)
 
 const getContinueBtn = () => {
   const el = aiContinueBtn.value
@@ -210,41 +235,41 @@ const focusButton = (i: number) => {
 
   // Focus without causing the browser to auto-scroll the element into view.
   // Prefer the preventScroll option when available and fall back to normal focus.
-  try {
-    btn?.focus?.({ preventScroll: true })
-  } catch {
-    btn?.focus?.()
-  }
+  try { btn?.focus?.({ preventScroll: true }) } 
+  catch { btn?.focus?.() }
 
+  if (!props.vertical || !btn) return
+  
   // If we're in vertical mode, make sure the focused button is visible using smooth scrolling inside the menu container
-  if ((props as any).vertical && btn) {
-    try {
-      const wrapped = (prev === 0 && newIndex === buttons.value.length - 1) || (prev === buttons.value.length - 1 && newIndex === 0)
-      const container = btn.closest('.floating-menu--vertical') as HTMLElement | null
+  try {
+    const wrapped = (prev === 0 && newIndex === buttons.value.length - 1) || (prev === buttons.value.length - 1 && newIndex === 0)
+    const container = btn.closest('.floating-menu--vertical') as HTMLElement | null
 
-      if (container) {
-        if (wrapped) {
-          const top = Math.max(btn.offsetTop - container.clientHeight / 2 + btn.offsetHeight / 2, 0)
-          container.scrollTo({ top, behavior: 'smooth' })
-        } else {
-          const btnTop = btn.offsetTop
-          const btnBottom = btnTop + btn.offsetHeight
-          const viewTop = container.scrollTop
-          const viewBottom = viewTop + container.clientHeight
-          const padding = 8
-          if (btnTop < viewTop + padding) {
-            container.scrollTo({ top: Math.max(btnTop - padding, 0), behavior: 'smooth' })
-          } else if (btnBottom > viewBottom - padding) {
-            container.scrollTo({ top: Math.min(btnBottom - container.clientHeight + padding, container.scrollHeight), behavior: 'smooth' })
-          }
-        }
-      } else if (btn.scrollIntoView) {
-        // Fallback to element scrollIntoView if no container is found
-        btn.scrollIntoView({ behavior: 'smooth', block: wrapped ? 'center' : 'nearest' })
-      }
-    } catch {
-      // ignore if scrolling throws
+    if (!container && btn.scrollIntoView) {
+      // Fallback to element scrollIntoView if no container is found
+      btn.scrollIntoView({ behavior: 'smooth', block: wrapped ? 'center' : 'nearest' })
+      return
     }
+
+    if (!container) return
+    if (wrapped) {
+      const top = Math.max(btn.offsetTop - container.clientHeight / 2 + btn.offsetHeight / 2, 0)
+      container.scrollTo({ top, behavior: 'smooth' })
+      return
+    }
+    
+    const btnTop = btn.offsetTop
+    const btnBottom = btnTop + btn.offsetHeight
+    const viewTop = container.scrollTop
+    const viewBottom = viewTop + container.clientHeight
+    const padding = 8
+
+    const isAbove = btnTop < viewTop + padding
+    const isBelow = btnBottom > viewBottom - padding
+    if (isAbove) { container.scrollTo({ top: Math.max(btnTop - padding, 0), behavior: 'smooth' }) } 
+    else if (isBelow) { container.scrollTo({ top: Math.min(btnBottom - container.clientHeight + padding, container.scrollHeight), behavior: 'smooth' }) }
+  } catch {
+    // ignore if scrolling throws
   }
 }
 
@@ -335,8 +360,8 @@ const onAiKeydown = (e: KeyboardEvent) => {
     e.preventDefault()
     // Trigger the focused control
     if (aiPopoverFocusIndex.value === 0) {
-      const aiItem = props.actions[aiMenuIndex.value]
-      if (aiItem) handleAiContinue(aiItem, aiMenuIndex.value)
+      const aiItem = filteredActions.value[aiMenuIndex.value]
+      if (aiItem) handleAiContinue(aiItem.action, aiItem.sourceIndex)
     } else if (aiPopoverFocusIndex.value === 1) {
       // If Ask is selected, open input
       openAiAsk(aiMenuIndex.value)
@@ -355,6 +380,22 @@ const onAiKeydown = (e: KeyboardEvent) => {
 
 const onKeydown = (e: KeyboardEvent) => {
   const key = e.key
+  const target = e.target as HTMLElement | null
+  if (target?.closest?.('.ai-popover')) return
+  if (target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement || target?.isContentEditable) {
+    return
+  }
+
+  const isPrintable = key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey
+
+  if (isPrintable) {
+    e.preventDefault()
+    searchQuery.value += key
+    closeAiMenu(false)
+    nextTick(() => focusButton(0))
+    return
+  }
+
   if (['ArrowRight', 'ArrowDown'].includes(key) || (key === 'Tab' && !e.shiftKey)) {
     e.preventDefault()
     focusButton(index.value + 1)
@@ -373,6 +414,18 @@ const onKeydown = (e: KeyboardEvent) => {
   }
   if (key === 'Escape' || key === 'Backspace') {
     e.preventDefault()
+    if (searchQuery.value.length > 0) {
+      if (key === 'Backspace') {
+        searchQuery.value = searchQuery.value.slice(0, -1)
+      } else {
+        searchQuery.value = ''
+      }
+
+      closeAiMenu(false)
+      nextTick(() => focusButton(0))
+      return
+    }
+
     index.value = -1
     closeAiMenu()
     props.editor?.chain().focus().run()
@@ -450,10 +503,27 @@ watch(
     if (!visible) {
       index.value = -1
       closeAiMenu()
+      searchQuery.value = ''
       return
     }
     await nextTick()
     focusButton(0)
+  }
+)
+
+watch(
+  () => filteredActions.value.length,
+  async (len) => {
+    buttons.value = []
+    if (aiMenuIndex.value >= len) closeAiMenu(false)
+    if (!len) {
+      index.value = -1
+      return
+    }
+    if (searchActive.value && document.activeElement !== searchInput.value) {
+      await nextTick()
+      focusButton(0)
+    }
   }
 )
 </script>
@@ -461,6 +531,18 @@ watch(
 <style scoped>
 .floating-menu--vertical {
   @apply flex flex-col gap-1 p-2 max-h-[60vh] overflow-y-auto scroll-smooth;
+}
+
+.menu-search {
+  @apply w-full px-2 pb-2;
+}
+
+.floating-menu:not(.floating-menu--vertical) .menu-search {
+  @apply w-56;
+}
+
+.menu-search-input {
+  @apply w-full;
 }
 
 .menu-item-wrapper {

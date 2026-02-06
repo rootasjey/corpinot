@@ -4,7 +4,10 @@
       <img v-if="imageSrc" :src="imageSrc" :alt="imageAlt" :class="['horizontal-card__image', { 'is-square': isSquare }]" />
       <div v-else class="horizontal-card__placeholder">Add image</div>
 
-      <button v-if="isEditable" type="button" class="horizontal-card__replace-btn" @click.stop.prevent="triggerFilePicker">Replace</button>
+      <div class="horizontal-card__media-controls">
+        <button v-if="isEditable" type="button" class="horizontal-card__replace-btn" @click.stop.prevent="triggerFilePicker">Replace</button>
+        <button v-if="isEditable && href" type="button" class="horizontal-card__revert-btn" @click.stop.prevent="revertToLink" title="Revert to link"><span class="i-lucide-link-2" /></button>
+      </div>
       <input ref="fileInput" type="file" accept="image/*" class="hidden" @change="onFilePicked" />
     </div>
 
@@ -12,7 +15,7 @@
       <NodeViewContent class="horizontal-card__content" />
 
       <p v-if="!isEditable && !hasContent" class="horizontal-card__text">Add text…</p>
-    </div> 
+    </div>  
   </NodeViewWrapper>
 </template>
 
@@ -32,6 +35,7 @@ const imageSrc = computed(() => props.node.attrs?.imageSrc ?? '')
 const imageAlt = computed(() => props.node.attrs?.imageAlt ?? '')
 const imagePosition = computed(() => (props.node.attrs?.imagePosition === 'right' ? 'right' : 'left'))
 const isSquare = computed(() => props.node.attrs?.square !== false)
+const href = computed(() => props.node.attrs?.href ?? null)
 
 const hasContent = computed(() => !!props.node.content && props.node.content.size > 0)
 
@@ -78,5 +82,29 @@ async function onFilePicked(e: Event) {
   const src = await uploadImage(file)
   if (src) props.updateAttributes({ imageSrc: src })
   input.value = ''
+}
+
+
+
+async function revertToLink() {
+  const href = props.node.attrs?.href as string | null
+  if (!href) return
+  const pos = props.getPos?.()
+  if (typeof pos !== 'number') return
+
+  // Build a paragraph with a link mark if available
+  const schema = props.editor?.schema
+  const hasLinkMark = !!schema?.marks?.link
+  const nodeToInsert = hasLinkMark
+    ? { type: 'paragraph', content: [{ type: 'text', text: href, marks: [{ type: 'link', attrs: { href } }] }] }
+    : { type: 'paragraph', content: [{ type: 'text', text: href }] }
+
+  // Replace the entire card node with a paragraph containing the link
+  props.editor
+    .chain()
+    .focus()
+    .deleteRange({ from: pos, to: pos + props.node.nodeSize })
+    .insertContentAt(pos, nodeToInsert)
+    .run()
 }
 </script>

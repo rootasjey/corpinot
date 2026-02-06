@@ -25,6 +25,11 @@ export default defineEventHandler(async (event) => {
 
   const rows = results.map((row: any) => row.post as ApiPost)
   const drafts: Post[] = []
+
+  // Optional tag filter: ?tag=project or ?tag=project&tag=featured%20project
+  const tagQuery = query.tag as string | string[] | undefined
+  const requestedTags = tagQuery ? (Array.isArray(tagQuery) ? tagQuery : [tagQuery]) : null
+
   for (const apiPost of rows as ApiPost[]) {
     const tagRows = await db
       .select({ tag: schema.tags })
@@ -34,6 +39,10 @@ export default defineEventHandler(async (event) => {
       .orderBy(sql`post_tags.rowid ASC`)
 
     const tags = tagRows.map((row: any) => row.tag)
+
+    // If a tag filter was supplied, skip posts that don't have any of the requested tags
+    if (requestedTags && !tags.some((t: any) => requestedTags.includes(t.name))) continue
+
     const draft = convertApiToPost(apiPost, {
       tags,
       userName: session.user.name,

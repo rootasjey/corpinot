@@ -1,7 +1,7 @@
 <template>
   <div v-if="post" class="min-h-screen">
     <!-- Top action bar -->
-    <div class="sticky top-0 z-30 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+    <div class="sticky z-30 border-b bg-background/80 backdrop-blur supports-[backdrop-filter]:bg-background/60 transition-all duration-200" :style="{ top: `${toolbarTop}px` }">
       <div class="container mx-auto px-4 md:px-8 py-2 md:py-3">
         <div class="flex items-center justify-between gap-2">
           <NButton link to="/posts" btn="ghost-gray" size="xs" class="px-2">
@@ -282,12 +282,14 @@ import { deriveSlugFromName } from '~/utils/slug'
 import { useTagStore } from '~/stores/tags'
 import { useAIWriter } from '~/composables/useAIWriter'
 import AiProviderDialog from '~/components/editor/AiProviderDialog.vue'
+import { useHeaderToolbarOffset } from '~/composables/useHeaderToolbarOffset'
 
 const route = useRoute()
 const router = useRouter()
 const identifier = computed(() => route.params.identifier as string)
 
 const { user } = useUserSession()
+const { top: toolbarTop } = useHeaderToolbarOffset({ baseOffsetPx: 0 })
 const { enhancePost, formatPostDate } = usePost()
 const tagStore = useTagStore()
 const { fetchPost: fetchPostApi, updatePost, updateArticle, deletePost: deletePostApi, exportPostZip } = usePostsApi()

@@ -125,6 +125,8 @@ import { Video } from './Video'
 import { Audio } from './Audio'
 import { Conway } from './Conway'
 import { HorizontalCard } from './HorizontalCard'
+import AutoLinkPlugin from './AutoLinkPlugin'
+import { AutoLinkPreview } from './AutoLinkPreview'
 import NodeRange from '@tiptap/extension-node-range'
 import Separator from './Separator'
 import EditorDragHandleMenu from './EditorDragHandleMenu.vue'
@@ -362,7 +364,6 @@ const editor = useEditor({
     }),
     Placeholder.configure({
       placeholder: ({ node }) => {
-        console.log('Placeholder check for node:', node)
         // Paragraph with an explicit placeholder attribute should show that placeholder
         if (node.type.name === 'paragraph' && node.attrs?.placeholder) return node.attrs.placeholder
         if (node.type.name === 'paragraph') return `${new Date().toLocaleTimeString()} - Here are my thoughts about... (/ for commands)`
@@ -384,6 +385,8 @@ const editor = useEditor({
     Audio,
     Conway,
     HorizontalCard,
+    AutoLinkPreview,
+    AutoLinkPlugin,
     Separator,
     Table.configure({ resizable: true }),
     TextStyle,
@@ -631,7 +634,21 @@ function shouldShowFloatingMenu(props: any) {
   if (lastSlashTriggerPos.value !== pos) return false
   // don't show when caret is inside a code block
   if (props.editor?.isActive?.('codeBlock')) return false
-  try { return state.doc.textBetween(pos - 1, pos, '', '\n') === '/' } catch { return false }
+  try {
+    // Only show when the character immediately before the caret is '/'
+    // and the character before that (if any) is either start-of-line, whitespace,
+    // or punctuation. Do NOT show if previous char is a letter, digit, or ':'
+    // which prevents triggering on things like `https:/` or inside words.
+    if (state.doc.textBetween(pos - 1, pos, '', '\n') !== '/') return false
+
+    const prevChar = pos - 2 >= 0 ? state.doc.textBetween(pos - 2, pos - 1, '', '\n') : ''
+    if (!prevChar) return true // start of document/line
+
+    // Disallow when previous char is another slash (eg. `https://`) — or alphanumeric or a colon
+    if (prevChar === '/' || /[A-Za-z0-9:]/.test(prevChar)) return false
+
+    return true
+  } catch { return false }
 } 
 
 function addImage() {

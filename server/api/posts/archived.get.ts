@@ -23,6 +23,10 @@ export default defineEventHandler(async (event) => {
     .orderBy(desc(schema.posts.created_at))
     .limit(25)
 
+  // Optional tag filter: ?tag=project or ?tag=project&tag=featured%20project
+  const tagQuery = query.tag as string | string[] | undefined
+  const requestedTags = tagQuery ? (Array.isArray(tagQuery) ? tagQuery : [tagQuery]) : null
+
   const archivedPosts: Post[] = []
   for (const { post: apiPost } of resultRows as Array<{ post: ApiPost }>) {
     const tagRows = await db
@@ -33,6 +37,10 @@ export default defineEventHandler(async (event) => {
       .orderBy(sql`post_tags.rowid ASC`)
 
     const tags = tagRows.map((row: any) => row.tag)
+
+    // If a tag filter was supplied, skip posts that don't have any of the requested tags
+    if (requestedTags && !tags.some((t: any) => requestedTags.includes(t.name))) continue
+
     const archivedPost = convertApiToPost(apiPost, {
       tags,
       userName: session.user.name,

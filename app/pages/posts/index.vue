@@ -143,24 +143,23 @@
         </div>
       </div>
 
-      <div v-if="activeTab === 'published' && posts && posts.length > 0">
-        <PostsList
-          :posts="enhancedPosts"
-          :viewMode="viewMode"
-          :isAdmin="isAdmin"
-          :selectionMode="selection.selectionMode.value"
-          :selectedSlugs="selection.selected.value"
-          :duplicatingPosts="duplicatingPosts"
-          :coverUploadingPosts="coverUploadingPosts"
-          :menuItemsForPost="menuItemsForPost"
-          @toggle-selected="selection.toggleSelected"
-          @long-press-start="longPress.startLongPress"
-          @long-press-cancel="longPress.cancelLongPress"
-          @post-click="onPostCardClick"
-          :linkForPost="(p) => `/posts/${p.slug}`"
-          :entered="entered"
-        />
-      </div>
+      <PostsList
+        v-if="activeTab === 'published' && posts && posts.length > 0"
+        :posts="enhancedPosts"
+        :viewMode="viewMode"
+        :isAdmin="isAdmin"
+        :selectionMode="selection.selectionMode.value"
+        :selectedSlugs="selection.selected.value"
+        :duplicatingPosts="duplicatingPosts"
+        :coverUploadingPosts="coverUploadingPosts"
+        :menuItemsForPost="menuItemsForPost"
+        @toggle-selected="selection.toggleSelected"
+        @long-press-start="longPress.startLongPress"
+        @long-press-cancel="longPress.cancelLongPress"
+        @post-click="onPostCardClick"
+        :linkForPost="(p) => `/posts/${p.slug}`"
+        :entered="entered"
+      />
 
       <!-- Loading state -->
       <div v-else-if="isLoadingVisible" class="text-center py-12">
@@ -196,49 +195,43 @@
 
       <!-- Drafts (admin tab) -->
       <ClientOnly>
-        <div v-if="isAdmin && activeTab === 'drafts'" class="mt-6 max-w-7xl mx-auto">
-          <div v-if="enhancedDrafts.length > 0">
-            <PostsList
-              :posts="enhancedDrafts"
-              :viewMode="viewMode"
-              :isAdmin="isAdmin"
-              :selectionMode="selection.selectionMode.value"
-              :selectedSlugs="selection.selected.value"
-              :duplicatingPosts="duplicatingPosts"
-              :coverUploadingPosts="coverUploadingPosts"
-              :menuItemsForPost="menuItemsForPost"
-              @toggle-selected="selection.toggleSelected"
-              @long-press-start="longPress.startLongPress"
-              @long-press-cancel="longPress.cancelLongPress"
-              @post-click="onPostCardClick"
-              :linkForPost="(p) => `/posts/edit/${p.slug}`"
-              :entered="entered"
-            />
-          </div>
-        </div>
+        <PostsList
+          v-if="isAdmin && activeTab === 'drafts' && enhancedDrafts.length > 0"
+          :posts="enhancedDrafts"
+          :viewMode="viewMode"
+          :isAdmin="isAdmin"
+          :selectionMode="selection.selectionMode.value"
+          :selectedSlugs="selection.selected.value"
+          :duplicatingPosts="duplicatingPosts"
+          :coverUploadingPosts="coverUploadingPosts"
+          :menuItemsForPost="menuItemsForPost"
+          @toggle-selected="selection.toggleSelected"
+          @long-press-start="longPress.startLongPress"
+          @long-press-cancel="longPress.cancelLongPress"
+          @post-click="onPostCardClick"
+          :linkForPost="(p) => `/posts/edit/${p.slug}`"
+          :entered="entered"
+        />
       </ClientOnly>
 
       <ClientOnly>
-        <div v-if="isAdmin && activeTab === 'archived'" class="mt-6 max-w-7xl mx-auto">
-          <div v-if="enhancedArchived.length > 0">
-            <PostsList
-              :posts="enhancedArchived"
-              :viewMode="viewMode"
-              :isAdmin="isAdmin"
-              :selectionMode="selection.selectionMode.value"
-              :selectedSlugs="selection.selected.value"
-              :duplicatingPosts="duplicatingPosts"
-              :coverUploadingPosts="coverUploadingPosts"
-              :menuItemsForPost="menuItemsForPost"
-              @toggle-selected="selection.toggleSelected"
-              @long-press-start="longPress.startLongPress"
-              @long-press-cancel="longPress.cancelLongPress"
-              @post-click="onPostCardClick"
-              :linkForPost="(p) => `/posts/${p.slug}`"
-              :entered="entered"
-            />
-          </div>
-        </div>
+        <PostsList
+          v-if="isAdmin && activeTab === 'archived' && enhancedArchived.length > 0"
+          :posts="enhancedArchived"
+          :viewMode="viewMode"
+          :isAdmin="isAdmin"
+          :selectionMode="selection.selectionMode.value"
+          :selectedSlugs="selection.selected.value"
+          :duplicatingPosts="duplicatingPosts"
+          :coverUploadingPosts="coverUploadingPosts"
+          :menuItemsForPost="menuItemsForPost"
+          @toggle-selected="selection.toggleSelected"
+          @long-press-start="longPress.startLongPress"
+          @long-press-cancel="longPress.cancelLongPress"
+          @post-click="onPostCardClick"
+          :linkForPost="(p) => `/posts/${p.slug}`"
+          :entered="entered"
+        />
       </ClientOnly>
     </div>
   </div>
