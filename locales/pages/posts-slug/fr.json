@@ -1,1 +1,11 @@
-{}
+{
+  "editPost": "Modifier l'article",
+  "userAlt": "Utilisateur",
+  "shareTwitter": "Partager sur Twitter",
+  "shareFacebook": "Partager sur Facebook",
+  "shareEmail": "Partager par email",
+  "copyLink": "Copier le lien",
+  "expandedImage": "Image agrandie",
+  "notAuthorized": "Vous n'êtes pas autorisé à voir cet article",
+  "notFound": "Article introuvable"
+}

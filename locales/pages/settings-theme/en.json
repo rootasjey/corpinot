@@ -1,1 +1,13 @@
-{}
+{
+  "backToSettings": "Back to settings",
+  "heading": "Theme",
+  "description": "Choose how Corpinot looks for you.",
+  "slashMenuLayout": "Slash menu layout",
+  "slashMenuLayoutDesc": "Display the slash menu as a vertical list with icons and labels.",
+  "system": "System",
+  "systemDesc": "Follows your device setting",
+  "light": "Light",
+  "lightDesc": "Bright and clean",
+  "dark": "Dark",
+  "darkDesc": "Easy on the eyes"
+}

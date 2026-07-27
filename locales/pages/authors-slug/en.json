@@ -1,1 +1,11 @@
-{}
+{
+  "heading": "Our authors",
+  "title": "Voices behind Corpinot",
+  "description": "Explore the writers crafting our stories. Click any author to view their bio and articles.",
+  "backToAuthors": "← Back to authors",
+  "articles": "Articles",
+  "published": "published",
+  "noArticles": "No articles yet.",
+  "notFound": "Author not found",
+  "publishedLabel": "Published"
+}

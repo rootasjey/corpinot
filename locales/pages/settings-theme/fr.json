@@ -1,1 +1,13 @@
-{}
+{
+  "backToSettings": "Retour aux paramètres",
+  "heading": "Thème",
+  "description": "Choisissez l'apparence de Corpinot.",
+  "slashMenuLayout": "Disposition du menu slash",
+  "slashMenuLayoutDesc": "Afficher le menu slash comme une liste verticale avec icônes et libellés.",
+  "system": "Système",
+  "systemDesc": "Suit les préférences de votre appareil",
+  "light": "Clair",
+  "lightDesc": "Lumineux et propre",
+  "dark": "Sombre",
+  "darkDesc": "Doux pour les yeux"
+}

@@ -1,1 +1,17 @@
-{}
+{
+  "welcomeBack": "Welcome back",
+  "heading": "Login",
+  "description": "Welcome back! Please enter your details.",
+  "emailPlaceholder": "Your email address",
+  "passwordPlaceholder": "Your password",
+  "rememberMe": "Remember me",
+  "forgotPassword": "Forgot password?",
+  "submit": "Sign in",
+  "submitting": "Signing in…",
+  "noAccount": "Don't have an account yet?",
+  "signUpLink": "Sign up",
+  "emailRequired": "Email is required",
+  "emailValid": "Enter a valid email address",
+  "passwordRequired": "Password is required",
+  "invalidCredentials": "Invalid credentials"
+}

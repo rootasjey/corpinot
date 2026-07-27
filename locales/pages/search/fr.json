@@ -1,1 +1,12 @@
-{}
+{
+  "heading": "Recherche",
+  "title": "Trouver des articles, auteurs, tags",
+  "placeholder": "Rechercher articles, auteurs, tags…",
+  "recent": "Récent",
+  "suggestedTags": "Tags suggérés",
+  "recentPosts": "Articles récents",
+  "recentPostsError": "Impossible de charger les articles récents.",
+  "noResultsYet": "Aucun résultat pour l'instant.",
+  "helperText": "Essayez de chercher un titre d'article, un nom d'auteur ou un tag.",
+  "tag": "Tag"
+}

@@ -1,1 +1,13 @@
-{}
+{
+  "newProject": "Nouveau projet",
+  "heading": "Projets",
+  "description": "Découvrez notre collection de projets et d'études de cas.",
+  "draftsDescription": "Ces projets ne sont pas visibles du public.",
+  "archivedDescription": "Ces projets sont archivés et non visibles du public.",
+  "loading": "Chargement des projets…",
+  "emptyHeading": "Aucun projet pour l'instant",
+  "emptyDescription": "Il n'y a encore aucun projet à afficher.",
+  "deleteConfirm": "Êtes-vous sûr de vouloir supprimer **{{ name }}** ? Cette action est irréversible.",
+  "metaTitle": "Projets — corpinot",
+  "metaDescription": "Découvrez nos projets et réalisations."
+}

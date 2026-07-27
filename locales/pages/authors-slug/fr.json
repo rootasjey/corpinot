@@ -1,1 +1,11 @@
-{}
+{
+  "heading": "Nos auteurs",
+  "title": "Les voix derrière Corpinot",
+  "description": "Découvrez les auteurs qui créent nos histoires. Cliquez sur un auteur pour voir sa bio et ses articles.",
+  "backToAuthors": "← Retour aux auteurs",
+  "articles": "Articles",
+  "published": "publié",
+  "noArticles": "Aucun article pour l'instant.",
+  "notFound": "Auteur introuvable",
+  "publishedLabel": "Publié"
+}

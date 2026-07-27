@@ -1,1 +1,19 @@
-{}
+{
+  "startJourney": "Commencez l'aventure",
+  "heading": "Créer votre compte",
+  "description": "Commencez à publier et à vous abonner en quelques minutes.",
+  "namePlaceholder": "Votre nom",
+  "emailPlaceholder": "Votre adresse email",
+  "passwordPlaceholder": "Créez un mot de passe (min 8 caractères)",
+  "showPassword": "Afficher le mot de passe",
+  "submit": "Créer un compte",
+  "submitting": "Création en cours…",
+  "hasAccount": "Vous avez déjà un compte ?",
+  "signInLink": "Se connecter",
+  "nameMinLength": "Le nom doit contenir au moins 2 caractères",
+  "emailRequired": "L'email est requis",
+  "emailValid": "Entrez un email valide",
+  "passwordRequired": "Le mot de passe est requis",
+  "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
+  "createFailed": "Échec de la création du compte"
+}

@@ -1,1 +1,16 @@
-{}
+{
+  "heading": "Paramètres",
+  "switchTheme": "Changer de thème (actuel : {{ theme }})",
+  "theme": "Thème",
+  "themeDescription": "Clair · Sombre · Système",
+  "profile": "Profil",
+  "profileDescription": "Gérer le compte et les détails du profil",
+  "aiSettings": "Paramètres IA",
+  "aiSettingsDescription": "Fournisseur et modèles par action",
+  "about": "À propos",
+  "aboutDescription": "Infos sur l'appli et le projet",
+  "credits": "Crédits",
+  "creditsDescription": "Open source, contributeurs et remerciements",
+  "appVersion": "Version de l'application",
+  "appVersionDescription": "Version actuelle v{{ version }}"
+}

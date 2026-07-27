@@ -1,1 +1,11 @@
-{}
+{
+  "heading": "Crédits & Remerciements",
+  "description": "Un grand merci aux projets open source, jeux d'icônes, polices et services qui rendent ce site possible.",
+  "frameworksAndCore": "Frameworks & Cœur",
+  "platformAndData": "Plateforme & Données",
+  "uiAndStyling": "UI & Style",
+  "contentAndEditing": "Contenu & Édition",
+  "imagesAndMedia": "Images & Médias",
+  "thankYou": "Merci",
+  "thankYouText": "Nous sommes reconnaissants envers tous les mainteneurs, contributeurs et communautés derrière ces outils et services. Si nous avons oublié quelqu'un, veuillez nous le faire savoir et nous ajouterons le crédit."
+}

@@ -1,1 +1,26 @@
-{}
+{
+  "heading": "Soutenir Corpinot",
+  "description": "Aidez à faire vivre l'écriture indépendante. Votre soutien finance le développement et le travail éditorial.",
+  "notAvailable": "Cette fonctionnalité n'est pas encore disponible.",
+  "successHeading": "Merci !",
+  "successMessage": "Votre soutien maintient Corpinot en vie.",
+  "monthly": "(mensuel)",
+  "donateAgain": "Refaire un don",
+  "returnHome": "Retour à l'accueil",
+  "whyDonate": "Pourquoi soutenir ?",
+  "supportAuthors": "Soutenez les auteurs et projets indépendants sur la plateforme.",
+  "fundImprovements": "Financez les améliorations produit, les nouvelles fonctionnalités et la curation éditoriale.",
+  "perks": "Avantages occasionnels pour les donateurs (aperçus exclusifs, accès communautaire).",
+  "suggestedAmounts": "Montants suggérés",
+  "recurring": "Récurrent ?",
+  "recurringLabel": "Faire un don récurrent mensuel",
+  "donateSection": "Faire un don",
+  "amountLabel": "Montant (USD)",
+  "amountPlaceholder": "Entrez un montant",
+  "emailLabel": "Email (optionnel)",
+  "emailPlaceholder": "vous@exemple.com",
+  "messageLabel": "Message (optionnel)",
+  "messagePlaceholder": "Dites quelque chose…",
+  "submitButton": "Donner {{ amount }}",
+  "stubNote": "Cette page est une maquette. Le traitement des paiements sera ajouté plus tard."
+}
