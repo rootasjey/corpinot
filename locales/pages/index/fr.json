@@ -1,6 +1,10 @@
 {
-  "title": "Corpinot - Reflexions personnelles, partagées ouvertement",
-  "description": "Reflexions personnelles partagées ouvertement sur Corpinot",
-  "ogTitle": "Corpinot",
-  "ogDescription": "Reflexions personnelles partagées ouvertement"
+  "pages": {
+    "home": {
+      "title": "Corpinot - Reflexions personnelles, partag\u00e9es ouvertement",
+      "description": "Reflexions personnelles partag\u00e9es ouvertement sur Corpinot",
+      "ogTitle": "Corpinot",
+      "ogDescription": "Reflexions personnelles partag\u00e9es ouvertement"
+    }
+  }
 }

@@ -1,13 +1,17 @@
 {
-  "newProject": "New Project",
-  "heading": "Projects",
-  "description": "Showcasing our collection of project posts and case studies.",
-  "draftsDescription": "These projects are not visible to the public.",
-  "archivedDescription": "These projects are archived and not visible to the public.",
-  "loading": "Loading projects…",
-  "emptyHeading": "No projects yet",
-  "emptyDescription": "There are no project posts to display right now.",
-  "deleteConfirm": "Are you sure you want to delete **{{ name }}**? This action cannot be undone.",
-  "metaTitle": "Projects — corpinot",
-  "metaDescription": "Browse our project posts and showcases."
+  "pages": {
+    "projects": {
+      "newProject": "New Project",
+      "heading": "Projects",
+      "description": "Showcasing our collection of project posts and case studies.",
+      "draftsDescription": "These projects are not visible to the public.",
+      "archivedDescription": "These projects are archived and not visible to the public.",
+      "loading": "Loading projects\u2026",
+      "emptyHeading": "No projects yet",
+      "emptyDescription": "There are no project posts to display right now.",
+      "deleteConfirm": "Are you sure you want to delete **{name}**? This action cannot be undone.",
+      "metaTitle": "Projects \u2014 corpinot",
+      "metaDescription": "Browse our project posts and showcases."
+    }
+  }
 }

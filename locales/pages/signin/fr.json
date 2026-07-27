@@ -1,17 +1,21 @@
 {
-  "welcomeBack": "Bon retour",
-  "heading": "Connexion",
-  "description": "Bon retour ! Veuillez entrer vos identifiants.",
-  "emailPlaceholder": "Votre adresse email",
-  "passwordPlaceholder": "Votre mot de passe",
-  "rememberMe": "Se souvenir de moi",
-  "forgotPassword": "Mot de passe oublié ?",
-  "submit": "Se connecter",
-  "submitting": "Connexion en cours…",
-  "noAccount": "Pas encore de compte ?",
-  "signUpLink": "S'inscrire",
-  "emailRequired": "L'email est requis",
-  "emailValid": "Entrez un email valide",
-  "passwordRequired": "Le mot de passe est requis",
-  "invalidCredentials": "Identifiants invalides"
+  "pages": {
+    "signin": {
+      "welcomeBack": "Bon retour",
+      "heading": "Connexion",
+      "description": "Bon retour ! Veuillez entrer vos identifiants.",
+      "emailPlaceholder": "Votre adresse email",
+      "passwordPlaceholder": "Votre mot de passe",
+      "rememberMe": "Se souvenir de moi",
+      "forgotPassword": "Mot de passe oubli\u00e9 ?",
+      "submit": "Se connecter",
+      "submitting": "Connexion en cours\u2026",
+      "noAccount": "Pas encore de compte ?",
+      "signUpLink": "S'inscrire",
+      "emailRequired": "L'email est requis",
+      "emailValid": "Entrez un email valide",
+      "passwordRequired": "Le mot de passe est requis",
+      "invalidCredentials": "Identifiants invalides"
+    }
+  }
 }

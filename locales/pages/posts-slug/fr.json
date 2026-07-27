@@ -1,11 +1,15 @@
 {
-  "editPost": "Modifier l'article",
-  "userAlt": "Utilisateur",
-  "shareTwitter": "Partager sur Twitter",
-  "shareFacebook": "Partager sur Facebook",
-  "shareEmail": "Partager par email",
-  "copyLink": "Copier le lien",
-  "expandedImage": "Image agrandie",
-  "notAuthorized": "Vous n'êtes pas autorisé à voir cet article",
-  "notFound": "Article introuvable"
+  "pages": {
+    "post": {
+      "editPost": "Modifier l'article",
+      "userAlt": "Utilisateur",
+      "shareTwitter": "Partager sur Twitter",
+      "shareFacebook": "Partager sur Facebook",
+      "shareEmail": "Partager par email",
+      "copyLink": "Copier le lien",
+      "expandedImage": "Image agrandie",
+      "notAuthorized": "Vous n'\u00eates pas autoris\u00e9 \u00e0 voir cet article",
+      "notFound": "Article introuvable"
+    }
+  }
 }

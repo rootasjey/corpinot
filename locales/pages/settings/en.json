@@ -1,16 +1,20 @@
 {
-  "heading": "Settings",
-  "switchTheme": "Switch theme (current: {{ theme }})",
-  "theme": "Theme",
-  "themeDescription": "Light · Dark · System",
-  "profile": "Profile",
-  "profileDescription": "Manage account and profile details",
-  "aiSettings": "AI settings",
-  "aiSettingsDescription": "Provider and per-action models",
-  "about": "About",
-  "aboutDescription": "App & project information",
-  "credits": "Credits",
-  "creditsDescription": "Open-source, contributors & acknowledgements",
-  "appVersion": "App version",
-  "appVersionDescription": "Currently running v{{ version }}"
+  "pages": {
+    "settings": {
+      "heading": "Settings",
+      "switchTheme": "Switch theme (current: {theme})",
+      "theme": "Theme",
+      "themeDescription": "Light \u00b7 Dark \u00b7 System",
+      "profile": "Profile",
+      "profileDescription": "Manage account and profile details",
+      "aiSettings": "AI settings",
+      "aiSettingsDescription": "Provider and per-action models",
+      "about": "About",
+      "aboutDescription": "App & project information",
+      "credits": "Credits",
+      "creditsDescription": "Open-source, contributors & acknowledgements",
+      "appVersion": "App version",
+      "appVersionDescription": "Currently running v{version}"
+    }
+  }
 }

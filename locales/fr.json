@@ -122,7 +122,7 @@
     },
     "featuredHero": {
       "featured": "À la une",
-      "byline": "Par {{ name }}",
+      "byline": "Par {name}",
       "editorialPick": "Sélection éditoriale",
       "readArticle": "Lire l'article",
       "previousStory": "Histoire précédente",
@@ -207,7 +207,7 @@
       "draft": "Brouillon",
       "archived": "Archivé",
       "duplicating": "Duplication…",
-      "minRead": "{{ minutes }} min de lecture",
+      "minRead": "{minutes} min de lecture",
       "oneMinRead": "1 min de lecture",
       "postImageAlt": "Image de l'article"
     },
@@ -266,7 +266,7 @@
       "insertBlockBelow": "Insérer un bloc en dessous",
       "blockOptions": "Options du bloc",
       "text": "Texte",
-      "heading": "Titre {{ level }}",
+      "heading": "Titre {level}",
       "bulletList": "Liste à puces",
       "numberedList": "Liste numérotée",
       "todoList": "Liste de tâches",
@@ -387,7 +387,7 @@
       "descriptionPlaceholder": "Description"
     },
     "conwayNodeView": {
-      "status": "{{ rows }} × {{ cols }} • {{ alive }} vivantes",
+      "status": "{rows} × {cols} • {alive} vivantes",
       "pauseSimulation": "Pause",
       "startSimulation": "Démarrer",
       "randomize": "Aléatoire",
@@ -397,7 +397,7 @@
       "speedControl": "Contrôle de vitesse",
       "decreaseSpeed": "Ralentir",
       "increaseSpeed": "Accélérer",
-      "gen": "GEN: {{ generation }}"
+      "gen": "GEN: {generation}"
     },
     "imageGalleryNodeView": {
       "dragToReorder": "Glisser pour réorganiser",
@@ -411,14 +411,14 @@
       "descriptionPlaceholder": "Écrivez une courte description…",
       "searchTagPlaceholder": "Rechercher ou créer un tag…",
       "addTag": "Ajouter un tag…",
-      "createTag": "Créer \"{{ name }}\"",
+      "createTag": "Créer \"{name}\"",
       "alreadyAdded": "Ce tag est déjà ajouté."
     },
     "translationsManager": {
       "title": "Traductions",
-      "currentLanguage": "Actuel : {{ language }}",
+      "currentLanguage": "Actuel : {language}",
       "createTranslation": "Créer une traduction",
-      "createNew": "Créer une traduction en {{ language }}",
+      "createNew": "Créer une traduction en {language}",
       "targetLanguage": "Langue cible",
       "noTranslations": "Aucune traduction pour l'instant.",
       "unlink": "Délier",

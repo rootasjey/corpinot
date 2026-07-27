@@ -122,7 +122,7 @@
     },
     "featuredHero": {
       "featured": "Featured",
-      "byline": "By {{ name }}",
+      "byline": "By {name}",
       "editorialPick": "Editorial pick",
       "readArticle": "Read article",
       "previousStory": "Previous story",
@@ -207,7 +207,7 @@
       "draft": "Draft",
       "archived": "Archived",
       "duplicating": "Duplicating…",
-      "minRead": "{{ minutes }} min read",
+      "minRead": "{minutes} min read",
       "oneMinRead": "1 min read",
       "postImageAlt": "Post image"
     },
@@ -266,7 +266,7 @@
       "insertBlockBelow": "Insert block below",
       "blockOptions": "Block options",
       "text": "Text",
-      "heading": "Heading {{ level }}",
+      "heading": "Heading {level}",
       "bulletList": "Bullet List",
       "numberedList": "Numbered List",
       "todoList": "To-do List",
@@ -387,7 +387,7 @@
       "descriptionPlaceholder": "Description"
     },
     "conwayNodeView": {
-      "status": "{{ rows }} × {{ cols }} • {{ alive }} alive",
+      "status": "{rows} × {cols} • {alive} alive",
       "pauseSimulation": "Pause Simulation",
       "startSimulation": "Start Simulation",
       "randomize": "Randomize Grid",
@@ -397,7 +397,7 @@
       "speedControl": "Simulation speed control",
       "decreaseSpeed": "Decrease speed",
       "increaseSpeed": "Increase speed",
-      "gen": "GEN: {{ generation }}"
+      "gen": "GEN: {generation}"
     },
     "imageGalleryNodeView": {
       "dragToReorder": "Drag to reorder",
@@ -411,14 +411,14 @@
       "descriptionPlaceholder": "Write a short description…",
       "searchTagPlaceholder": "Search or create tag…",
       "addTag": "Add tag…",
-      "createTag": "Create \"{{ name }}\"",
+      "createTag": "Create \"{name}\"",
       "alreadyAdded": "This tag is already added."
     },
     "translationsManager": {
       "title": "Translations",
-      "currentLanguage": "Current: {{ language }}",
+      "currentLanguage": "Current: {language}",
       "createTranslation": "Create translation",
-      "createNew": "Create new {{ language }} translation",
+      "createNew": "Create new {language} translation",
       "targetLanguage": "Target language",
       "noTranslations": "No translations yet.",
       "unlink": "Unlink",

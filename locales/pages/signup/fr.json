@@ -1,19 +1,23 @@
 {
-  "startJourney": "Commencez l'aventure",
-  "heading": "Créer votre compte",
-  "description": "Commencez à publier et à vous abonner en quelques minutes.",
-  "namePlaceholder": "Votre nom",
-  "emailPlaceholder": "Votre adresse email",
-  "passwordPlaceholder": "Créez un mot de passe (min 8 caractères)",
-  "showPassword": "Afficher le mot de passe",
-  "submit": "Créer un compte",
-  "submitting": "Création en cours…",
-  "hasAccount": "Vous avez déjà un compte ?",
-  "signInLink": "Se connecter",
-  "nameMinLength": "Le nom doit contenir au moins 2 caractères",
-  "emailRequired": "L'email est requis",
-  "emailValid": "Entrez un email valide",
-  "passwordRequired": "Le mot de passe est requis",
-  "passwordMinLength": "Le mot de passe doit contenir au moins 8 caractères",
-  "createFailed": "Échec de la création du compte"
+  "pages": {
+    "signup": {
+      "startJourney": "Commencez l'aventure",
+      "heading": "Cr\u00e9er votre compte",
+      "description": "Commencez \u00e0 publier et \u00e0 vous abonner en quelques minutes.",
+      "namePlaceholder": "Votre nom",
+      "emailPlaceholder": "Votre adresse email",
+      "passwordPlaceholder": "Cr\u00e9ez un mot de passe (min 8 caract\u00e8res)",
+      "showPassword": "Afficher le mot de passe",
+      "submit": "Cr\u00e9er un compte",
+      "submitting": "Cr\u00e9ation en cours\u2026",
+      "hasAccount": "Vous avez d\u00e9j\u00e0 un compte ?",
+      "signInLink": "Se connecter",
+      "nameMinLength": "Le nom doit contenir au moins 2 caract\u00e8res",
+      "emailRequired": "L'email est requis",
+      "emailValid": "Entrez un email valide",
+      "passwordRequired": "Le mot de passe est requis",
+      "passwordMinLength": "Le mot de passe doit contenir au moins 8 caract\u00e8res",
+      "createFailed": "\u00c9chec de la cr\u00e9ation du compte"
+    }
+  }
 }

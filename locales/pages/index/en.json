@@ -1,6 +1,10 @@
 {
-  "title": "Corpinot - Personal Thoughts, Shared Openly",
-  "description": "Personal thoughts shared openly on Corpinot",
-  "ogTitle": "Corpinot",
-  "ogDescription": "Personal thoughts shared openly"
+  "pages": {
+    "home": {
+      "title": "Corpinot - Personal Thoughts, Shared Openly",
+      "description": "Personal thoughts shared openly on Corpinot",
+      "ogTitle": "Corpinot",
+      "ogDescription": "Personal thoughts shared openly"
+    }
+  }
 }

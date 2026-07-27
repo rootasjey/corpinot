@@ -1,19 +1,23 @@
 {
-  "backToSettings": "Retour aux paramètres",
-  "heading": "Paramètres IA",
-  "description": "Choisissez le fournisseur par défaut et remplacez les modèles par action. La traduction et les résumés utilisent toujours Cloudflare.",
-  "defaultProvider": "Fournisseur par défaut",
-  "defaultProviderDesc": "Utilisé pour les actions sauf traduire et résumer.",
-  "cloudflare": "Cloudflare Workers AI",
-  "cloudflareDesc": "Valeurs par défaut rapides ; traduction/résumé restent sur Cloudflare.",
-  "openrouter": "OpenRouter",
-  "openrouterDesc": "Modèles communautaires via OpenRouter (complétions en streaming).",
-  "cfModels": "Modèles Cloudflare",
-  "cfModelsDesc": "Utilisés pour traduire/résumer et quand Cloudflare est le fournisseur.",
-  "reset": "Réinitialiser",
-  "alwaysCf": "Toujours CF",
-  "cfPlaceholder": "@cf/…",
-  "orModels": "Modèles OpenRouter",
-  "orModelsDesc": "Utilisés quand OpenRouter est le fournisseur.",
-  "orPlaceholder": "openrouter/model:variant"
+  "pages": {
+    "settingsAi": {
+      "backToSettings": "Retour aux param\u00e8tres",
+      "heading": "Param\u00e8tres IA",
+      "description": "Choisissez le fournisseur par d\u00e9faut et remplacez les mod\u00e8les par action. La traduction et les r\u00e9sum\u00e9s utilisent toujours Cloudflare.",
+      "defaultProvider": "Fournisseur par d\u00e9faut",
+      "defaultProviderDesc": "Utilis\u00e9 pour les actions sauf traduire et r\u00e9sumer.",
+      "cloudflare": "Cloudflare Workers AI",
+      "cloudflareDesc": "Valeurs par d\u00e9faut rapides ; traduction/r\u00e9sum\u00e9 restent sur Cloudflare.",
+      "openrouter": "OpenRouter",
+      "openrouterDesc": "Mod\u00e8les communautaires via OpenRouter (compl\u00e9tions en streaming).",
+      "cfModels": "Mod\u00e8les Cloudflare",
+      "cfModelsDesc": "Utilis\u00e9s pour traduire/r\u00e9sumer et quand Cloudflare est le fournisseur.",
+      "reset": "R\u00e9initialiser",
+      "alwaysCf": "Toujours CF",
+      "cfPlaceholder": "@cf/\u2026",
+      "orModels": "Mod\u00e8les OpenRouter",
+      "orModelsDesc": "Utilis\u00e9s quand OpenRouter est le fournisseur.",
+      "orPlaceholder": "openrouter/model:variant"
+    }
+  }
 }
