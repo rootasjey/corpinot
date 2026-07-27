@@ -240,8 +240,9 @@
               :model-value="currentLocaleObj"
               @update:model-value="onLocaleChange"
               size="xs"
-              class="w-20"
-              :_combobox-trigger="{ class: 'w-20 min-w-0 px-2' }"
+              class="w-auto"
+              :_combobox-trigger="{ class: 'w-auto min-w-0 border-none', trailing: 'hidden' }"
+              :_combobox-list="{ class: 'w-auto cursor-pointer' }"
               :_combobox-input="{ class: 'border-none' }"
             >
               <template #trigger="{ modelValue }">
@@ -257,8 +258,8 @@
               :model-value="currentThemeObj"
               @update:model-value="onThemeChange"
               size="xs"
-              class="w-20"
-              :_combobox-trigger="{ class: 'w-20 min-w-0 px-2' }"
+              class="w-28"
+              :_combobox-trigger="{ class: 'w-auto min-w-10 border-none', trailing: 'hidden' }"
               :_combobox-input="{ class: 'border-none' }"
             >
               <template #trigger="{ modelValue }">
