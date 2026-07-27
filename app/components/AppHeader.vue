@@ -13,7 +13,7 @@
         <button @click="closeMobileMenu" class="mb-8">
           <div class="i-ph-x w-6 h-6"></div>
         </button>
-        
+
         <nav class="space-y-1">
           <NuxtLink
             to="/"
@@ -120,11 +120,11 @@
       <!-- Mobile Top Bar -->
       <div class="lg:hidden flex items-center justify-between px-4 py-3"
         :class="{
-          'bg-white/80 dark:bg-gray-950/80 backdrop-blur': isScrolled 
+          'bg-white/80 dark:bg-gray-950/80 backdrop-blur': isScrolled
         }"
       >
         <NuxtLink to="/" class="ml-1 flex items-center gap-2 bg-black/10 px-3 py-1 rounded-full">
-          <span 
+          <span
             class="font-title font-bold text-xl"
             :class="{
               'text-white': !isScrolled && router.currentRoute.value.path === '/',
@@ -154,9 +154,9 @@
 
       <!-- Desktop Header -->
       <div class="hidden lg:block py-6 border-b"
-        :class="{ 
+        :class="{
           'bg-[#F8F9FA] dark:bg-gray-900': !isScrolled,
-          'bg-white/80 dark:bg-gray-950/80 backdrop-blur': isScrolled 
+          'bg-white/80 dark:bg-gray-950/80 backdrop-blur': isScrolled
         }"
       >
         <!-- Row 1: Centered Logo -->
@@ -240,8 +240,9 @@
               :model-value="currentLocaleObj"
               @update:model-value="onLocaleChange"
               size="xs"
-              class="w-16"
-              :_combobox-trigger="{ class: 'w-14 min-w-0 px-2' }"
+              class="w-20"
+              :_combobox-trigger="{ class: 'w-20 min-w-0 px-2' }"
+              :_combobox-input="{ class: 'border-none' }"
             >
               <template #trigger="{ modelValue }">
                 <span class="text-xs font-semibold uppercase tracking-wide">{{ modelValue?.code?.toUpperCase() || 'EN' }}</span>
