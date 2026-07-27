@@ -3,14 +3,14 @@
     <div class="container mx-auto px-4 md:px-8">
       <div class="max-w-3xl mx-auto py-6">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-semibold uppercase tracking-wide">{{ $t('components.translationsManager.title') }}</h3>
+          <h3 class="text-sm font-semibold uppercase tracking-wide">{{ $t('editor.translationsManager.title') }}</h3>
           <NButton btn="outline-gray" size="xs" @click="openCreateDialog" :disabled="creating">
-            {{ $t('components.translationsManager.createTranslation') }}
+            {{ $t('editor.translationsManager.createTranslation') }}
           </NButton>
         </div>
 
         <div class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          {{ $t('components.translationsManager.currentLanguage', { language: currentLanguage }) }}
+          {{ $t('editor.translationsManager.currentLanguage', { language: currentLanguage }) }}
         </div>
 
         <div v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ $t('common.loading') }}</div>
@@ -18,7 +18,7 @@
         <div v-else-if="error" class="text-sm text-red-500">{{ error }}</div>
 
         <div v-else-if="!translations.length" class="text-sm text-gray-500 dark:text-gray-400">
-          {{ $t('components.translationsManager.noTranslations') }}
+          {{ $t('editor.translationsManager.noTranslations') }}
         </div>
 
         <div v-else class="space-y-2">
@@ -39,10 +39,10 @@
             </div>
             <div class="flex items-center gap-2 shrink-0">
               <NButton btn="ghost-gray" size="xs" :to="`/posts/edit/${t.id}`" leading="i-ph-pencil">
-                {{ $t('components.translationsManager.edit') }}
+                {{ $t('editor.translationsManager.edit') }}
               </NButton>
               <NButton btn="ghost-gray" size="xs" leading="i-ph-link-break" @click="unlinkTranslation(t.id)" :disabled="unlinking">
-                {{ $t('components.translationsManager.unlink') }}
+                {{ $t('editor.translationsManager.unlink') }}
               </NButton>
             </div>
           </div>
@@ -50,13 +50,13 @@
       </div>
     </div>
 
-    <NDialog v-model:open="createDialogOpen" :title="$t('components.translationsManager.createTranslation')" dialog="sm">
+    <NDialog v-model:open="createDialogOpen" :title="$t('editor.translationsManager.createTranslation')" dialog="sm">
       <div class="space-y-4">
         <p class="text-sm text-gray-600 dark:text-gray-400">
-          {{ $t('components.translationsManager.createNew', { language: targetLanguage ? $t('pages.postEditor.' + targetLanguage) : '' }) }}
+          {{ $t('editor.translationsManager.createNew', { language: targetLanguage ? $t('pages.postEditor.' + targetLanguage) : '' }) }}
         </p>
         <div>
-          <label class="text-sm font-medium block mb-1">{{ $t('components.translationsManager.targetLanguage') }}</label>
+          <label class="text-sm font-medium block mb-1">{{ $t('editor.translationsManager.targetLanguage') }}</label>
           <select
             v-model="targetLanguage"
             class="w-full px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
@@ -69,8 +69,8 @@
         <div class="flex justify-end gap-2">
           <NButton btn="ghost-gray" size="sm" @click="createDialogOpen = false">{{ $t('common.cancel') }}</NButton>
           <NButton btn="solid-blue" size="sm" @click="createTranslation" :disabled="!targetLanguage || creating">
-            <span v-if="!creating">{{ $t('components.translationsManager.createTranslation') }}</span>
-            <span v-else>{{ $t('components.translationsManager.creating') }}</span>
+            <span v-if="!creating">{{ $t('editor.translationsManager.createTranslation') }}</span>
+            <span v-else>{{ $t('editor.translationsManager.creating') }}</span>
           </NButton>
         </div>
       </div>
@@ -149,7 +149,7 @@ async function createTranslation() {
     await router.push(`/posts/edit/${newPost.id}`)
   } catch (e: any) {
     useToast().toast({
-      title: $t('components.translationsManager.createFailed'),
+      title: $t('editor.translationsManager.createFailed'),
       description: e?.data?.message || '',
       toast: 'danger',
     })
@@ -168,7 +168,7 @@ async function unlinkTranslation(targetId: number) {
     translations.value = translations.value.filter(t => t.id !== targetId)
   } catch (e: any) {
     useToast().toast({
-      title: $t('components.translationsManager.unlinkFailed'),
+      title: $t('editor.translationsManager.unlinkFailed'),
       description: e?.data?.message || '',
       toast: 'danger',
     })

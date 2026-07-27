@@ -555,7 +555,7 @@ const menuItems = computed(() => {
         { label: $t('pages.posts.archived'), trailing: status.value === 'archived' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'archived') },
       ],
     },
-    { label: $t('components.translationsManager.title'), onSelect: () => { document.querySelector('.translations-section')?.scrollIntoView({ behavior: 'smooth' }) }, leading: 'i-ph-translate' },
+    { label: $t('editor.translationsManager.title'), onSelect: () => { document.querySelector('.translations-section')?.scrollIntoView({ behavior: 'smooth' }) }, leading: 'i-ph-translate' },
     { label: $t('pages.postEditor.editSlug'), onSelect: openSlugDialog },
     { label: $t('common.deletePost'), onSelect: openDeleteDialog },
     { label: $t('pages.postEditor.exportZip'), onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
@@ -686,7 +686,7 @@ const saveAll = async () => {
 
 const onTranslationCreated = (newPostId: number) => {
   useToast().toast({
-    title: $t('components.translationsManager.createSuccess'),
+    title: $t('editor.translationsManager.createSuccess'),
     toast: 'success',
   })
 }
