@@ -251,27 +251,26 @@
                 <span class="text-xs">{{ item.displayName }}</span>
               </template>
             </NCombobox>
-            <NDropdownMenu
-              :items="themeDropdownItems"
-              v-model:open="desktopThemeOpen"
-              :modal="false"
-              :_dropdown-menu-content="dropdownContentProps"
+            <NCombobox
+              :items="themeOptions"
+              by="value"
+              :model-value="currentThemeObj"
+              @update:model-value="onThemeChange"
+              size="xs"
+              class="w-20"
+              :_combobox-trigger="{ class: 'w-20 min-w-0 px-2' }"
+              :_combobox-input="{ class: 'border-none' }"
             >
-              <button
-                @click="toggleTheme"
-                @contextmenu.prevent="openThemeMenu('desktop')"
-                @pointerdown="onThemePressStart('desktop', $event)"
-                @pointerup="onThemePressEnd('desktop')"
-                @pointerleave="onThemePressEnd('desktop')"
-                class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors"
-              >
-                <!-- SSR friendly: render both icons and toggle with CSS `dark:` utilities.
-                     Avoids class mismatch between server and client by keeping DOM the same. -->
-                <div class="i-ph-moon-bold block dark:hidden"></div>
-                <div class="i-ph-sun-bold hidden dark:block"></div>
-                <span class="sr-only">{{ $t('nav.theme') }}</span>
-              </button>
-            </NDropdownMenu>
+              <template #trigger="{ modelValue }">
+                <div :class="modelValue?.icon || 'i-ph-sun'" class="w-4 h-4 mx-auto" />
+              </template>
+              <template #label="{ item }">
+                <div class="flex items-center gap-2 text-xs">
+                  <div :class="item.icon" class="w-4 h-4" />
+                  {{ item.label }}
+                </div>
+              </template>
+            </NCombobox>
           </div>
         </div>
       </div>
@@ -366,14 +365,20 @@ const dropdownItems = computed(() => {
   return items
 })
 
-const themeDropdownItems = computed(() => {
-  const preference = colorMode.preference as ThemePreference
-  return [
-    { label: $ts('nav.dark'), leading: 'i-ph-moon', trailing: preference === 'dark' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('dark') },
-    { label: $ts('nav.light'), leading: 'i-ph-sun', trailing: preference === 'light' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('light') },
-    { label: $ts('nav.system'), leading: 'i-ph-laptop', trailing: preference === 'system' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('system') },
-  ]
+const themeOptions = computed(() => [
+  { value: 'light', label: $ts('nav.light'), icon: 'i-ph-sun' },
+  { value: 'dark', label: $ts('nav.dark'), icon: 'i-ph-moon' },
+  { value: 'system', label: $ts('nav.system'), icon: 'i-ph-laptop' },
+])
+
+const currentThemeObj = computed(() => {
+  const pref = colorMode.preference as ThemePreference
+  return themeOptions.value.find(o => o.value === pref) || themeOptions.value[0]
 })
+
+function onThemeChange(item: { value: string } | null) {
+  if (item?.value) setThemePreference(item.value as ThemePreference)
+}
 
 const dropdownContentProps = computed(() => ({
   align: 'end' as const,
