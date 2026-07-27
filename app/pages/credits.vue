@@ -261,9 +261,11 @@ const pexelsAttributions: Attribution[] = [
 ]
 
 const { $t } = useI18n()
-definePageMeta({
+useSeoMeta({
   title: $t('pages.credits.heading'),
   description: $t('pages.credits.description'),
+  ogTitle: $t('pages.credits.heading'),
+  ogDescription: $t('pages.credits.description'),
 })
 </script>
 

@@ -88,7 +88,6 @@
 import { ref, computed } from 'vue'
 
 const { $t } = useI18n()
-definePageMeta({ title: $t('pages.donate.heading') })
 
 const suggestedAmounts = [5, 10, 25, 50, 100]
 const selectedAmount = ref<number | null>(25)
