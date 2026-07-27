@@ -64,22 +64,24 @@ export const usePost = () => {
     if (!dateString) return ''
     
     const date = new Date(dateString)
+    const { $getLocale } = useI18n()
+    const locale = $getLocale() === 'en' ? 'en-US' : $getLocale() || 'en-US'
     
     switch (format) {
       case 'short':
-        return date.toLocaleDateString('en-US', { 
+        return date.toLocaleDateString(locale, { 
           month: 'short', 
           day: 'numeric',
           year: 'numeric'
         })
       case 'long':
-        return date.toLocaleDateString('en-US', { 
+        return date.toLocaleDateString(locale, { 
           month: 'long', 
           day: 'numeric',
           year: 'numeric'
         })
       case 'numeric':
-        return date.toLocaleDateString('en-US', { 
+        return date.toLocaleDateString(locale, { 
           day: 'numeric',
           month: 'short',
           year: 'numeric'

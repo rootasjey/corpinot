@@ -78,9 +78,27 @@
           </NuxtLink>
         </nav>
 
+        <!-- Language Switcher (Mobile) -->
+        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400 mb-3 px-4">{{ $t('common.language') }}</p>
+          <div class="flex flex-wrap gap-2 px-4">
+            <NuxtLink
+              v-for="locale in $getLocales()"
+              :key="locale.code"
+              :to="$switchLocalePath(locale.code)"
+              class="px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+              :class="locale.code === $getLocale()
+                ? 'bg-black dark:bg-white text-white dark:text-black'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
+            >
+              {{ locale.displayName || locale.code }}
+            </NuxtLink>
+          </div>
+        </div>
+
         <!-- Social Icons in Mobile Drawer -->
-        <div class="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
-          <div class="flex items-center gap-4">
+        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex items-center gap-4 px-4">
             <a
               v-for="s in orderedSocials"
               :key="s.platform + s.url"
@@ -216,6 +234,16 @@
                 <div class="i-ph-magnifying-glass-bold"></div>
               </button>
             </NTooltip>
+            <i18n-switcher
+              :customLabels="{ en: 'EN', fr: 'FR', es: 'ES', de: 'DE', it: 'IT' }"
+              :customButtonStyle="{ background: 'transparent', border: '1px solid #e5e7eb', borderRadius: '9999px', padding: '4px 10px', fontSize: '11px', fontWeight: '600', color: 'inherit', cursor: 'pointer' }"
+              :customDropdownStyle="{ border: '1px solid #e5e7eb', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'inherit', overflow: 'hidden' }"
+              :customLinkStyle="{ padding: '8px 16px', fontSize: '13px', color: 'inherit', textDecoration: 'none', display: 'block' }"
+              :customActiveLinkStyle="{ fontWeight: '700', background: '#f3f4f6' }"
+              :customDisabledLinkStyle="{ color: '#9ca3af', cursor: 'default' }"
+              :customItemStyle="{ listStyle: 'none' }"
+              :customWrapperStyle="{ position: 'relative', display: 'inline-block' }"
+            />
             <NDropdownMenu
               :items="themeDropdownItems"
               v-model:open="desktopThemeOpen"
