@@ -3,9 +3,9 @@
     <div v-if="duplicating" class="absolute inset-0 pointer-events-auto duplicate-overlay z-0" aria-hidden="true" />
 
     <div v-if="post.status && post.status !== 'published'" class="flex items-center gap-2 mb-2">
-      <NBadge v-if="post.status === 'draft'" badge="soft dark:solid" color="gray">Draft</NBadge>
-      <NBadge v-if="post.status === 'archived'" badge="soft" color="gray">Archived</NBadge>
-      <NBadge v-if="duplicating" badge="soft" color="warning">Duplicating…</NBadge>
+      <NBadge v-if="post.status === 'draft'" badge="soft dark:solid" color="gray">{{ $t('components.postMeta.draft') }}</NBadge>
+      <NBadge v-if="post.status === 'archived'" badge="soft" color="gray">{{ $t('components.postMeta.archived') }}</NBadge>
+      <NBadge v-if="duplicating" badge="soft" color="warning">{{ $t('components.postMeta.duplicating') }}</NBadge>
     </div>
 
     <h2 :class="titleClass">{{ post.name }}</h2>
@@ -38,6 +38,7 @@
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
+const { $t } = useI18n()
 
 const props = defineProps<{
   post: Post

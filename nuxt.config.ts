@@ -50,7 +50,24 @@ export default defineNuxtConfig({
     'nuxt-auth-utils',
     '@nuxtjs/color-mode',
     '@vueuse/nuxt',
+    'nuxt-i18n-micro',
   ],
+
+  i18n: {
+    locales: [
+      { code: 'en', iso: 'en-US', displayName: 'English', dir: 'ltr' },
+      { code: 'fr', iso: 'fr-FR', displayName: 'Français', dir: 'ltr' },
+      { code: 'es', iso: 'es-ES', displayName: 'Español', dir: 'ltr' },
+      { code: 'de', iso: 'de-DE', displayName: 'Deutsch', dir: 'ltr' },
+      { code: 'it', iso: 'it-IT', displayName: 'Italiano', dir: 'ltr' },
+    ],
+    defaultLocale: 'en',
+    strategy: 'prefix_except_default',
+    translationDir: 'locales',
+    meta: true,
+    localeCookie: 'user-locale',
+    define: true,
+  },
   
   runtimeConfig: {
     // Private keys (only available on server-side)

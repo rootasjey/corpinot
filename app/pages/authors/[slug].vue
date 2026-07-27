@@ -26,15 +26,15 @@
             </div>
           </div>
         </div>
-        <NuxtLink to="/authors" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">← Back to authors</NuxtLink>
+        <NuxtLink to="/authors" class="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200">{{ $t('pages.authors.backToAuthors') }}</NuxtLink>
       </div>
 
       <p v-if="author?.biography" class="text-lg text-gray-700 dark:text-gray-300 max-w-4xl leading-relaxed">{{ author.biography }}</p>
 
       <div class="space-y-4">
         <div class="flex items-center justify-between">
-          <h2 class="text-2xl font-700">Articles</h2>
-          <span class="text-sm text-gray-500 dark:text-gray-400">{{ posts.length }} published</span>
+          <h2 class="text-2xl font-700">{{ $t('pages.authors.articles') }}</h2>
+          <span class="text-sm text-gray-500 dark:text-gray-400">{{ posts.length }} {{ $t('pages.authors.published') }}</span>
         </div>
 
         <div v-if="postsPending" class="grid gap-4 md:grid-cols-2">
@@ -43,7 +43,7 @@
 
         <div v-else-if="postsError" class="text-red-600 dark:text-red-400">{{ postsError }}</div>
 
-        <div v-else-if="!posts.length" class="text-gray-600 dark:text-gray-400">No articles yet.</div>
+        <div v-else-if="!posts.length" class="text-gray-600 dark:text-gray-400">{{ $t('pages.authors.noArticles') }}</div>
 
         <div v-else class="grid gap-4 md:grid-cols-2">
           <NuxtLink
@@ -52,7 +52,7 @@
             :to="`/posts/${post.slug}`"
             class="p-5 rounded-2xl border border-gray-200 dark:border-gray-800 hover:border-gray-400 dark:hover:border-gray-600 transition-colors bg-white dark:bg-gray-900 space-y-2"
           >
-            <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ post.status === 'published' ? 'Published' : post.status }}</p>
+            <p class="text-xs uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">{{ post.status === 'published' ? $t('pages.authors.publishedLabel') : post.status }}</p>
             <h3 class="text-xl font-semibold leading-tight line-clamp-2">{{ post.name }}</h3>
             <p v-if="post.description" class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">{{ post.description }}</p>
           </NuxtLink>
@@ -134,7 +134,8 @@ const {
 const posts = computed(() => postsData.value ?? [])
 
 if (authorError.value) {
-  throw createError({ statusCode: 404, statusMessage: 'Author not found' })
+  const { $t } = useI18n()
+  throw createError({ statusCode: 404, statusMessage: $t('pages.authors.notFound') })
 }
 
 const config = useRuntimeConfig()

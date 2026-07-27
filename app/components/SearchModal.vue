@@ -2,7 +2,7 @@
   <NDialog v-model:open="isOpen" :closeOnEsc="true">
     <NDialogContent class="max-w-3xl w-full">
       <NDialogHeader>
-        <NDialogTitle>Search</NDialogTitle>
+        <NDialogTitle>{{ $t('components.searchModal.title') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
@@ -11,7 +11,7 @@
             <NInput
               id="global-search-input"
               v-model="query"
-              placeholder="Search posts and tags — Press Esc to close"
+              :placeholder="$t('components.searchModal.placeholder')"
               input="outline-blue"
               autofocus
               @keydown.up.stop.prevent="moveUp"
@@ -33,7 +33,7 @@
               v-else-if="!results.length"
               class="absolute inset-0 flex items-start justify-center px-3 py-4 text-sm text-gray-600 dark:text-gray-400"
             >
-              No results
+              {{ $t('components.searchModal.noResults') }}
             </div>
 
             <ul
@@ -51,7 +51,7 @@
                   <div class="text-sm font-semibold break-words leading-tight">{{ r.name }}</div>
                   <div v-if="r.type === 'post'" class="text-xs text-gray-500 dark:text-gray-400 whitespace-normal break-words line-clamp-2">{{ r.description }}</div>
                   <div v-else-if="r.type === 'author'" class="text-xs text-gray-500 dark:text-gray-400 whitespace-normal break-words line-clamp-2">{{ r.biography }}</div>
-                  <div v-else-if="r.type === 'tag'" class="text-xs text-gray-500 dark:text-gray-400">Tag</div>
+                  <div v-else-if="r.type === 'tag'" class="text-xs text-gray-500 dark:text-gray-400">{{ $t('components.searchModal.tag') }}</div>
                 </div>
                 <div class="text-xs text-gray-400">{{ r.type.toUpperCase() }}</div>
               </li>
@@ -69,6 +69,7 @@ import { useRouter } from 'vue-router'
 import { useDebounceFn } from '@vueuse/core'
 import useGlobalSearch from '~/composables/useGlobalSearch'
 import { onMounted, onBeforeUnmount } from 'vue'
+const { $t } = useI18n()
 
 const { isOpen, close: closeModal, initialQuery } = useGlobalSearch()
 const router = useRouter()

@@ -3,7 +3,7 @@
   <section class="bg-white dark:bg-gray-950 animate-entrance">
     <div class="container mx-auto px-10">
       <div class="flex items-center justify-between mb-2">
-        <h2 class="text-sm md:text-sm font-text font-600 uppercase">Trending tags</h2>
+        <h2 class="text-sm md:text-sm font-text font-600 uppercase">{{ $t('components.trendingTags.heading') }}</h2>
         <div class="flex items-center gap-2">
           <div
             class="tag-btn-wrapper"
@@ -21,7 +21,7 @@
               class="p-2"
               :disabled="mounted && !canScrollLeft"
               :class="{ 'opacity-60': mounted && !canScrollLeft, 'afforded': leftAfforded }"
-              aria-label="Previous"
+              :aria-label="$t('common.previous')"
             >
               <div class="i-ph-arrow-left-bold"></div>
             </NButton>
@@ -43,7 +43,7 @@
               class="p-2"
               :disabled="mounted && !canScrollRight"
               :class="{ 'opacity-60': mounted && !canScrollRight, 'afforded': rightAfforded }"
-              aria-label="Next"
+              :aria-label="$t('common.next')"
             >
               <div class="i-ph-arrow-right-bold"></div>
             </NButton>
@@ -65,10 +65,10 @@
       <!-- Error -->
       <EmptyState
         v-else-if="error"
-        title="Tags unavailable"
-        description="We couldn't fetch tags right now. Try again later."
+        :title="$t('components.trendingTags.unavailable')"
+        :description="$t('components.trendingTags.unavailableDesc')"
         secondary-to="/posts"
-        secondary-label="View posts"
+        :secondary-label="$t('components.trendingTags.viewPosts')"
       />
 
       <!-- Empty: dummy tags that match final UI -->
@@ -90,11 +90,11 @@
           >
             <div class="space-y-2.5 md:space-y-3 flex-1">
               <h3 class="text-lg md:text-xl font-serif font-800 text-black">{{ tag }}</h3>
-              <p class="text-xs md:text-sm leading-relaxed text-black/80 font-500 line-clamp-3">No posts yet. Add this tag to your first post.</p>
+              <p class="text-xs md:text-sm leading-relaxed text-black/80 font-500 line-clamp-3">{{ $t('components.trendingTags.noPostsYet') }}</p>
             </div>
             <div class="mt-3 md:mt-4">
               <span class="inline-block px-4 py-2 bg-white rounded-full text-xs font-600 text-black uppercase">
-                Explore
+                {{ $t('components.trendingTags.explore') }}
               </span>
             </div>
           </div>
@@ -124,7 +124,7 @@
             </div>
             <div class="mt-3 md:mt-4">
               <span class="inline-block px-4 py-2 bg-white rounded-full text-xs font-600 text-black uppercase">
-                View Posts
+                {{ $t('components.trendingTags.viewPosts') }}
               </span>
             </div>
           </NuxtLink>
@@ -138,6 +138,7 @@
 import { ref, computed, onMounted, onBeforeUnmount, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
 import type { ApiTag } from '~~/shared/types/tags'
+const { $t } = useI18n()
 
 const tagsContainer = ref<HTMLElement | null>(null)
 const route = useRoute()

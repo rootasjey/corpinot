@@ -15,10 +15,10 @@
       <!-- Error -->
       <EmptyState
         v-else-if="error"
-        title="Top pinned posts unavailable"
-        description="We couldn't fetch pinned content. Please try again later."
+        :title="$t('components.topPinned.unavailable')"
+        :description="$t('components.topPinned.unavailableDesc')"
         secondary-to="/posts"
-        secondary-label="View all posts"
+        :secondary-label="$t('common.viewAllPosts')"
         variant="card"
         icon="i-ph-chats-duotone"
       />
@@ -59,7 +59,7 @@
           <div class="flex gap-3 md:gap-4 items-start">
             <!-- Image placeholder on Left -->
             <div class="relative overflow-hidden rounded-xl w-24 h-24 md:w-28 md:h-28 xl:w-24 xl:h-24 flex-shrink-0 bg-gray-200 dark:bg-gray-800">
-              <PostImage v-if="item.img.src" :src="item.img.src" alt="Placeholder image" class="w-full h-full object-cover" />
+              <PostImage v-if="item.img.src" :src="item.img.src" :alt="$t('components.topPinned.placeholderImgAlt')" class="w-full h-full object-cover" />
               <div v-else class="w-full h-full flex items-center justify-center">
                 <div class="i-ph-image-duotone text-2xl text-gray-400" />
               </div>
@@ -101,10 +101,11 @@ const itemClass = 'min-w-[16rem] flex-shrink-0 snap-start md:min-w-0'
 // Dummy items when empty – match the final UI
 const today = new Date()
 const formatted = today.toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' })
+const { $t } = useI18n()
 const dummyHero = [
-  { title: 'Welcome to Corpinot', date: formatted, author: 'Get started', img: {src: "https://images.pexels.com/photos/1406282/pexels-photo-1406282.jpeg"} },
-  { title: 'Create your first post', date: formatted, author: 'Tip', img: {src: "https://images.pexels.com/photos/159618/still-life-school-retro-ink-159618.jpeg"} },
-  { title: 'Add a cover image', date: formatted, author: 'Suggestion', img: {src: "https://images.pexels.com/photos/1765033/pexels-photo-1765033.jpeg"} },
-  { title: 'Use tags to organize', date: formatted, author: 'Hint', img: {src: "https://images.pexels.com/photos/7422438/pexels-photo-7422438.jpeg"} }
+  { title: $t('components.topPinned.dummyTitle1'), date: formatted, author: $t('components.topPinned.dummyAuthor1'), img: {src: "https://images.pexels.com/photos/1406282/pexels-photo-1406282.jpeg"} },
+  { title: $t('components.topPinned.dummyTitle2'), date: formatted, author: $t('components.topPinned.dummyAuthor2'), img: {src: "https://images.pexels.com/photos/159618/still-life-school-retro-ink-159618.jpeg"} },
+  { title: $t('components.topPinned.dummyTitle3'), date: formatted, author: $t('components.topPinned.dummyAuthor3'), img: {src: "https://images.pexels.com/photos/1765033/pexels-photo-1765033.jpeg"} },
+  { title: $t('components.topPinned.dummyTitle4'), date: formatted, author: $t('components.topPinned.dummyAuthor4'), img: {src: "https://images.pexels.com/photos/7422438/pexels-photo-7422438.jpeg"} }
 ]
 </script>

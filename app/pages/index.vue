@@ -33,11 +33,13 @@ const mobileIndex = computed(() => {
 
 const ogImageUrl = `${config.public.siteUrl}/og/home/default.png`
 
+const { $t } = useI18n()
+
 useSeoMeta({
-  title: 'Corpinot - Personal Thoughts, Shared Openly',
-  description: 'Personal thoughts shared openly on Corpinot',
-  ogTitle: 'Corpinot',
-  ogDescription: 'Personal thoughts shared openly',
+  title: $t('pages.home.title'),
+  description: $t('pages.home.description'),
+  ogTitle: $t('pages.home.ogTitle'),
+  ogDescription: $t('pages.home.ogDescription'),
   ogImage: ogImageUrl,
   ogUrl: config.public.siteUrl,
   twitterCard: 'summary_large_image',

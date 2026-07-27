@@ -3,7 +3,7 @@
   <section class="py-12 bg-white dark:bg-gray-950 animate-entrance">
     <div class="container mx-auto px-4 max-w-7xl">
       <h2 class="text-xs md:text-sm font-semibold tracking-wider mb-3 uppercase text-gray-900 dark:text-gray-100">
-        Featured Posts
+        {{ $t('components.featuredPosts.heading') }}
       </h2> 
 
       <!-- Loading -->
@@ -14,10 +14,10 @@
       <!-- Error -->
       <EmptyState
         v-else-if="error"
-        title="Featured posts unavailable"
-        description="We couldn't fetch featured content. Please try again later."
+        :title="$t('components.featuredPosts.unavailable')"
+        :description="$t('components.featuredPosts.unavailableDesc')"
         secondary-to="/posts"
-        secondary-label="View all posts"
+        :secondary-label="$t('common.viewAllPosts')"
         variant="card"
         icon="i-ph-newspaper-duotone"
       />
@@ -94,7 +94,7 @@
               <div class="relative overflow-hidden rounded-2xl aspect-[4/3] bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
                 <NuxtImg
                   src="https://images.pexels.com/photos/1647962/pexels-photo-1647962.jpeg"
-                  alt="Placeholder image"
+                  :alt="$t('components.featuredPosts.placeholderImgAlt')"
                   class="w-full h-full object-cover"
                 />
               </div>
@@ -103,20 +103,18 @@
             <!-- Text right -->
             <div class="md:col-span-6 space-y-4">
               <span class="inline-block px-3.5 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase">
-                Getting Started
+                {{ $t('components.featuredPosts.placeholderBadge') }}
               </span>
               <h3 class="text-2xl md:text-3xl lg:text-4xl font-serif font-bold leading-tight">
-                A Blogging Edge for Your Thoughts
+                {{ $t('components.featuredPosts.placeholderTitle') }}
               </h3>
               <div class="flex items-center gap-2 text-sm font-600 text-gray-500 dark:text-gray-400">
                 <time>{{ today }}</time>
                 <span>—</span>
-                <span>Newme</span>
+                <span>{{ $t('components.featuredPosts.placeholderAuthor') }}</span>
               </div>
               <p class="font-body font-500 text-base text-gray-600 dark:text-gray-300 leading-relaxed">
-                A Nuxt powered blogging platform. 
-                Built for simplicity and speed on top of modern web technologies.
-                It's made with UnaUI, UnoCSS, Tiptap editor, and deploys on (NuxtHub) Cloudflare workers.
+                {{ $t('components.featuredPosts.placeholderDesc') }}
               </p>
             </div>
           </div>
@@ -128,12 +126,12 @@
             <div class="relative overflow-hidden rounded-2xl aspect-[4/3] mb-4 bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
               <NuxtImg
                 :src="post.image.src"
-                :alt="post.image.alt || 'Placeholder image'"
+                :alt="post.image.alt || $t('components.featuredPosts.placeholderImgAlt')"
                 class="w-full h-full object-cover"
               />
             </div>
             <div class="space-y-3 flex-1 flex flex-col">
-              <span class="inline-block w-fit px-3 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase">{{ post.tags?.length ? post.tags[0]?.name : 'Tag' }}</span>
+              <span class="inline-block w-fit px-3 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase">{{ post.tags?.length ? post.tags[0]?.name : $t('common.typeLabel') }}</span>
               <h3 class="text-lg md:text-xl font-serif font-bold leading-snug line-clamp-2 flex-1">{{ post.name }}</h3>
               <div class="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400 mt-auto">
                 <time>{{ post.formattedDate || today }}</time>
@@ -150,6 +148,7 @@
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
+const { $t } = useI18n()
 const { enhancePost } = usePost()
 
 const FEATURED_POST_TAG = 'featured post'

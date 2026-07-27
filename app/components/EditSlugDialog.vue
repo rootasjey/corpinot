@@ -2,17 +2,17 @@
   <NDialog v-model:open="open">
     <NDialogContent class="max-w-xl">
       <NDialogHeader>
-        <NDialogTitle>Edit post slug</NDialogTitle>
+        <NDialogTitle>{{ $t('components.editSlugDialog.title') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        Use a short, URL-friendly slug. Lowercase letters, numbers and hyphens only.
+        {{ $t('components.editSlugDialog.description') }}
       </NDialogDescription>
 
       <div class="mt-4">
         <NInput
           v-model="localSlugCandidate"
-          placeholder="enter slug"
+          :placeholder="$t('components.editSlugDialog.placeholder')"
           input="outline"
           class="w-full"
           :maxlength="255"
@@ -22,7 +22,7 @@
 
       <!-- Reserve space for messages so the UI doesn't jump when messages appear/disappear -->
       <div class="text-sm min-h-[1rem]">
-        <span v-if="slugCheckLoading" class="text-foreground/70"><NIcon name="i-ph-spinner animate-spin" /> Checking slug availability…</span>
+        <span v-if="slugCheckLoading" class="text-foreground/70"><NIcon name="i-ph-spinner animate-spin" /> {{ $t('components.editSlugDialog.checking') }}</span>
         <span v-else-if="error" class="text-danger">{{ error }}</span>
         <span v-else-if="slugTaken" class="text-danger">{{ slugCheckMessage }}</span>
         <span v-else-if="slugCheckMessage" class="text-success"><NIcon name="i-ph-check-circle" /> {{ slugCheckMessage }}</span>
@@ -32,7 +32,7 @@
       </div>
 
       <NDialogFooter class="flex items-center gap-2 justify-end">
-        <NButton btn="ghost-gray" class="px-5" @click="close">Cancel</NButton>
+        <NButton btn="ghost-gray" class="px-5" @click="close">{{ $t('common.cancel') }}</NButton>
         <NButton
           btn="soft-blue"
           class="px-8 py-0 min-h-0"
@@ -40,7 +40,7 @@
           :disabled="disableSave"
           @click="onSave"
         >
-          Save
+          {{ $t('common.save') }}
         </NButton>
       </NDialogFooter>
     </NDialogContent>
@@ -50,6 +50,7 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
 
+const { $t } = useI18n()
 const props = defineProps({
   modelValue: { type: Boolean, required: true },
   slugCandidate: { type: String, required: false },

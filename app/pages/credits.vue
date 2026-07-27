@@ -1,9 +1,9 @@
 <template>
   <section class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <header class="mb-10 text-center animate-entrance" style="animation-delay:80ms;">
-      <h1 class="font-title text-4xl font-800 tracking-tight">Credits & Acknowledgments</h1>
+      <h1 class="font-title text-4xl font-800 tracking-tight">{{ $t('pages.credits.heading') }}</h1>
       <p class="font-body mt-3 text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-        Huge thanks to the open-source projects, icon sets, fonts, and services that make this site possible.
+        {{ $t('pages.credits.description') }}
       </p>
     </header>
 
@@ -11,7 +11,7 @@
       <!-- Frameworks & Core -->
       <NCard class="p-0 overflow-hidden animate-entrance" style="animation-delay:160ms;">
         <div class="p-6 sm:p-8">
-          <h2 class="text-xl font-700 mb-4">Frameworks & Core</h2>
+          <h2 class="text-xl font-700 mb-4">{{ $t('pages.credits.frameworksAndCore') }}</h2>
           <ul class="grid sm:grid-cols-2 gap-3 font-body font-500 text-gray-700 dark:text-gray-200">
             <li>
               <a href="https://nuxt.com" target="_blank" rel="noopener" class="font-700 hover:underline decoration-offset-4 hover:text-primary-600">Nuxt 4</a>
@@ -44,7 +44,7 @@
       <!-- Platform & Data -->
       <NCard class="p-0 overflow-hidden animate-entrance" style="animation-delay:220ms;">
         <div class="p-6 sm:p-8">
-          <h2 class="text-xl font-700 mb-4">Platform & Data</h2>
+          <h2 class="text-xl font-700 mb-4">{{ $t('pages.credits.platformAndData') }}</h2>
           <ul class="grid sm:grid-cols-2 gap-3 font-body font-500 text-gray-700 dark:text-gray-200">
             <li>
               <a href="https://hub.nuxt.com" target="_blank" rel="noopener" class="font-600 hover:underline decoration-offset-4 hover:text-primary-600">@nuxthub/core</a>
@@ -61,7 +61,7 @@
       <!-- UI & Styling -->
       <NCard class="p-0 overflow-hidden animate-entrance" style="animation-delay:280ms;">
         <div class="p-6 sm:p-8">
-          <h2 class="text-xl font-700 mb-4">UI & Styling</h2>
+          <h2 class="text-xl font-700 mb-4">{{ $t('pages.credits.uiAndStyling') }}</h2>
           <ul class="grid sm:grid-cols-2 gap-3 font-body font-500 text-gray-700 dark:text-gray-200">
             <li>
               <a href="https://una-ui.com" target="_blank" rel="noopener" class="font-600 hover:underline decoration-offset-4 hover:text-primary-600">Una UI</a>
@@ -94,7 +94,7 @@
       <!-- Content & Editing -->
       <NCard class="p-0 overflow-hidden animate-entrance" style="animation-delay:340ms;">
         <div class="p-6 sm:p-8">
-          <h2 class="text-xl font-700 mb-4">Content & Editing</h2>
+          <h2 class="text-xl font-700 mb-4">{{ $t('pages.credits.contentAndEditing') }}</h2>
           <ul class="grid sm:grid-cols-2 gap-3 font-body font-500 text-gray-700 dark:text-gray-200">
             <li>
               <a href="https://tiptap.dev/" target="_blank" rel="noopener" class="font-600 hover:underline decoration-offset-4 hover:text-primary-600">Tiptap</a>
@@ -115,7 +115,7 @@
       <!-- Images & Media Pipeline -->
       <NCard class="p-0 overflow-hidden animate-entrance" style="animation-delay:400ms;">
         <div class="p-6 sm:p-8">
-          <h2 class="text-xl font-700 mb-4">Images & Media Pipeline</h2>
+          <h2 class="text-xl font-700 mb-4">{{ $t('pages.credits.imagesAndMedia') }}</h2>
           <ul class="grid grid-cols-5 sm:grid-cols-6 md:grid-cols-8 gap-3">
             <li v-for="item in pexelsAttributions" :key="item.href">
               <NTooltip :_tooltipContent="{ side: 'top', sideOffset: 8, align: 'center' }" :_tooltipProvider="{ delayDuration: 300 }">
@@ -143,10 +143,9 @@
       <!-- Thank you -->
       <NCard class="p-0 overflow-hidden animate-entrance" style="animation-delay:460ms;">
         <div class="p-6 sm:p-8">
-          <h2 class="font-text text-xl font-700 mb-4">Thank you</h2>
+          <h2 class="font-text text-xl font-700 mb-4">{{ $t('pages.credits.thankYou') }}</h2>
           <p class="font-body font-500 text-gray-700 dark:text-gray-200">
-            We're grateful to all maintainers, contributors, and communities behind these tools and services.
-            If we missed anyone, please let us know and we'll add the credit.
+            {{ $t('pages.credits.thankYouText') }}
           </p>
         </div>
       </NCard>
@@ -261,9 +260,10 @@ const pexelsAttributions: Attribution[] = [
   },
 ]
 
+const { $t } = useI18n()
 definePageMeta({
-  title: 'Credits',
-  description: 'Acknowledgments for the open-source tools, fonts, icons, and services used in this project.',
+  title: $t('pages.credits.heading'),
+  description: $t('pages.credits.description'),
 })
 </script>
 

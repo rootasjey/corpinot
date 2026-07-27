@@ -4,16 +4,16 @@
       <div class="flex items-center justify-between px-1 mb-6">
         <NuxtLink to="/posts" class="inline-block">
           <h2 class="text-[11px] uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">
-            Recent Posts
+            {{ $t('components.recentPosts.heading') }}
           </h2>
         </NuxtLink>
 
         <NuxtLink
           to="/posts"
           class="text-[11px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 flex items-center gap-1"
-          aria-label="View all posts"
+          :aria-label="$t('common.viewAllPosts')"
         >
-          <span>See all</span>
+          <span>{{ $t('common.seeAll') }}</span>
           <NIcon name="i-ph-arrow-up-right" />
         </NuxtLink>
       </div>
@@ -26,10 +26,10 @@
       <!-- Error -->
       <EmptyState
         v-else-if="error"
-        title="We couldn't load recent posts"
-        description="Please try again in a moment."
+        :title="$t('components.recentPosts.unavailable')"
+        :description="$t('components.recentPosts.unavailableDesc')"
         secondary-to="/posts"
-        secondary-label="Retry"
+        :secondary-label="$t('common.retry')"
         variant="card"
         icon="i-ph-clock-counter-clockwise-duotone"
       />
@@ -43,12 +43,12 @@
           </div>
           <!-- Content placeholder -->
           <div class="space-y-3 flex-1 flex flex-col">
-            <span class="inline-block w-fit px-3 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase">Category</span>
-            <h3 class="text-lg md:text-xl font-serif font-bold leading-snug line-clamp-2 flex-1">Your post title goes here</h3>
+            <span class="inline-block w-fit px-3 py-1.5 text-xs font-semibold tracking-wide bg-lime-300 dark:bg-lime-400 text-gray-900 rounded-full uppercase">{{ $t('components.recentPosts.placeholderBadge') }}</span>
+            <h3 class="text-lg md:text-xl font-serif font-bold leading-snug line-clamp-2 flex-1">{{ $t('components.recentPosts.placeholderTitle') }}</h3>
             <div class="flex items-center gap-2 font-600 text-xs text-gray-500 dark:text-gray-400 mt-auto">
               <time>{{ today }}</time>
               <span>—</span>
-              <span>3 min read</span>
+              <span>{{ $t('components.recentPosts.placeholderReadingTime') }}</span>
             </div>
           </div>
         </article>
@@ -102,7 +102,7 @@
         >
           <span v-if="loadingMore" class="i-ph-circle-notch animate-spin mr-2" />
           <span v-else class="i-ph-arrow-down mr-2 group-hover/btn:translate-y-0.5 transition-transform duration-300" />
-          {{ loadingMore ? 'Loading…' : 'Load more' }}
+          {{ loadingMore ? $t('common.loading') : $t('components.recentPosts.loadMore') }}
         </NButton>
       </div>
     </div>
@@ -113,6 +113,7 @@
 import type { Post } from '~~/shared/types/post'
 import { EXCLUDED_TAGS } from '~/utils/tagConstants'
 
+const { $t } = useI18n()
 const { enhancePost } = usePost()
 
 // Client-side pagination with Load more

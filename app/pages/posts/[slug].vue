@@ -35,7 +35,7 @@
             </NuxtLink>
             <NTooltip v-if="isAdmin">
               <template #content>
-                <span class="font-600">Edit Post</span>
+                <span class="font-600">{{ $t('pages.post.editPost') }}</span>
               </template>
                 <NButton
                 size="xs"
@@ -64,7 +64,7 @@
           <div class="flex items-center justify-between flex-wrap gap-4">
             <!-- Author Info -->
             <NLink v-if="post.user" :to="`/authors/${post.user.slug || post.user.id}`" class="flex items-center gap-3">
-              <PostImage provider="hubblob" v-if="post.user.avatar" :src="post.user.avatar" :alt="post.user.name || 'User'" class="w-8 h-8 rounded-full border" />
+              <PostImage provider="hubblob" v-if="post.user.avatar" :src="post.user.avatar" :alt="post.user.name || $t('pages.post.userAlt')" class="w-8 h-8 rounded-full border" />
               <div v-if="post.user.name">
                 <div class="font-semibold">{{ post.user.name }}</div>
               </div>
@@ -77,7 +77,7 @@
                 size="sm"
                 btn="ghost-gray"
                 class="hover:bg-muted"
-                aria-label="Share on Twitter"
+                :aria-label="$t('pages.post.shareTwitter')"
               >
                 <div class="i-ph-x-logo w-5 h-5" />
               </NButton>
@@ -86,7 +86,7 @@
                 size="sm"
                 btn="ghost-gray"
                 class="hover:bg-muted"
-                aria-label="Share on Facebook"
+                :aria-label="$t('pages.post.shareFacebook')"
               >
                 <div class="i-ph-facebook-logo w-5 h-5" />
               </NButton>
@@ -95,7 +95,7 @@
                 size="sm"
                 btn="ghost-gray"
                 class="hover:bg-muted"
-                aria-label="Share via Email"
+                :aria-label="$t('pages.post.shareEmail')"
               >
                 <div class="i-ph-envelope w-5 h-5" />
               </NButton>
@@ -125,7 +125,7 @@
           <div class="flex items-center justify-between gap-8 flex-wrap md:flex-nowrap">
             <!-- Left: Avatar and Name -->
             <NLink :to="`/authors/${post.user.slug || post.user.id}`" class="flex items-center gap-6">
-              <PostImage provider="hubblob" v-if="post.user.avatar" :src="post.user.avatar" :alt="post.user.name || 'User'" class="w-12 h-12 rounded-full flex-shrink-0 ring-4 ring-white/10 border" />
+              <PostImage provider="hubblob" v-if="post.user.avatar" :src="post.user.avatar" :alt="post.user.name || $t('pages.post.userAlt')" class="w-12 h-12 rounded-full flex-shrink-0 ring-4 ring-white/10 border" />
               <div>
                 <h3 class="text-md font-bold mb-1">{{ post.user.name }}</h3>
               </div>
@@ -138,7 +138,7 @@
                 size="sm"
                 btn="ghost-gray"
                 class="hover:bg-muted"
-                aria-label="Share on Twitter"
+                :aria-label="$t('pages.post.shareTwitter')"
               >
                 <div class="i-ph-x-logo w-5 h-5" />
               </NButton>
@@ -147,7 +147,7 @@
                 size="sm"
                 btn="ghost-gray"
                 class="hover:bg-muted"
-                aria-label="Share on Facebook"
+                :aria-label="$t('pages.post.shareFacebook')"
               >
                 <div class="i-ph-facebook-logo w-5 h-5" />
               </NButton>
@@ -156,7 +156,7 @@
                 size="sm"
                 btn="ghost-gray"
                 class="hover:bg-muted"
-                aria-label="Share via Email"
+                :aria-label="$t('pages.post.shareEmail')"
               >
                 <div class="i-ph-envelope w-5 h-5" />
               </NButton>
@@ -165,7 +165,7 @@
                 size="sm"
                 btn="ghost-gray"
                 class="hover:bg-muted"
-                aria-label="Copy Link"
+                :aria-label="$t('pages.post.copyLink')"
               >
                 <div class="i-ph-copy w-5 h-5" />
               </NButton>
@@ -191,7 +191,7 @@
         class="lightbox-backdrop"
         role="dialog"
         aria-modal="true"
-        aria-label="Expanded post image"
+        :aria-label="$t('pages.post.expandedImage')"
         @click.self="closeLightbox"
       >
         <div class="lightbox-image-frame">
@@ -210,6 +210,7 @@
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
 
+const { $t } = useI18n()
 const route = useRoute()
 const slug = route.params.slug as string
 const { enhancePost, formatPostDate } = usePost()
@@ -242,9 +243,9 @@ const { data: post, error } = await useFetch<Post>(`/api/posts/${slug}`)
 if (error.value || !post.value) {
   const status = (error.value as any)?.statusCode || (error.value as any)?.status || 0
   if (status === 403) {
-    throw createError({ statusCode: 403, statusMessage: 'You are not authorized to view this post' })
+    throw createError({ statusCode: 403, statusMessage: $t('pages.post.notAuthorized') })
   }
-  throw createError({ statusCode: 404, statusMessage: 'Post not found' })
+  throw createError({ statusCode: 404, statusMessage: $t('pages.post.notFound') })
 }
 
 const editPostUrl = computed(() => `/posts/edit/${post.value?.slug || post.value?.id}`)

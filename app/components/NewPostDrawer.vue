@@ -4,7 +4,7 @@
     <NDrawer v-model:open="open" placement="bottom">
       <template #header>
         <div class="flex items-center justify-between w-full">
-          <h3 class="text-lg font-semibold">Create Post</h3>
+          <h3 class="text-lg font-semibold">{{ $t('components.newPostDrawer.title') }}</h3>
           <NDrawerClose />
         </div>
       </template>
@@ -12,28 +12,28 @@
       <template #body>
         <div class="p-4">
           <div class="grid gap-3">
-            <NInput v-model="name" placeholder="Title" input="outline" />
+            <NInput v-model="name" :placeholder="$t('components.newPostDrawer.titlePlaceholder')" input="outline" />
 
             <NInput
               v-model="description"
               type="textarea"
               :rows="4"
-              placeholder="Short description (optional)"
+              :placeholder="$t('components.newPostDrawer.descriptionPlaceholder')"
               input="outline"
             />
 
-            <NInput v-model="tagsText" placeholder="Tags (comma separated)" input="outline" />
+            <NInput v-model="tagsText" :placeholder="$t('components.newPostDrawer.tagsPlaceholder')" input="outline" />
 
             <div v-if="assignedTag" class="mt-2">
-              <span class="text-xs text-slate-500 dark:text-slate-400">Assigned tag:</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ $t('components.newPostDrawer.assignedTag') }}</span>
               <NBadge badge="soft" color="gray" class="ml-2">{{ assignedTag }}</NBadge>
             </div>
 
             <div class="flex items-center justify-end gap-2 pt-2">
-              <NButton @click="close" btn="ghost-gray">Cancel</NButton>
+              <NButton @click="close" btn="ghost-gray">{{ $t('common.cancel') }}</NButton>
               <NButton :disabled="!name || creating" @click="create" btn="solid-primary" title="Cmd/Ctrl + Enter">
                 <NIcon :name="creating ? 'i-lucide-loader' : 'i-lucide-plus'" :class="{ 'animate-spin': creating }" />
-                <span class="ml-2">Create <span class="ml-1 text-xs text-slate-500 dark:text-slate-400">⌘↵</span></span>
+                <span class="ml-2">{{ $t('common.create') }} <span class="ml-1 text-xs text-slate-500 dark:text-slate-400">⌘↵</span></span>
               </NButton>
             </div>
           </div>
@@ -46,34 +46,34 @@
     <NDialog v-model:open="open">
       <NDialogContent class="max-w-2xl">
         <NDialogHeader>
-          <NDialogTitle>Create Post</NDialogTitle>
+          <NDialogTitle>{{ $t('components.newPostDrawer.title') }}</NDialogTitle>
         </NDialogHeader>
 
         <div class="mt-2 p-2">
           <div class="grid gap-3">
-            <NInput v-model="name" placeholder="Title" input="outline" autofocus />
+            <NInput v-model="name" :placeholder="$t('components.newPostDrawer.titlePlaceholder')" input="outline" autofocus />
 
             <NInput
               v-model="description"
               type="textarea"
               :rows="4"
-              placeholder="Short description (optional)"
+              :placeholder="$t('components.newPostDrawer.descriptionPlaceholder')"
               input="outline"
             />
 
-            <NInput v-model="tagsText" placeholder="Tags (comma separated)" input="outline" />
+            <NInput v-model="tagsText" :placeholder="$t('components.newPostDrawer.tagsPlaceholder')" input="outline" />
 
             <div v-if="assignedTag" class="mt-2">
-              <span class="text-xs text-slate-500 dark:text-slate-400">Assigned tag:</span>
+              <span class="text-xs text-slate-500 dark:text-slate-400">{{ $t('components.newPostDrawer.assignedTag') }}</span>
               <NBadge badge="soft" color="gray" class="ml-2">{{ assignedTag }}</NBadge>
             </div>
 
             <div class="flex items-center justify-end gap-2 pt-2">
               <NDialogFooter class="flex items-center gap-2 justify-end p-0">
-                <NButton @click="close" btn="ghost-gray">Cancel</NButton>
+                <NButton @click="close" btn="ghost-gray">{{ $t('common.cancel') }}</NButton>
                 <NButton :disabled="!name || creating" @click="create" btn="soft-blue" title="Cmd/Ctrl + Enter">
                   <NIcon :name="creating ? 'i-lucide-loader' : 'i-lucide-plus'" :class="{ 'animate-spin': creating }" />
-                  <span class="ml-2">Create <span class="ml-1 text-xs text-slate-500 dark:text-slate-400">⌘↵</span></span>
+                  <span class="ml-2">{{ $t('common.create') }} <span class="ml-1 text-xs text-slate-500 dark:text-slate-400">⌘↵</span></span>
                 </NButton>
               </NDialogFooter>
             </div>
@@ -88,6 +88,7 @@
 import { ref, watch, computed, onMounted, onBeforeUnmount } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 
+const { $t } = useI18n()
 const props = defineProps({ modelValue: { type: Boolean, default: false }, defaultTag: { type: String, required: false } })
 const emit = defineEmits(['update:modelValue', 'created'])
 
@@ -151,8 +152,8 @@ const create = async () => {
     
     // Show success toast
     toast.toast({
-      title: 'Post created',
-      description: 'Redirecting to editor...',
+      title: $t('components.newPostDrawer.postCreated'),
+      description: $t('components.newPostDrawer.redirecting'),
       toast: 'success'
     })
     
@@ -172,7 +173,7 @@ const create = async () => {
     
     // Show error toast with detailed message
     toast.toast({
-      title: 'Failed to create post',
+      title: $t('components.newPostDrawer.createFailed'),
       description: errorMessage,
       toast: 'danger'
     })

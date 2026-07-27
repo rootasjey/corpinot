@@ -2,36 +2,36 @@
   <NDialog v-model:open="open">
     <NDialogContent class="max-w-xl">
       <NDialogHeader>
-        <NDialogTitle>Edit post</NDialogTitle>
+        <NDialogTitle>{{ $t('components.editPostDialog.title') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        Edit basic fields for the post — title, description, slug, and status.
+        {{ $t('components.editPostDialog.description') }}
       </NDialogDescription>
 
       <div class="mt-4 space-y-4">
         <div>
-          <label class="text-sm font-medium mb-1 block">Title</label>
+          <label class="text-sm font-medium mb-1 block">{{ $t('components.editPostDialog.titleLabel') }}</label>
           <NInput v-model="localName" input="outline" class="w-full" :maxlength="255" autofocus />
           <p v-if="nameError" class="text-sm text-danger mt-1">{{ nameError }}</p>
         </div>
 
         <div>
-          <label class="text-sm font-medium mb-1 block">Description</label>
+          <label class="text-sm font-medium mb-1 block">{{ $t('components.editPostDialog.descriptionLabel') }}</label>
           <NInput v-model="localDescription" input="outline" type="textarea" :rows="4" class="w-full" :maxlength="1000" />
           <p v-if="descriptionError" class="text-sm text-danger mt-1">{{ descriptionError }}</p>
         </div>
 
         <div>
-          <label class="text-sm font-medium mb-1 block">Slug</label>
+          <label class="text-sm font-medium mb-1 block">{{ $t('components.editPostDialog.slugLabel') }}</label>
           <!-- Reuse EditSlugDialog UI for slug input and status messaging -- we embed it as a controlled input rather than opening its own dialog -->
           <div class="flex items-center gap-3">
             <NInput v-model="slugCandidateLocal" input="outline" class="w-full" :maxlength="255" />
-            <NButton size="sm" btn="ghost-gray" @click="resetSlug">Reset</NButton>
+            <NButton size="sm" btn="ghost-gray" @click="resetSlug">{{ $t('common.reset') }}</NButton>
           </div>
 
           <div class="text-sm min-h-[1rem] mt-2">
-            <span v-if="slugCheckLoading" class="text-foreground/70"><NIcon name="i-ph-spinner animate-spin" /> Checking slug availability…</span>
+            <span v-if="slugCheckLoading" class="text-foreground/70"><NIcon name="i-ph-spinner animate-spin" /> {{ $t('components.editSlugDialog.checking') }}</span>
             <span v-else-if="slugError" class="text-danger">{{ slugError }}</span>
             <span v-else-if="slugTaken" class="text-danger">{{ slugCheckMessage }}</span>
             <span v-else-if="slugCheckMessage" class="text-success"><NIcon name="i-ph-check-circle" /> {{ slugCheckMessage }}</span>
@@ -40,7 +40,7 @@
         </div>
 
         <div>
-          <label class="text-sm font-medium mb-1 block">Status</label>
+          <label class="text-sm font-medium mb-1 block">{{ $t('components.editPostDialog.statusLabel') }}</label>
           <NSelect 
             v-model="localStatus" 
             :items="statusOptions" 
@@ -53,10 +53,10 @@
       </div>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-        <NButton btn="ghost-gray" size="sm" @click="onCancel">Cancel</NButton>
+        <NButton btn="ghost-gray" size="sm" @click="onCancel">{{ $t('common.cancel') }}</NButton>
         <NButton btn="soft-blue" size="sm" :disabled="disableSave || saving" @click="onSave">
           <NIcon v-if="saving" name="i-lucide-loader" class="animate-spin" />
-          <span v-else>Save</span>
+          <span v-else>{{ $t('common.save') }}</span>
         </NButton>
       </NDialogFooter>
     </NDialogContent>
@@ -88,11 +88,12 @@ type PostStatusItem = {
 
 const localName = ref('')
 const localDescription = ref('')
-const localStatus = ref<PostStatusItem>({ label: 'Draft', value: 'draft' })
+const { $t } = useI18n()
+const localStatus = ref<PostStatusItem>({ label: $t('pages.posts.draft'), value: 'draft' })
 const statusOptions: PostStatusItem[] = [
-  { label: 'Draft', value: 'draft' },
-  { label: 'Published', value: 'published' },
-  { label: 'Archived', value: 'archived' },
+  { label: $t('pages.posts.draft'), value: 'draft' },
+  { label: $t('pages.posts.published'), value: 'published' },
+  { label: $t('pages.posts.archived'), value: 'archived' },
 ]
 const slugCandidateLocal = ref('')
 const serverError = ref('')
@@ -117,7 +118,7 @@ watch(
     if (!p) return
     localName.value = p.name || ''
     localDescription.value = p.description || ''
-    localStatus.value = statusOptions.find(option => option.value === (p.status || 'draft')) || { label: 'Draft', value: 'draft' }
+    localStatus.value = statusOptions.find(option => option.value === (p.status || 'draft')) || { label: $t('pages.posts.draft'), value: 'draft' }
     slugCandidateLocal.value = p.slug || ''
     setSlugCandidate(p.slug || '')
     serverError.value = ''

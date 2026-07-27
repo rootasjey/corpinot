@@ -8,11 +8,11 @@
           <NButton link to="/" btn="ghost-gray" size="sm" icon label="i-lucide-arrow-left" class="md:hidden" />
           <NButton link to="/" btn="ghost-gray" size="sm" class="hidden md:flex">
             <NIcon name="i-lucide-arrow-left" />
-            <span class="ml-2">Back</span>
+            <span class="ml-2">{{ $t('common.back') }}</span>
           </NButton>
           
           <div class="flex-1 text-center md:hidden">
-            <div class="text-base font-semibold text-gray-900 dark:text-gray-100">Profile</div>
+            <div class="text-base font-semibold text-gray-900 dark:text-gray-100">{{ $t('pages.profile.heading') }}</div>
           </div>
           
           <div class="flex items-center gap-2">
@@ -24,7 +24,7 @@
               class="hidden md:flex"
             >
               <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-              <span class="ml-2">{{ isSaving ? 'Saving…' : 'Save' }}</span>
+              <span class="ml-2">{{ isSaving ? $t('common.saving') : $t('common.save') }}</span>
             </NButton>
             
             <!-- Mobile: Icon-only save button -->
@@ -65,7 +65,7 @@
             @dragleave.prevent="onAvatarDragLeave"
             @drop.prevent="onAvatarDrop"
             @click="openAvatarDrawer"
-            aria-label="Edit avatar"
+            :aria-label="$t('pages.profile.editAvatar')"
           >
             <NuxtImg v-if="displayAvatar" provider="hubblob" :src="displayAvatar" :alt="form.name" class="object-cover w-full h-full" />
             <div v-else class="w-full h-full flex items-center justify-center text-5xl sm:text-6xl md:text-7xl font-bold text-pink-300 dark:text-pink-600">
@@ -87,12 +87,12 @@
             v-model="form.name"
             rows="1"
             class="w-full resize-none overflow-hidden text-4xl sm:text-5xl md:text-7xl lg:text-8xl font-serif font-800 leading-tight bg-transparent outline-none focus:outline-none uppercase text-center md:text-left placeholder:text-pink-300 dark:placeholder:text-pink-700"
-            placeholder="Your name"
+            :placeholder="$t('pages.profile.namePlaceholder')"
             @input="autoResizeName"
           />
           <NInput 
             v-model="form.job" 
-            placeholder="Add a job title" 
+            :placeholder="$t('pages.profile.jobTitlePlaceholder')" 
             input="~" 
             class="mt-3 sm:mt-4 bg-transparent text-center md:text-left text-base sm:text-lg text-gray-700 dark:text-gray-300 placeholder:text-gray-400" 
           />
@@ -102,7 +102,7 @@
             type="textarea"
             :rows="3"
             class="mt-3 sm:mt-4 bg-transparent text-center md:text-left text-sm sm:text-base text-gray-600 dark:text-gray-400 placeholder:text-gray-400"
-            placeholder="Write a short biography about yourself..."
+            :placeholder="$t('pages.profile.bioPlaceholder')"
           />
         </div>
       </div>
@@ -116,12 +116,12 @@
             <div class="group flex flex-col gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 rounded-2xl border border-gray-100 dark:border-gray-800 bg-gradient-to-br from-white to-gray-50/50 dark:from-gray-900/50 dark:to-gray-900/30 transition-all duration-300">
               <div class="flex items-center justify-between">
                 <NIcon name="i-lucide-mail" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
-                <div class="text-xs uppercase font-bold tracking-wide">Required</div>
+                <div class="text-xs uppercase font-bold tracking-wide">{{ $t('pages.profile.required') }}</div>
               </div>
-              <div class="uppercase text-lg sm:text-xl font-bold">Email</div>
+              <div class="uppercase text-lg sm:text-xl font-bold">{{ $t('pages.profile.email') }}</div>
               <NInput 
                 v-model="form.email" 
-                placeholder="your@email.com" 
+                :placeholder="$t('pages.profile.emailPlaceholder')" 
                 input="outline" 
                 type="email"
                 class="w-full"
@@ -134,10 +134,10 @@
               <div class="flex items-center justify-between">
                 <NIcon name="i-lucide-map-pin" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
               </div>
-              <div class="uppercase text-lg sm:text-xl font-bold">Location</div>
+              <div class="uppercase text-lg sm:text-xl font-bold">{{ $t('pages.profile.location') }}</div>
               <NInput 
                 v-model="form.location" 
-                placeholder="City, Country" 
+                :placeholder="$t('pages.profile.locationPlaceholder')" 
                 input="outline"
                 class="w-full"
                 size="md"
@@ -149,10 +149,10 @@
               <div class="flex items-center justify-between">
                 <NIcon name="i-lucide-briefcase" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
               </div>
-              <div class="uppercase text-lg sm:text-xl font-bold">Job</div>
+              <div class="uppercase text-lg sm:text-xl font-bold">{{ $t('pages.profile.job') }}</div>
               <NInput 
                 v-model="form.job" 
-                placeholder="Your role" 
+                :placeholder="$t('pages.profile.jobPlaceholder')" 
                 input="outline"
                 class="w-full"
                 size="md"
@@ -164,10 +164,10 @@
               <div class="flex items-center justify-between">
                 <NIcon name="i-lucide-globe" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
               </div>
-              <div class="uppercase text-lg sm:text-xl font-bold">Language</div>
+              <div class="uppercase text-lg sm:text-xl font-bold">{{ $t('pages.profile.language') }}</div>
               <NInput 
                 v-model="form.language" 
-                placeholder="en, fr, es..." 
+                :placeholder="$t('pages.profile.languagePlaceholder')" 
                 input="outline"
                 class="w-full"
                 size="md"
@@ -180,7 +180,7 @@
                 <NIcon name="i-lucide-link" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
                 <NBadge v-if="socialsSummary !== 'No socials'" badge="soft-lime" size="sm">{{ socialsSummary }}</NBadge>
               </div>
-              <div class="uppercase text-lg sm:text-xl font-bold">Socials</div>
+              <div class="uppercase text-lg sm:text-xl font-bold">{{ $t('pages.profile.socials') }}</div>
               <NButton 
                 @click="openSocialsDialog" 
                 btn="outline-gray" 
@@ -188,7 +188,7 @@
                 class="w-full justify-center"
               >
                 <NIcon name="i-lucide-edit" />
-                <span class="ml-2">Edit socials</span>
+                <span class="ml-2">{{ $t('pages.profile.editSocials') }}</span>
               </NButton>
             </div>
 
@@ -197,10 +197,10 @@
               <div class="flex items-center justify-between">
                 <NIcon name="i-ph-image" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
               </div>
-              <div class="uppercase text-lg sm:text-xl font-bold">Avatar URL</div>
+              <div class="uppercase text-lg sm:text-xl font-bold">{{ $t('pages.profile.avatarUrl') }}</div>
               <NInput 
                 v-model="form.avatar" 
-                placeholder="https://..." 
+                :placeholder="$t('pages.profile.avatarUrlPlaceholder')" 
                 input="outline"
                 class="w-full"
                 size="md"
@@ -212,14 +212,14 @@
               <div class="flex items-center justify-between">
                 <NIcon name="i-lucide-align-left" class="text-2xl sm:text-3xl group-hover:scale-110 transition-transform" />
               </div>
-              <div class="uppercase text-lg sm:text-xl font-bold">Biography</div>
+              <div class="uppercase text-lg sm:text-xl font-bold">{{ $t('pages.profile.biography') }}</div>
               <NInput 
                 v-model="form.biography" 
                 input="outline" 
                 type="textarea" 
                 :rows="4"
                 class="w-full"
-                placeholder="Tell us about yourself..."
+                :placeholder="$t('pages.profile.biographyPlaceholder')"
               />
             </div>
           </div>
@@ -233,7 +233,7 @@
               size="lg"
             >
               <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-              <span class="ml-2">{{ isSaving ? 'Saving…' : 'Save changes' }}</span>
+              <span class="ml-2">{{ isSaving ? $t('common.saving') : $t('pages.profile.saveChanges') }}</span>
             </NButton>
             <NButton 
               @click="resetForm" 
@@ -241,7 +241,7 @@
               size="lg"
               :disabled="isSaving || !hasChanges"
             >
-              Reset
+              {{ $t('pages.profile.resetChanges') }}
             </NButton>
           </div>
         </form>
@@ -251,7 +251,7 @@
       <div class="fixed bottom-0 left-0 right-0 z-2 p-4 bg-white/95 dark:bg-gray-950/95 backdrop-blur-lg border-t border-gray-200 dark:border-gray-800 md:hidden">
         <div class="container mx-auto max-w-7xl">
           <div class="flex gap-2">
-            <NTooltip content="Reset changes">
+            <NTooltip :content="$t('pages.profile.resetChanges')">
               <NButton 
                 @click="resetForm" 
                 btn="soft-gray" 
@@ -269,7 +269,7 @@
               class="flex-1"
             >
               <NIcon :name="isSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': isSaving }" />
-              <span class="ml-2">{{ isSaving ? 'Saving…' : 'Save changes' }}</span>
+              <span class="ml-2">{{ isSaving ? $t('common.saving') : $t('pages.profile.saveChanges') }}</span>
             </NButton>
           </div>
         </div>
@@ -280,7 +280,7 @@
         <template #body>
           <div class="p-5 space-y-3">
             <div class="flex justify-between items-center mb-2">
-              <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">Avatar</div>
+              <div class="text-sm font-semibold text-gray-900 dark:text-gray-100">{{ $t('pages.profile.avatar') }}</div>
               <NButton
                 @click="avatarDrawerOpen = false"
                 btn="ghost-gray"
@@ -298,7 +298,7 @@
               :disabled="avatarUploading"
             >
               <NIcon name="i-ph-image" />
-              <span class="ml-2">{{ avatarUploading ? 'Uploading…' : displayAvatar ? 'Change avatar' : 'Add avatar' }}</span>
+              <span class="ml-2">{{ avatarUploading ? $t('pages.profile.uploading') : displayAvatar ? $t('pages.profile.changeAvatar') : $t('pages.profile.addAvatar') }}</span>
             </NButton>
             <NButton
               @click="onAvatarRemove"
@@ -309,7 +309,7 @@
               :disabled="!displayAvatar"
             >
               <NIcon name="i-ph-trash" />
-              <span class="ml-2">Remove avatar</span>
+              <span class="ml-2">{{ $t('pages.profile.removeAvatar') }}</span>
             </NButton>
           </div>
         </template>
@@ -319,28 +319,28 @@
       <NDialog v-model:open="socialsDialogOpen" :closeOnEsc="true">
           <NDialogContent class="max-w-full sm:max-w-2xl">
           <NDialogHeader>
-            <NDialogTitle>Edit socials</NDialogTitle>
+            <NDialogTitle>{{ $t('pages.profile.editSocialsTitle') }}</NDialogTitle>
           </NDialogHeader>
 
           <div class="p-6 space-y-4">
-            <div v-if="!socialsDraft.length" class="text-sm text-gray-500 dark:text-gray-400">No socials yet. Add one below.</div>
+            <div v-if="!socialsDraft.length" class="text-sm text-gray-500 dark:text-gray-400">{{ $t('pages.profile.noSocials') }}</div>
             <div v-for="(s, i) in socialsDraft" :key="i" class="flex items-center gap-3">
               <NIcon :name="platformIcon(s.platform)" class="text-2xl text-gray-500" />
-              <NInput ref="socialPlatformRefs" v-model="s.platform" placeholder="Platform (e.g. Twitter)" input="~" class="w-28 sm:w-40" />
-              <NInput ref="socialUrlRefs" v-model="s.url" placeholder="https://..." input="~" class="flex-1" />
+              <NInput ref="socialPlatformRefs" v-model="s.platform" :placeholder="$t('pages.profile.socialPlatformPlaceholder')" input="~" class="w-28 sm:w-40" />
+              <NInput ref="socialUrlRefs" v-model="s.url" :placeholder="$t('pages.profile.socialUrlPlaceholder')" input="~" class="flex-1" />
               <NButton @click="removeSocialRow(i)" btn="ghost" size="xs" icon label="i-lucide-x" />
             </div>
           </div>
 
           <NDialogFooter class="flex items-center gap-2 justify-end p-0">
             <div class="flex items-center gap-2">
-              <NButton @click="addSocialRow" btn="soft" size="xs" class="px-6">Add</NButton>
+              <NButton @click="addSocialRow" btn="soft" size="xs" class="px-6">{{ $t('common.add') }}</NButton>
             </div>
             <div class="ml-auto flex items-center gap-2">
-              <NButton @click="closeSocialsDialog" btn="ghost-gray" size="xs" :disabled="socialsSaving">Cancel</NButton>
+              <NButton @click="closeSocialsDialog" btn="ghost-gray" size="xs" :disabled="socialsSaving">{{ $t('common.cancel') }}</NButton>
               <NButton @click="saveSocialsDialog" :disabled="socialsSaving" btn="soft-pink" size="xs">
                 <NIcon :name="socialsSaving ? 'i-lucide-loader' : 'i-lucide-save'" :class="{ 'animate-spin': socialsSaving }" />
-                <span class="ml-2">Save</span>
+                <span class="ml-2">{{ $t('common.save') }}</span>
               </NButton>
             </div>
           </NDialogFooter>
@@ -351,19 +351,19 @@
       <NDialog v-model:open="deleteAvatarDialogOpen" :closeOnEsc="true">
         <NDialogContent class="max-w-sm">
           <NDialogHeader>
-            <NDialogTitle>Remove avatar</NDialogTitle>
+            <NDialogTitle>{{ $t('pages.profile.removeAvatarTitle') }}</NDialogTitle>
           </NDialogHeader>
 
-          <div class="p-6 text-sm text-gray-600 dark:text-gray-400">Are you sure you want to remove your avatar? This action cannot be undone.</div>
+          <div class="p-6 text-sm text-gray-600 dark:text-gray-400">{{ $t('pages.profile.removeAvatarConfirm') }}</div>
 
           <NDialogFooter class="flex items-center gap-2 justify-end p-0">
             <div class="flex items-center gap-2">
-              <NButton @click="deleteAvatarDialogOpen = false" btn="ghost-gray" size="xs" :disabled="isDeletingAvatar">Cancel</NButton>
+              <NButton @click="deleteAvatarDialogOpen = false" btn="ghost-gray" size="xs" :disabled="isDeletingAvatar">{{ $t('common.cancel') }}</NButton>
             </div>
             <div class="ml-auto flex items-center gap-2">
               <NButton @click="confirmDeleteAvatar" :disabled="isDeletingAvatar" btn="soft-pink" size="xs" color="danger">
                 <NIcon :name="isDeletingAvatar ? 'i-lucide-loader' : 'i-lucide-trash'" :class="{ 'animate-spin': isDeletingAvatar }" />
-                <span class="ml-2">Remove</span>
+                <span class="ml-2">{{ $t('common.remove') }}</span>
               </NButton>
             </div>
           </NDialogFooter>
@@ -378,7 +378,8 @@ import { computed, reactive, ref, watch, onMounted, onBeforeUnmount, nextTick } 
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
-useHead({ title: 'Profile - Corpinot' })
+const { $t } = useI18n()
+useHead({ title: `${$t('pages.profile.heading')} - ${$t('seo.siteName')}` })
 const { user, loggedIn, fetch: refreshSession } = useUserSession()
 
 // Redirect unauthenticated users on client-side
@@ -649,7 +650,7 @@ const socialPlatformRefs = ref<Array<any>>([])
 const socialUrlRefs = ref<Array<any>>([])
 
 const socialsSummary = computed(() => {
-  if (!form.socials) return 'No socials'
+  if (!form.socials) return $t('pages.profile.noSocials')
   try {
     const arr = JSON.parse(form.socials as string)
     if (Array.isArray(arr)) return `${arr.length} social${arr.length === 1 ? '' : 's'}`
@@ -740,15 +741,15 @@ function validateForm() {
   errorMessage.value = ''
   // Simple validation: name required
   if (!form.name || !form.name.trim()) {
-    errorMessage.value = 'Name is required'
+    errorMessage.value = $t('pages.profile.nameRequired')
     return false
   }
   if (form.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) {
-    errorMessage.value = 'Enter a valid email address'
+    errorMessage.value = $t('pages.profile.emailValid')
     return false
   }
   if (form.socials && form.socials.trim().length) {
-    try { JSON.parse(form.socials) } catch { errorMessage.value = 'Socials must be valid JSON'; return false }
+    try { JSON.parse(form.socials) } catch { errorMessage.value = $t('pages.profile.socialsJson'); return false }
   }
   return true
 }
@@ -768,12 +769,12 @@ async function onSubmit() {
 
   try {
     const res: any = await $fetch('/api/user/profile', { method: 'PUT', body: payload })
-    showSuccess(res?.message || 'Profile updated successfully')
+    showSuccess(res?.message || $t('pages.profile.updatedSuccess'))
     // refresh session data if available
     await refreshSession()
     initialForm.value = { ...form }
   } catch (e: any) {
-    errorMessage.value = e?.statusMessage || e?.data?.message || 'Failed to update profile'
+    errorMessage.value = e?.statusMessage || e?.data?.message || $t('pages.profile.updateFailed')
   } finally {
     isSaving.value = false
   }

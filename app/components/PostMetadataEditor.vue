@@ -13,7 +13,7 @@
           v-model="nameProxy"
           rows="1"
           class="w-full resize-none overflow-hidden text-4xl md:text-5xl lg:text-4xl font-serif font-700 text-center leading-tight bg-transparent outline-none focus:outline-none focus:ring-0"
-          placeholder="Untitled"
+          :placeholder="$t('editor.postMetadataEditor.untitled')"
           @input="autoResize"
         />
 
@@ -21,7 +21,7 @@
           v-model="descriptionProxy"
           type="textarea"
           input="~"
-          placeholder="Write a short description…"
+          :placeholder="$t('editor.postMetadataEditor.descriptionPlaceholder')"
           class="mt-4 max-w-3xl mx-auto text-center font-body font-600 color-gray-500 text-base md:text-lg leading-relaxed description-input"
           :rows="-1"
           ref="descriptionInput"
@@ -36,7 +36,7 @@
                 <NLink :to="`/tags?tag=${tag.name}`" class="uppercase font-semibold text-xs">{{ tag.name }}</NLink>
                 <NTooltip>
                   <template #content>
-                    <span class="font-600 text-gray-300 dark:text-gray-600">Remove <strong class="text-white dark:text-black underline decoration-offset-4">{{ tag.name }}</strong> tag</span>
+                    <span class="font-600 text-gray-300 dark:text-gray-600">{{ $t('common.removeTag') }}</span>
                   </template>
                   <button aria-label="Remove tag" @click="removeTag(tag.id)" :disabled="isAssigningTags" class="line-height-1 opacity-70 hover:opacity-100 hover:scale-105 active:scale-95 transition-transform">
                     <NIcon name="i-ph-x-bold" size="3" />
@@ -54,7 +54,7 @@
                 label-key="name"
                 v-model:open="comboboxOpen"
                 :_combobox-input="{
-                  placeholder: 'Search or create tag...',
+                  placeholder: $t('editor.postMetadataEditor.searchTagPlaceholder'),
                   modelValue: editingTagName,
                   'onUpdate:modelValue': (v: string) => editingTagName = v,
                   onKeydown: handleComboboxInputKeydown,
@@ -68,7 +68,7 @@
               >
                 <template #trigger>
                   <span class="inline-flex items-center gap-2 px-3 py-1 text-sm dark:bg-black rounded-full cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-900">
-                    <span class="text-xs font-500">{{ selectedTag?.name || 'Add tag...' }}</span>
+                    <span class="text-xs font-500">{{ selectedTag?.name || $t('editor.postMetadataEditor.addTag') }}</span>
                   </span>
                 </template>
 
@@ -92,17 +92,17 @@
                         @click="addTagByName(trimmedEditingTagName)"
                       >
                         <NIcon name="i-ph-plus-circle" class="mr-2" />
-                        <span class="uppercase font-semibold text-xs">Create "{{ trimmedEditingTagName }}"</span>
+                        <span class="uppercase font-semibold text-xs">{{ $t('editor.postMetadataEditor.createTag', { name: trimmedEditingTagName }) }}</span>
                       </NButton>
                     </div>
-                    <div v-else class="px-3 text-sm text-slate-500">This tag is already added.</div>
+                    <div v-else class="px-3 text-sm text-slate-500">{{ $t('editor.postMetadataEditor.alreadyAdded') }}</div>
                   </div>
                 </template>
               </NCombobox>
 
               <NTooltip v-else>
                 <template #content>
-                  <span class="font-600">Add tag</span>
+                  <span class="font-600">{{ $t('editor.postMetadataEditor.addTag') }}</span>
                 </template>
                 <NButton :icon="localTags.length > 0" rounded="full" size="xs" btn="ghost-gray" 
                     class="border b-dashed hover:scale-110 active:scale-95 transition-transform" 
@@ -110,9 +110,9 @@
                       'h-6 w-6': localTags.length > 0,
                     }"
                     @click="startNewTag" 
-                    aria-label="Add tag">
+                    :aria-label="$t('editor.postMetadataEditor.addTag')">
                   <NIcon name="i-ph-plus-bold" />
-                  <span v-if="localTags.length === 0">Add tag</span>
+                  <span v-if="localTags.length === 0">{{ $t('editor.postMetadataEditor.addTag') }}</span>
                 </NButton>
               </NTooltip>
             </div>
@@ -127,6 +127,7 @@
 import { computed, nextTick, ref, watch, onMounted, type ComponentPublicInstance } from 'vue'
 import { useTagStore } from '~/stores/tags'
 import type { ApiTag } from '~~/shared/types/tags'
+const { $t } = useI18n()
 
 interface Props {
   name: string

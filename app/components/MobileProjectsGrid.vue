@@ -3,16 +3,16 @@
     <div class="flex items-center justify-between px-1">
       <div>
         <NuxtLink to="/projects" class="inline-block mb-1">
-          <h2 class="text-[11px] uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">Projects</h2>
+          <h2 class="text-[11px] uppercase tracking-[0.3em] text-slate-500 dark:text-slate-400">{{ $t('components.mobileProjects.heading') }}</h2>
         </NuxtLink>
       </div>
       
       <NuxtLink
         to="/projects"
         class="text-[11px] uppercase tracking-[0.2em] text-slate-500 dark:text-slate-400 flex items-center gap-1"
-        aria-label="View all projects"
+        :aria-label="$t('common.viewAllPosts')"
       >
-        <span>See all</span>
+        <span>{{ $t('common.seeAll') }}</span>
         <NIcon name="i-ph-arrow-up-right" />
       </NuxtLink>
     </div>
@@ -39,8 +39,8 @@
 
     <EmptyState
       v-else-if="error"
-      title="Projects unavailable"
-      description="We couldn't fetch projects. Please try again later."
+      :title="$t('components.mobileProjects.unavailable')"
+      :description="$t('components.mobileProjects.unavailableDesc')"
       variant="card"
       icon="i-ph-folder-duotone"
     />
@@ -79,6 +79,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Post } from '~~/shared/types/post'
+const { $t } = useI18n()
 import {
   FEATURED_PROJECT_FALLBACK_IMAGE,
   FEATURED_PROJECT_TAG,

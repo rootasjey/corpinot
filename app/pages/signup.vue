@@ -3,15 +3,15 @@
     <!-- Logo -->
     <NuxtLink to="/" class="mb-12">
       <span class="font-title text-4xl font-bold text-black dark:text-white">
-        Start your journey
+        {{ $t('pages.signup.startJourney') }}
       </span>
     </NuxtLink>
 
     <!-- Card -->
     <div class="w-full max-w-md bg-white dark:bg-gray-900 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-800 p-10">
       <div class="text-center mb-8">
-        <h1 class="text-3xl font-bold text-black dark:text-white mb-2">Create your account</h1>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Start publishing and subscribing in minutes.</p>
+        <h1 class="text-3xl font-bold text-black dark:text-white mb-2">{{ $t('pages.signup.heading') }}</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400">{{ $t('pages.signup.description') }}</p>
       </div>
 
       <form @submit.prevent="onSubmit" class="space-y-4">
@@ -21,7 +21,7 @@
             type="text"
             autocomplete="name"
             class="w-full rounded-full px-6 py-4 bg-gray-50 dark:bg-gray-800 border-0 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-            placeholder="Your name"
+            :placeholder="$t('pages.signup.namePlaceholder')"
           />
           <p v-if="errors.name" class="text-xs text-red-500 mt-2 px-2">{{ errors.name }}</p>
         </div>
@@ -32,7 +32,7 @@
             type="email"
             autocomplete="email"
             class="w-full rounded-full px-6 py-4 bg-gray-50 dark:bg-gray-800 border-0 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-            placeholder="Your email address"
+            :placeholder="$t('pages.signup.emailPlaceholder')"
           />
           <p v-if="errors.email" class="text-xs text-red-500 mt-2 px-2">{{ errors.email }}</p>
         </div>
@@ -43,12 +43,12 @@
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="w-full rounded-full px-6 py-4 bg-gray-50 dark:bg-gray-800 border-0 text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-lime-400"
-            placeholder="Create a password (min 8 characters)"
+            :placeholder="$t('pages.signup.passwordPlaceholder')"
           />
           <div class="flex items-center justify-between mt-2">
             <label class="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-400">
               <input type="checkbox" v-model="showPassword" class="w-4 h-4" />
-              Show password
+              {{ $t('pages.signup.showPassword') }}
             </label>
           </div>
           <p v-if="errors.password" class="text-xs text-red-500 mt-2 px-2">{{ errors.password }}</p>
@@ -62,14 +62,14 @@
             type="submit"
             class="w-full rounded-full px-6 py-4 bg-lime-300 hover:bg-lime-400 text-black font-bold text-sm uppercase tracking-wide transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
           >
-            <span v-if="!isSubmitting">Create account</span>
-            <span v-else>Creating…</span>
+            <span v-if="!isSubmitting">{{ $t('pages.signup.submit') }}</span>
+            <span v-else>{{ $t('pages.signup.submitting') }}</span>
           </button>
         </div>
       </form>
 
       <p class="mt-6 text-center text-sm text-gray-600 dark:text-gray-400">
-        Already have an account? <NuxtLink to="/signin" class="text-black dark:text-white font-medium underline hover:no-underline">Sign in</NuxtLink>
+        {{ $t('pages.signup.hasAccount') }} <NuxtLink to="/signin" class="text-black dark:text-white font-medium underline hover:no-underline">{{ $t('pages.signup.signInLink') }}</NuxtLink>
       </p>
     </div>
   </div>
@@ -78,6 +78,7 @@
 <script setup lang="ts">
 import { reactive, ref } from 'vue'
 
+const { $t } = useI18n()
 const { fetch: refreshSession } = useUserSession()
 
 const form = reactive({
@@ -97,21 +98,21 @@ function validate() {
   errors.password = ''
   let ok = true
   if (!form.name || form.name.trim().length < 2) {
-    errors.name = 'Name must be at least 2 characters'
+    errors.name = $t('pages.signup.nameMinLength')
     ok = false
   }
   if (!form.email) {
-    errors.email = 'Email is required'
+    errors.email = $t('pages.signup.emailRequired')
     ok = false
   } else if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(form.email)) {
-    errors.email = 'Enter a valid email address'
+    errors.email = $t('pages.signup.emailValid')
     ok = false
   }
   if (!form.password) {
-    errors.password = 'Password is required'
+    errors.password = $t('pages.signup.passwordRequired')
     ok = false
   } else if (form.password.length < 8) {
-    errors.password = 'Password must be at least 8 characters'
+    errors.password = $t('pages.signup.passwordMinLength')
     ok = false
   }
   return ok
@@ -136,7 +137,7 @@ async function onSubmit() {
     await refreshSession()
     navigateTo('/')
   } catch (e: any) {
-    errorMessage.value = e?.data?.message || 'Failed to create account'
+    errorMessage.value = e?.data?.message || $t('pages.signup.createFailed')
   } finally {
     isSubmitting.value = false
   }

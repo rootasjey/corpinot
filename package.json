@@ -52,6 +52,7 @@
     "lowlight": "^3.3.0",
     "nuxt": "^4.2.2",
     "nuxt-auth-utils": "0.5.26",
+    "nuxt-i18n-micro": "^3.21.4",
     "pinia": "^3.0.4",
     "vue": "^3.5.25",
     "vue-router": "^4.6.3",

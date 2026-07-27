@@ -7,7 +7,7 @@
           <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
             <div class="flex items-center gap-2">
               <NButton @click="isNewDrawerOpen = true" btn="outline-gray" size="xs" leading="i-ph-plus-bold">
-                <span class="hidden md:inline">New Project</span>
+                <span class="hidden md:inline">{{ $t('pages.projects.newProject') }}</span>
               </NButton>
               <NewPostDrawer v-model="isNewDrawerOpen" @created="onPostCreated" defaultTag="project" />
             </div>
@@ -15,7 +15,7 @@
             <!-- Tabs (icons-only) aligned to the end/right -->
             <div class="ml-auto flex items-center gap-2">
               <NButton
-                aria-label="Published"
+                :aria-label="$t('pages.posts.published')"
                 :btn="activeTab === 'published' ? 'soft' : 'ghost-gray'"
                 size="sm"
                 icon
@@ -25,7 +25,7 @@
               />
               
               <NButton
-                aria-label="Drafts"
+                :aria-label="$t('pages.posts.drafts')"
                 :btn="activeTab === 'drafts' ? 'soft' : 'ghost-gray'"
                 size="sm"
                 icon
@@ -35,7 +35,7 @@
               />
 
               <NButton
-                aria-label="Archived"
+                :aria-label="$t('pages.posts.archived')"
                 :btn="activeTab === 'archived' ? 'soft' : 'ghost-gray'"
                 size="sm"
                 icon
@@ -45,7 +45,7 @@
               />
 
               <div class="text-xs opacity-60 ml-3" v-if="draftsPending || archivedPending">
-                <span v-if="draftsPending" class="flex items-center gap-1"><span class="i-lucide-loader animate-spin" />Loading…</span>
+                <span v-if="draftsPending" class="flex items-center gap-1"><span class="i-lucide-loader animate-spin" />{{ $t('common.loading') }}</span>
               </div>
             </div>
           </div>
@@ -58,19 +58,19 @@
           <div class="flex items-start justify-between gap-4">
             <div>
               <h1 class="font-title text-size-24 font-bold line-height-28">
-                <TypewriterText :text="'Projects'" :auto-hide-cursor="true" />
+                <TypewriterText :text="$t('pages.projects.heading')" :auto-hide-cursor="true" />
               </h1>
 
               <div class="flex items-center gap-2">
                 <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
                   <template #default>
-                    <NButton btn="outline-gray" size="xs" icon aria-label="Change view">
+                    <NButton btn="outline-gray" size="xs" icon :aria-label="$t('common.changeView')">
                       <NIcon :name="viewMode === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks'" />
                     </NButton>
                   </template>
                 </NDropdownMenu>
                 <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
-                  Showcasing our collection of project posts and case studies.
+                  {{ $t('pages.projects.description') }}
                 </p>
               </div>
             </div>
@@ -81,18 +81,18 @@
           <div class="flex items-start justify-between gap-4">
             <div>
               <h1 class="font-title text-size-24 font-bold line-height-24 overflow-hidden">
-                <TypewriterText :text="'Drafts'" :auto-hide-cursor="true" />
+                <TypewriterText :text="$t('pages.posts.draftsHeading')" :auto-hide-cursor="true" />
               </h1>
               <div class="flex items-center gap-2">
                 <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
                   <template #default>
-                    <NButton btn="outline-gray" size="xs" icon aria-label="Change view">
+                    <NButton btn="outline-gray" size="xs" icon :aria-label="$t('common.changeView')">
                       <NIcon :name="viewMode === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks'" />
                     </NButton>
                   </template>
                 </NDropdownMenu>
                 <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
-                  These projects are not visible to the public.
+                  {{ $t('pages.projects.archivedDescription') }}
                 </p>
               </div>
             </div>
@@ -103,19 +103,19 @@
           <div class="flex items-start justify-between gap-4">
             <div>
               <h1 class="font-title text-size-24 font-bold line-height-24 overflow-hidden">
-                <TypewriterText :text="'Archived'" :auto-hide-cursor="true" />
+                <TypewriterText :text="$t('pages.posts.archivedHeading')" :auto-hide-cursor="true" />
               </h1>
               
               <div class="flex items-center gap-2">
                 <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
                   <template #default>
-                    <NButton btn="outline-gray" size="xs" icon aria-label="Change view">
+                    <NButton btn="outline-gray" size="xs" icon :aria-label="$t('common.changeView')">
                       <NIcon :name="viewMode === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks'" />
                     </NButton>
                   </template>
                 </NDropdownMenu>
                 <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
-                  These projects are archived and not visible to the public.
+                  {{ $t('pages.projects.draftsDescription') }}
                 </p>
               </div>
             </div>
@@ -143,7 +143,7 @@
 
       <!-- Loading state -->
       <div v-else-if="isLoadingVisible" class="text-center py-12">
-        <p class="text-slate-500 dark:text-slate-400">Loading projects…</p>
+        <p class="text-slate-500 dark:text-slate-400">{{ $t('pages.projects.loading') }}</p>
       </div>
 
       <!-- Empty state (styled like error page) -->
@@ -152,21 +152,21 @@
           <p class="error-code text-8xl md:text-size-54 font-extrabold leading-none">0</p>
         </div>
 
-        <h2 class="text-3xl md:text-4xl lg:text-5xl font-serif font-800 mb-4">No projects yet</h2>
+        <h2 class="text-3xl md:text-4xl lg:text-5xl font-serif font-800 mb-4">{{ $t('pages.projects.emptyHeading') }}</h2>
 
         <p class="font-body font-500 text-base md:text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto mb-8">
-          There are no project posts to display right now.
+          {{ $t('pages.projects.emptyDescription') }}
         </p>
 
         <div class="flex flex-col sm:flex-row gap-6 justify-center mb-12">
           <NuxtLink to="/" class="px-6 py-5 bg-black dark:bg-white text-white dark:text-black text-sm font-500 uppercase tracking-wide rounded hover:bg-gray-800 dark:hover:bg-gray-200 transition flex items-center gap-2">
             <div class="i-ph-house-bold w-4 h-4"></div>
-            Go Home
+            {{ $t('common.goHome') }}
           </NuxtLink>
 
           <NuxtLink to="/credits" class="px-6 py-5 border border-gray-300 dark:border-gray-700 text-sm font-500 uppercase tracking-wide rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition flex items-center gap-2">
             <div class="i-ph-arrow-left-bold w-4 h-4"></div>
-            Browse Credits
+            {{ $t('common.browseCredits') }}
           </NuxtLink>
         </div>
       </div>
@@ -219,16 +219,16 @@
   <NDialog v-model:open="confirmDialogOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>Delete project post</NDialogTitle>
+        <NDialogTitle>{{ $t('common.deletePost') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        <p class="text-sm text-gray-700 dark:text-gray-300">Are you sure you want to delete <strong>{{ postPendingDelete?.name }}</strong>? This action cannot be undone.</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.projects.deleteConfirm', { name: postPendingDelete?.name }) }}</p>
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">Cancel</NButton>
-        <NButton btn="danger" size="sm" @click="confirmDelete" :loading="deleting">Delete</NButton>
+        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $t('common.cancel') }}</NButton>
+        <NButton btn="danger" size="sm" @click="confirmDelete" :loading="deleting">{{ $t('common.delete') }}</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>
@@ -324,8 +324,8 @@ const isAdmin = computed(() => loggedIn.value && user.value?.role === 'admin')
 const viewMode = useStorage<'cards'|'list'>('projects.viewMode', 'cards')
 const isListView = computed(() => viewMode.value === 'list')
 const viewDropdownItems = computed(() => [
-  { label: 'Cards', onSelect: () => (viewMode.value = 'cards'), leading: 'i-ph-squares-four', trailing: viewMode.value === 'cards' ? 'i-ph-check' : undefined },
-  { label: 'List', onSelect: () => (viewMode.value = 'list'), leading: 'i-ph-list-checks', trailing: viewMode.value === 'list' ? 'i-ph-check' : undefined },
+  { label: $t('pages.posts.cardsView'), onSelect: () => (viewMode.value = 'cards'), leading: 'i-ph-squares-four', trailing: viewMode.value === 'cards' ? 'i-ph-check' : undefined },
+  { label: $t('pages.posts.listView'), onSelect: () => (viewMode.value = 'list'), leading: 'i-ph-list-checks', trailing: viewMode.value === 'list' ? 'i-ph-check' : undefined },
 ])
 
 // Enhance posts with computed properties
@@ -445,10 +445,11 @@ onUnmounted(() => {
   }
 })
 
+const { $t } = useI18n()
 useHead({
-  title: 'Projects — corpinot',
+  title: $t('pages.projects.metaTitle'),
   meta: [
-    { name: 'description', content: 'Browse our project posts and showcases.' }
+    { name: 'description', content: $t('pages.projects.metaDescription') }
   ]
 }) 
 
@@ -491,17 +492,17 @@ function menuItemsForPost(post: Post) {
   const isDup = duplicatingPosts.value.has(post.slug)
   return [
     {
-      label: 'Status',
+      label: $t('pages.posts.status'),
       items: [
-        { label: 'Draft', trailing: post.status === 'draft' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'draft'), disabled: isDup },
-        { label: 'Published', trailing: post.status === 'published' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'published'), disabled: isDup },
-        { label: 'Archived', trailing: post.status === 'archived' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'archived'), disabled: isDup },
+        { label: $t('pages.posts.draft'), trailing: post.status === 'draft' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'draft'), disabled: isDup },
+        { label: $t('pages.posts.published'), trailing: post.status === 'published' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'published'), disabled: isDup },
+        { label: $t('pages.posts.archived'), trailing: post.status === 'archived' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'archived'), disabled: isDup },
       ]
     },
-    { label: 'Preview', onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
-    { label: 'Edit', onSelect: () => !isDup && editPost(post), leading: 'i-ph-pencil', disabled: isDup },
-    { label: 'Duplicate', onSelect: () => !isDup && duplicatePost(post), leading: 'i-ph-copy', disabled: isDup },
-    { label: 'Delete Post', onSelect: () => !isDup && (postPendingDelete.value = post, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger', disabled: isDup },
+    { label: $t('common.preview'), onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
+    { label: $t('common.edit'), onSelect: () => !isDup && editPost(post), leading: 'i-ph-pencil', disabled: isDup },
+    { label: $t('pages.posts.duplicate'), onSelect: () => !isDup && duplicatePost(post), leading: 'i-ph-copy', disabled: isDup },
+    { label: $t('common.deletePost'), onSelect: () => !isDup && (postPendingDelete.value = post, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger', disabled: isDup },
   ]
 }
 

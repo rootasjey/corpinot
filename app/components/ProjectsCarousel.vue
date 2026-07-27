@@ -5,14 +5,14 @@
       <!-- Title centered, controls on the right -->
       <div class="relative mb-6 md:mb-8">
         <h2 class="font-serif font-700 text-center mx-auto max-w-2xl text-2xl md:text-4xl">
-          Explore our latest projects and creative work
+          {{ $t('components.projectsCarousel.heading') }}
         </h2>
         <div v-if="!pending && !error && projects.length" class="absolute right-0 top-1/2 -translate-y-1/2 flex">
           <NButton
             @click="scrollProjects('left')"
             btn="ghost-gray"
             class="p-2"
-            aria-label="Previous"
+            :aria-label="$t('common.previous')"
           >
             <div class="i-ph-arrow-left-bold"></div>
           </NButton>
@@ -20,7 +20,7 @@
             @click="scrollProjects('right')"
             btn="ghost-gray"
             class="p-2"
-            aria-label="Next"
+            :aria-label="$t('common.next')"
           >
             <div class="i-ph-arrow-right-bold"></div>
           </NButton>
@@ -37,8 +37,8 @@
       <!-- Error -->
       <EmptyState
         v-else-if="error"
-        title="Projects unavailable"
-        description="We couldn't fetch projects. Please try again later."
+        :title="$t('components.projectsCarousel.unavailable')"
+        :description="$t('components.projectsCarousel.unavailableDesc')"
         variant="card"
         icon="i-ph-folder-duotone"
       />
@@ -65,7 +65,7 @@
               <!-- Labels and title -->
               <div class="absolute inset-0 flex flex-col justify-end p-4 md:p-6">
                 <span class="inline-flex w-fit px-3 py-1.5 text-[11px] tracking-wide uppercase font-semibold bg-white/10 border border-white/15 rounded-full mb-3">
-                  Project
+                  {{ $t('components.projectsCarousel.project') }}
                 </span>
                 <h3 class="text-white text-lg md:text-xl font-serif font-700 leading-snug line-clamp-3">
                   {{ project.title }}
@@ -82,6 +82,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Post } from '~~/shared/types/post'
+const { $t } = useI18n()
 import {
   FEATURED_PROJECT_FALLBACK_IMAGE,
   FEATURED_PROJECT_TAG,

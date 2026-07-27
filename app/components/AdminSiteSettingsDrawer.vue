@@ -5,13 +5,13 @@
         <div class="p-4 sm:p-6 space-y-4">
           <div class="flex items-start justify-between gap-3">
             <div>
-              <div class="text-lg font-semibold">Site settings</div>
-              <p class="text-sm text-slate-600 dark:text-slate-400">Manage socials displayed in the header.</p>
+              <div class="text-lg font-semibold">{{ $t('components.adminSiteSettings.heading') }}</div>
+              <p class="text-sm text-slate-600 dark:text-slate-400">{{ $t('components.adminSiteSettings.description') }}</p>
             </div>
-            <NButton btn="ghost-gray" size="xs" @click="close">Close</NButton>
+            <NButton btn="ghost-gray" size="xs" @click="close">{{ $t('common.close') }}</NButton>
           </div>
 
-          <div v-if="!isAdmin" class="text-sm text-red-600 dark:text-red-400">You need admin permissions to edit site settings.</div>
+          <div v-if="!isAdmin" class="text-sm text-red-600 dark:text-red-400">{{ $t('components.adminSiteSettings.noPermission') }}</div>
 
           <div v-else class="space-y-3">
             <div v-if="error" class="text-sm text-red-600 dark:text-red-400">{{ error }}</div>
@@ -34,12 +34,12 @@
       <NDialogContent class="max-w-2xl">
         <NDialogHeader>
           <NDialogTitle>
-              <div class="text-lg font-semibold">Site settings</div>
-              <p class="text-sm text-slate-600 dark:text-slate-400">Manage socials displayed in the header.</p>
+              <div class="text-lg font-semibold">{{ $t('components.adminSiteSettings.heading') }}</div>
+              <p class="text-sm text-slate-600 dark:text-slate-400">{{ $t('components.adminSiteSettings.description') }}</p>
           </NDialogTitle>
         </NDialogHeader>
         <div class="space-y-4">
-          <div v-if="!isAdmin" class="text-sm text-red-600 dark:text-red-400">You need admin permissions to edit site settings.</div>
+          <div v-if="!isAdmin" class="text-sm text-red-600 dark:text-red-400">{{ $t('components.adminSiteSettings.noPermission') }}</div>
 
           <div v-else class="space-y-3">
             <div v-if="error" class="text-sm text-red-600 dark:text-red-400">{{ error }}</div>
@@ -63,6 +63,7 @@ import { ref, watch, computed } from 'vue'
 import { useMediaQuery } from '@vueuse/core'
 import useSiteSettings, { type SocialLink } from '~/composables/useSiteSettings'
 
+const { $t } = useI18n()
 const props = defineProps<{ open: boolean }>()
 const emit = defineEmits(['update:open'])
 

@@ -20,28 +20,28 @@
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            HOME
+            {{ $t('nav.home') }}
           </NuxtLink>
           <NuxtLink
             to="/about"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            ABOUT
+            {{ $t('nav.about') }}
           </NuxtLink>
           <NuxtLink
             to="/authors"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            AUTHORS
+            {{ $t('nav.authors') }}
           </NuxtLink>
           <NuxtLink
             to="/tags"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            TAGS
+            {{ $t('nav.tags') }}
           </NuxtLink>
           <template v-if="!isLoggedIn">
             <NuxtLink
@@ -49,32 +49,32 @@
               class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
               @click="closeMobileMenu"
             >
-              Sign in
+              {{ $t('common.signin') }}
             </NuxtLink>
           </template>
           <template v-else>
-            <button @click="() => { handleLogout(); closeMobileMenu(); }" class="w-full text-left block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors">Logout</button>
+            <button @click="() => { handleLogout(); closeMobileMenu(); }" class="w-full text-left block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors">{{ $t('common.signout') }}</button>
           </template>
           <NuxtLink
             to="/signup"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            Sign up
+            {{ $t('common.signup') }}
           </NuxtLink>
           <NuxtLink
             to="/subscribe"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            Subscribe
+            {{ $t('common.subscribe') }}
           </NuxtLink>
           <NuxtLink
             to="/membership"
             class="block py-3 px-4 text-base hover:bg-gray-50 dark:hover:bg-gray-800 rounded transition-colors"
             @click="closeMobileMenu"
           >
-            Membership
+            {{ $t('nav.membership') }}
           </NuxtLink>
         </nav>
 
@@ -112,7 +112,7 @@
               'text-white': !isScrolled && router.currentRoute.value.path === '/',
             }"
           >
-          corpinot
+          {{ $t('nav.brand') }}
         </span>
         </NuxtLink>
         <div class="flex items-center gap-3">
@@ -124,12 +124,12 @@
               'color-white': scrollY === 0 && router.currentRoute.value.path === '/',
             }"
             @click="toggleTheme"
-            aria-label="Toggle theme"
+            :aria-label="$t('nav.toggleTheme')"
           >
             <!-- SSR friendly: render both icons and toggle with CSS `dark:` utilities to avoid hydration mismatch. -->
             <div class="i-ph-moon-bold block dark:hidden w-6 h-6"></div>
             <div class="i-ph-sun-bold hidden dark:block w-6 h-6"></div>
-            <span class="sr-only">Toggle theme</span>
+            <span class="sr-only">{{ $t('nav.toggleTheme') }}</span>
           </NButton>
         </div>
       </div>
@@ -151,7 +151,7 @@
               class="font-title font-bold text-black dark:text-white transition-all duration-300"
               :class="isScrolled ? 'text-3xl' : 'text-4xl'"
             >
-              corpinot
+              {{ $t('nav.brand') }}
             </span>
           </NuxtLink>
         </div>
@@ -175,16 +175,16 @@
           <!-- Center: Navigation Links -->
           <nav class="flex items-center gap-8 text-sm font-medium justify-self-center">
             <NuxtLink to="/" class="font-600 hover:underline decoration-offset-6 text-gray-700 dark:text-gray-100 hover:text-black dark:hover:text-white transition-colors">
-              HOME
+              {{ $t('nav.home') }}
             </NuxtLink>
             <NuxtLink to="/projects" class="font-600 hover:underline decoration-offset-6 text-gray-700 dark:text-gray-100 hover:text-black dark:hover:text-white transition-colors">
-              PROJECTS
+              {{ $t('nav.projects') }}
             </NuxtLink>
             <NuxtLink to="/posts" class="font-600 hover:underline decoration-offset-6 text-gray-700 dark:text-gray-100 hover:text-black dark:hover:text-white transition-colors">
-              POSTS
+              {{ $t('nav.posts') }}
             </NuxtLink>
             <NuxtLink to="/about" class="font-600 hover:underline decoration-offset-6 text-gray-700 dark:text-gray-100 hover:text-black dark:hover:text-white transition-colors">
-              ABOUT
+              {{ $t('nav.about') }}
             </NuxtLink>
           </nav>
 
@@ -192,7 +192,7 @@
           <div class="flex items-center gap-3 justify-self-end">
             <template v-if="!isLoggedIn">
               <NuxtLink to="/signin" class="text-sm font-600 text-gray-700 dark:text-gray-300 hover:text-black dark:hover:text-white transition-colors">
-                Sign in
+                {{ $t('common.signin') }}
               </NuxtLink>
             </template>
 
@@ -205,14 +205,14 @@
               </NDropdownMenu>
             </template>
             <NuxtLink to="/donate" class="uppercase px-4 py-2 bg-black dark:bg-white text-white dark:text-black text-xs font-bold uppercase tracking-wide rounded-4 hover:bg-gray-800 dark:hover:bg-gray-200 transition-colors">
-              Donate
+              {{ $t('nav.donate') }}
             </NuxtLink>
 
             <NTooltip>
               <template #content>
-                <span class="font-600">Search</span>
+                <span class="font-600">{{ $t('nav.searchTooltip') }}</span>
               </template>
-              <button @click="openSearch" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" aria-label="Open search">
+              <button @click="openSearch" class="text-gray-600 dark:text-gray-400 hover:text-black dark:hover:text-white transition-colors" :aria-label="$t('nav.openSearch')">
                 <div class="i-ph-magnifying-glass-bold"></div>
               </button>
             </NTooltip>
@@ -234,7 +234,7 @@
                      Avoids class mismatch between server and client by keeping DOM the same. -->
                 <div class="i-ph-moon-bold block dark:hidden"></div>
                 <div class="i-ph-sun-bold hidden dark:block"></div>
-                <span class="sr-only">Theme</span>
+                <span class="sr-only">{{ $t('nav.theme') }}</span>
               </button>
             </NDropdownMenu>
           </div>
@@ -304,15 +304,17 @@ async function handleLogout() {
   }
 }
 
+const { $t } = useI18n()
+
 const dropdownItems = computed(() => {
   const items = [
-    { label: 'Settings', onSelect: () => { router.push('/settings') } },
-    { label: 'Profile', onSelect: () => { router.push('/profile') } },
-    { label: 'Logout', onSelect: async () => { await handleLogout() } },
+    { label: $t('common.settings'), onSelect: () => { router.push('/settings') } },
+    { label: $t('common.profile'), onSelect: () => { router.push('/profile') } },
+    { label: $t('common.signout'), onSelect: async () => { await handleLogout() } },
   ]
 
   if (isAdmin.value) {
-    items.unshift({ label: 'Site socials', onSelect: () => { siteSettingsDrawerOpen.value = true } })
+    items.unshift({ label: $t('nav.siteSocials'), onSelect: () => { siteSettingsDrawerOpen.value = true } })
   }
 
   return items
@@ -321,9 +323,9 @@ const dropdownItems = computed(() => {
 const themeDropdownItems = computed(() => {
   const preference = colorMode.preference as ThemePreference
   return [
-    { label: 'Dark', leading: 'i-ph-moon', trailing: preference === 'dark' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('dark') },
-    { label: 'Light', leading: 'i-ph-sun', trailing: preference === 'light' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('light') },
-    { label: 'System', leading: 'i-ph-laptop', trailing: preference === 'system' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('system') },
+    { label: $t('nav.dark'), leading: 'i-ph-moon', trailing: preference === 'dark' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('dark') },
+    { label: $t('nav.light'), leading: 'i-ph-sun', trailing: preference === 'light' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('light') },
+    { label: $t('nav.system'), leading: 'i-ph-laptop', trailing: preference === 'system' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('system') },
   ]
 })
 

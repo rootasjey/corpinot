@@ -52,7 +52,7 @@
         >
           <button ref="aiContinueBtn" type="button" class="ai-option" @click="handleAiContinue(item.action, item.sourceIndex)">
             <span class="i-lucide-pen ai-option-icon" aria-hidden="true" />
-            <span>Continue writing</span>
+            <span>{{ $t('editor.bubbleMenu.continueWriting') }}</span>
           </button>
           <button ref="aiAskBtn" type="button" class="ai-option" @click="openAiAsk(idx)">
             <span class="i-lucide-messages-square ai-option-icon" aria-hidden="true" />
@@ -66,7 +66,7 @@
             @click="openConfigureModels()"
           >
             <span class="i-lucide-settings-2 ai-option-icon" aria-hidden="true" />
-            <span>Configure models</span>
+            <span>{{ $t('editor.bubbleMenu.configureModels') }}</span>
           </button>
 
           <div v-if="aiAskOpen && aiMenuIndex === idx" class="mt-2 space-y-2">
@@ -85,7 +85,7 @@
               <NButton 
                 type="button" 
                 btn="outline-gray" 
-                label="Cancel"
+                :label="$t('common.cancel')"
                 leading="i-ph-arrow-bend-up-left"
                 class="py-1.5" 
                 @click="closeAiMenu"
@@ -131,6 +131,7 @@ import { nextTick } from 'vue'
 import type { ComponentPublicInstance } from 'vue'
 import type { Editor } from '@tiptap/vue-3'
 import { filterFloatingActions } from '~~/app/utils/slashMenuSearch'
+const { $t } = useI18n()
 
 interface FloatingAction {
   label: string

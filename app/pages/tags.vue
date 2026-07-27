@@ -3,11 +3,11 @@
     <div>
       <section class="py-12 md:py-16 bg-white dark:bg-gray-950">
       <div class="container mx-auto px-6 max-w-7xl">
-        <h1 class="text-3xl md:text-4xl font-serif font-800 mb-2">Tags</h1>
+        <h1 class="text-3xl md:text-4xl font-serif font-800 mb-2">{{ $t('pages.tags.heading') }}</h1>
         <div class="flex items-center justify-between mb-8">
-          <p class="text-sm text-gray-600 dark:text-gray-400 mr-4">Browse all tags and discover posts grouped by topic.</p>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mr-4">{{ $t('pages.tags.description') }}</p>
           <div class="lg:hidden">
-            <NButton btn="outline-gray" size="xs" rounded="2" leading="i-ph-tag" @click="tagsDrawerOpen = true">Filters</NButton>
+            <NButton btn="outline-gray" size="xs" rounded="2" leading="i-ph-tag" @click="tagsDrawerOpen = true">{{ $t('pages.tags.filters') }}</NButton>
           </div>
         </div>
 
@@ -18,7 +18,7 @@
               <div v-if="isAdmin" class="sticky z-20 mb-4 transition-all duration-200" :style="{ top: `${toolbarTop}px` }">
                 <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-3 py-2 flex items-center justify-between gap-3">
                   <div class="flex items-center gap-2">
-                    <NButton @click="openNewTag" btn="outline-gray" size="xs" rounded="2" leading="i-ph-plus-bold">New Tag</NButton>
+                    <NButton @click="openNewTag" btn="outline-gray" size="xs" rounded="2" leading="i-ph-plus-bold">{{ $t('pages.tags.newTag') }}</NButton>
                   </div>
                 </div>
               </div>
@@ -28,7 +28,7 @@
                 <input
                   v-model="search"
                   type="search"
-                  placeholder="Search tags"
+                  :placeholder="$t('pages.tags.searchPlaceholder')"
                   class="w-full px-4 py-2 rounded-xl bg-white/70 dark:bg-gray-800/60 placeholder-gray-400 outline-none"
                 />
               </div>
@@ -38,7 +38,7 @@
                   @click="selectTag(null)"
                   :class="['px-3 py-2 rounded-full text-sm font-semibold mr-2 mb-2', selectedTag === null ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100']"
                 >
-                  All
+                  {{ $t('common.all') }}
                 </button>
               </div>
 
@@ -50,8 +50,8 @@
               <!-- Error -->
               <EmptyState
                 v-else-if="tagsError"
-                title="Tags unavailable"
-                description="We couldn't fetch tags right now. Try again later."
+                :title="$t('pages.tags.unavailable')"
+                :description="$t('pages.tags.unavailableDesc')"
               />
 
               <TransitionGroup v-else name="tags" tag="ul" class="space-y-3 max-h-[60vh] overflow-y-auto" appear>
@@ -70,7 +70,7 @@
                         <span :style="{ backgroundColor: colorForTag(tag.name) }" class="w-9 h-9 rounded-lg inline-block flex-none"></span>
                         <div>
                           <div class="text-sm font-semibold">{{ tag.name }}</div>
-                          <div class="text-xs text-gray-500 dark:text-gray-400">{{ tag.category || 'General' }}</div>
+                          <div class="text-xs text-gray-500 dark:text-gray-400">{{ tag.category || $t('pages.tags.general') }}</div>
                           <div v-if="tag.description" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{{ tag.description }}</div>
                         </div>
                       </div>
@@ -103,10 +103,10 @@
             <!-- Error posts -->
             <EmptyState
               v-else-if="postsError"
-              title="Posts unavailable"
-              description="We couldn't fetch posts right now. Try again later."
+              :title="$t('pages.tags.postsUnavailable')"
+              :description="$t('pages.tags.postsUnavailableDesc')"
               secondary-to="/posts"
-              secondary-label="View posts"
+              :secondary-label="$t('components.trendingTags.viewPosts')"
             />
 
             <!-- Posts grid -->
@@ -131,14 +131,14 @@
             </TransitionGroup> 
 
             <div v-if="!visiblePosts.length && !postsPending && !postsError" class="mt-12 text-center text-gray-600 dark:text-gray-400">
-              <h2 class="text-size-12 font-200">No posts found for this tag.</h2>
+              <h2 class="text-size-12 font-200">{{ $t('pages.tags.noPostsFound') }}</h2>
               <NButton 
                 v-if="route.query.tag"
                 btn="ghost-gray" 
                 size="sm" 
                 @click="selectTag(null)"
               >
-                View all posts
+                {{ $t('common.viewAllPosts') }}
               </NButton>
               <NButton 
                 v-else
@@ -146,7 +146,7 @@
                 size="sm" 
                 @click="router.push('/posts')"
               >
-                Create a post
+                {{ $t('pages.tags.createPost') }}
               </NButton>
             </div>
           </main>
@@ -172,20 +172,20 @@
   <NDialog v-model:open="tagDialogOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>{{ editingTag ? 'Edit Tag' : 'New Tag' }}</NDialogTitle>
+        <NDialogTitle>{{ editingTag ? $t('pages.tags.editTag') : $t('pages.tags.createTag') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
         <div class="space-y-3">
-          <NInput v-model="tagName" placeholder="Tag name" input="outline-blue" class="shadow-none ring-none" autofocus />
-          <NInput v-model="tagDescription" placeholder="Description (optional)" input="outline-lime" />
-          <NInput v-model="tagCategory" placeholder="Category (optional)" input="outline-pink" />
+          <NInput v-model="tagName" :placeholder="$t('pages.tags.tagNamePlaceholder')" input="outline-blue" class="shadow-none ring-none" autofocus />
+          <NInput v-model="tagDescription" :placeholder="$t('pages.tags.descriptionPlaceholder')" input="outline-lime" />
+          <NInput v-model="tagCategory" :placeholder="$t('pages.tags.categoryPlaceholder')" input="outline-pink" />
         </div>
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-        <NButton btn="ghost-gray" size="sm" @click="tagDialogOpen = false">Cancel</NButton>
-        <NButton btn="solid-black" size="sm" @click="saveTag" :loading="saving" class="px-6">Save</NButton>
+        <NButton btn="ghost-gray" size="sm" @click="tagDialogOpen = false">{{ $t('common.cancel') }}</NButton>
+        <NButton btn="solid-black" size="sm" @click="saveTag" :loading="saving" class="px-6">{{ $t('common.save') }}</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>
@@ -193,16 +193,16 @@
   <NDialog v-model:open="confirmDialogOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>Delete tag</NDialogTitle>
+        <NDialogTitle>{{ $t('pages.tags.deleteTagTitle') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        <p class="text-sm text-gray-700 dark:text-gray-300">Are you sure you want to delete <strong>{{ tagPendingDelete?.name }}</strong>? This action cannot be undone and will remove the tag from posts.</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.tags.deleteTagConfirm', { name: tagPendingDelete?.name }) }}</p>
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">Cancel</NButton>
-        <NButton btn="solid-red" size="sm" @click="confirmDelete" :loading="deleting" class="px-5 py-0 min-h-0">Delete</NButton>
+        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $t('common.cancel') }}</NButton>
+        <NButton btn="solid-red" size="sm" @click="confirmDelete" :loading="deleting" class="px-5 py-0 min-h-0">{{ $t('common.delete') }}</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>
@@ -242,11 +242,12 @@ const ogImageUrl = computed(() => {
   return `${config.public.siteUrl}/og/home/default.png` // fallback to home OG
 })
 
+const { $t } = useI18n()
 useSeoMeta({
-  title: () => selectedTag.value ? `#${selectedTag.value} - Corpinot` : 'Tags - Corpinot',
-  description: () => selectedTag.value ? `Browse posts tagged with ${selectedTag.value}` : 'Browse all tags and discover posts grouped by topic',
-  ogTitle: () => selectedTag.value ? `#${selectedTag.value}` : 'Tags',
-  ogDescription: () => selectedTag.value ? `Browse posts tagged with ${selectedTag.value}` : 'Browse all tags and discover posts grouped by topic',
+  title: () => selectedTag.value ? `#${selectedTag.value} - ${$t('seo.siteName')}` : `${$t('pages.tags.heading')} - ${$t('seo.siteName')}`,
+  description: () => selectedTag.value ? `${$t('pages.tags.postsUnavailableDesc')} ${selectedTag.value}` : $t('pages.tags.description'),
+  ogTitle: () => selectedTag.value ? `#${selectedTag.value}` : $t('pages.tags.heading'),
+  ogDescription: () => selectedTag.value ? `${$t('pages.tags.description')} ${selectedTag.value}` : $t('pages.tags.description'),
   ogImage: ogImageUrl,
   ogUrl: () => `${config.public.siteUrl}/tags${selectedTag.value ? `?tag=${selectedTag.value}` : ''}`,
   twitterCard: 'summary_large_image',
@@ -375,8 +376,8 @@ function openEditTag(tag: ApiTag) {
 
 function menuItemsForTag(tag: ApiTag) {
   return [
-    { label: 'Edit', onSelect: () => openEditTag(tag), leading: 'i-ph-pencil' },
-    { label: 'Delete', onSelect: () => (tagPendingDelete.value = tag, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger' },
+    { label: $t('common.edit'), onSelect: () => openEditTag(tag), leading: 'i-ph-pencil' },
+    { label: $t('common.delete'), onSelect: () => (tagPendingDelete.value = tag, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger' },
   ]
 }
 
@@ -387,7 +388,7 @@ function onDeleteFromDrawer(tag: ApiTag) {
 
 async function saveTag() {
   if (!tagName.value?.trim()) {
-    alert('Tag name is required')
+    alert($t('pages.profile.nameRequired'))
     return
   }
   saving.value = true

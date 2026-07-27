@@ -38,7 +38,7 @@
               transition flex items-center gap-2"
           >
             <div class="i-ph-house-bold w-4 h-4"></div>
-            Go Home
+            {{ $t('common.goHome') }}
           </NButton>
           <NButton
             btn="~"
@@ -51,14 +51,14 @@
               transition flex items-center gap-2"
           >
             <div class="i-ph-arrow-left-bold w-4 h-4"></div>
-            Go Back
+            {{ $t('common.goBack') }}
           </NButton>
         </div>
 
         <!-- Quick Links (for 404) -->
         <div v-if="is404" class="w-full max-w-2xl border-t border-gray-200/60 dark:border-gray-800/60 pt-10">
           <p class="text-center text-sm uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-6">
-            Explore instead
+            {{ $t('common.exploreInstead') }}
           </p>
           <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
             <NuxtLink
@@ -78,7 +78,7 @@
           <details class="rounded-xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60 overflow-hidden">
             <summary class="cursor-pointer px-6 py-4 text-sm font-600 uppercase tracking-wide text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors flex items-center gap-2">
               <div class="i-ph-bug-duotone w-5 h-5"></div>
-              Debug Info (Admin)
+              {{ $t('error.debugInfo') }}
             </summary>
             <pre class="px-6 py-4 bg-gray-50 dark:bg-gray-900 text-xs text-gray-700 dark:text-gray-300 overflow-x-auto border-t border-gray-200/60 dark:border-gray-800/60">{{ error.stack }}</pre>
           </details>
@@ -104,23 +104,25 @@ const isAdmin = computed(() => {
   return loggedIn.value && user.value?.role === 'admin'
 })
 
+const { $t } = useI18n()
+
 const errorTitle = computed(() => {
-  if (is404.value) return 'Page Not Found'
-  return 'Something Went Wrong'
+  if (is404.value) return $t('error.pageNotFound')
+  return $t('error.somethingWentWrong')
 })
 
 const errorMessage = computed(() => {
   if (is404.value) {
-    return 'The page you\'re looking for doesn\'t exist or has been moved.'
+    return $t('error.notFoundDescription')
   }
-  return props.error?.message || 'An unexpected error occurred. We\'re looking into it.'
+  return props.error?.message || $t('error.genericErrorDescription')
 })
 
 const quickLinks = [
-  { to: '/', label: 'Home', icon: 'i-ph-house-duotone' },
-  { to: '/posts', label: 'Posts', icon: 'i-ph-newspaper-duotone' },
-  { to: '/tags', label: 'Tags', icon: 'i-ph-tag-duotone' },
-  { to: '/about', label: 'About', icon: 'i-ph-info-duotone' }
+  { to: '/', label: $t('common.home'), icon: 'i-ph-house-duotone' },
+  { to: '/posts', label: $t('common.posts'), icon: 'i-ph-newspaper-duotone' },
+  { to: '/tags', label: $t('common.tags'), icon: 'i-ph-tag-duotone' },
+  { to: '/about', label: $t('common.about'), icon: 'i-ph-info-duotone' }
 ]
 </script>
 

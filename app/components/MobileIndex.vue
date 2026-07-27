@@ -10,7 +10,7 @@
       <NewsletterSubscription />
 
       <div>
-        <NButton btn="solid-blue" to="/donate" class="w-full py-6" rounded="6" label="Donate Now" trailing="i-ph-cursor-click-duotone" />
+        <NButton btn="solid-blue" to="/donate" class="w-full py-6" rounded="6" :label="$t('components.mobileIndex.donateNow')" trailing="i-ph-cursor-click-duotone" />
       </div>
     </section>
   </div>

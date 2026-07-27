@@ -30,7 +30,7 @@
                 <div class="mt-12 flex items-center justify-between text-xs text-white/80">
                   <span class="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1 font-semibold uppercase tracking-[0.18em]">
                     <span class="i-ph-sparkle-duotone text-base" />
-                    {{ post.tags?.[0]?.name || 'Featured' }}
+                    {{ post.tags?.[0]?.name || $t('components.featuredHero.featured') }}
                   </span>
                   <span v-if="post.formattedDate">{{ post.formattedDate }}</span>
                 </div>
@@ -38,7 +38,7 @@
                 <div class="space-y-4">
                   <div class="space-y-3">
                     <p class="text-sm text-white/80">
-                      {{ post.user?.name ? `By ${post.user.name}` : 'Editorial pick' }}
+                      {{ post.user?.name ? $t('components.featuredHero.byline', { name: post.user.name }) : $t('components.featuredHero.editorialPick') }}
                     </p>
                     <h1 class="text-3xl leading-tight sm:text-4xl font-serif font-bold">
                       {{ post.name }}
@@ -52,7 +52,7 @@
                       :to="post.slug ? `/posts/${post.slug}` : '#'"
                       class="inline-flex items-center gap-2 rounded-full bg-white text-gray-900 px-4 py-2 font-semibold shadow-lg shadow-black/20"
                     >
-                      Read article
+                      {{ $t('components.featuredHero.readArticle') }}
                       <div class="i-ph-arrow-right-bold" />
                     </NuxtLink>
                     <div class="flex items-center gap-2 text-xs text-white/70">
@@ -75,7 +75,7 @@
             class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
             :disabled="activeIndex === 0 || pending"
             @click="goPrev"
-            aria-label="Previous story"
+            :aria-label="$t('components.featuredHero.previousStory')"
           >
             <div class="i-ph-arrow-left-bold" />
           </button>
@@ -84,7 +84,7 @@
             class="flex h-10 w-10 items-center justify-center rounded-full border border-white/20 bg-white/10 backdrop-blur hover:bg-white/20 disabled:opacity-40 disabled:cursor-not-allowed"
             :disabled="activeIndex >= slides.length - 1 || pending"
             @click="goNext"
-            aria-label="Next story"
+            :aria-label="$t('components.featuredHero.nextStory')"
           >
             <div class="i-ph-arrow-right-bold" />
           </button>
@@ -104,7 +104,7 @@
       </div>
 
       <div v-if="error && !pending" class="pointer-events-none absolute left-6 bottom-16 text-xs text-white/70">
-        Showing sample stories while we reconnect.
+        {{ $t('components.featuredHero.errorNotice') }}
       </div>
     </div>
   </section>
@@ -116,6 +116,7 @@ import { useEventListener, useThrottleFn } from '@vueuse/core'
 import type { Post } from '~~/shared/types/post'
 import type { ApiTag } from '~~/shared/types/tags'
 
+const { $t } = useI18n()
 const { enhancePost } = usePost()
 const FEATURED_POST_TAG = 'featured post'
 

@@ -5,7 +5,7 @@
       <div class="container mx-auto px-4 md:px-8 py-2 md:py-3">
         <div class="flex items-center justify-between gap-2">
           <NButton link to="/posts" btn="ghost-gray" size="xs" class="px-2">
-            <span class="i-ph-arrow-bend-down-left-bold" /> <span class="hidden sm:inline">All Posts</span>
+            <span class="i-ph-arrow-bend-down-left-bold" /> <span class="hidden sm:inline">{{ $t('pages.postEditor.allPosts') }}</span>
           </NButton>
           <div class="flex items-center gap-1 md:gap-2">
             <NTooltip :content="undoTooltip">
@@ -33,7 +33,7 @@
 
             <div class="hidden sm:flex items-center gap-2">
               <NButton :to="`/posts/${post.slug}`" btn="~" size="xs" class="border b-dashed hover:b-solid" target="_blank">
-                <span class="i-lucide-external-link mr-2" /><span class="hidden sm:inline">Preview</span>
+                <span class="i-lucide-external-link mr-2" /><span class="hidden sm:inline">{{ $t('common.preview') }}</span>
               </NButton>
               <NDropdownMenu :items="exportMenuItems" :_dropdownMenuContent="{ side: 'bottom' }">
                 <NButton btn="~" size="xs" class="border b-dashed hover:b-solid">
@@ -89,14 +89,14 @@
       <!-- Overlay actions -->
       <div class="absolute top-4 right-8 flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
         <NButton @click="triggerFileInput" btn="solid-white" size="xs" :disabled="uploadingCover" leading="i-ph-image">
-          <span v-if="!uploadingCover">Replace</span>
+          <span v-if="!uploadingCover">{{ $t('pages.postEditor.replace') }}</span>
           <span v-else>{{ uploadProgress }}%</span>
         </NButton>
         <NButton v-if="post.image?.src" @click="openDeleteCoverDialog" btn="solid-white" size="xs" leading="i-ph-trash" class="text-red-500" :disabled="uploadingCover">
-          Delete
+          {{ $t('pages.postEditor.delete') }}
         </NButton>
         <NButton v-else-if="previewSrc && !uploadingCover" @click="clearPreview" btn="solid-white" size="xs" leading="i-ph-x">
-          Cancel
+          {{ $t('pages.postEditor.cancel') }}
         </NButton>
       </div>
     </div>
@@ -120,7 +120,7 @@
               </div>
             </div>
             <div class="text-sm">
-              <span class="opacity-70">Autosave enabled — editor content is saved automatically.</span>
+              <span class="opacity-70">{{ $t('pages.postEditor.autosaveEnabled') }}</span>
             </div>
           </div>
         </div>
@@ -143,8 +143,8 @@
           />
           <div class="mt-2 text-xs text-gray-500 flex justify-end items-center gap-2">
             <span v-if="savingArticle" class="i-lucide-loader animate-spin text-sm" aria-hidden />
-            <span v-if="savingArticle">Autosaving…</span>
-            <span v-else-if="lastArticleSavedAt">Saved {{ timeAgo }}</span>
+            <span v-if="savingArticle">{{ $t('pages.postEditor.autosaving') }}</span>
+            <span v-else-if="lastArticleSavedAt">{{ $t('pages.postEditor.saved', { timeAgo }) }}</span>
           </div>
         </div>
       </div>
@@ -155,14 +155,14 @@
         <div class="flex items-center justify-between px-4 pt-3">
           <div class="flex items-center gap-2 font-semibold text-sm">
             <span class="i-lucide-sparkles text-primary" />
-            <span>{{ aiStatus === 'streaming' ? 'AI writing…' : 'AI suggestion ready' }}</span>
+            <span>{{ aiStatus === 'streaming' ? $t('pages.postEditor.aiWriting') : $t('pages.postEditor.aiSuggestionReady') }}</span>
           </div>
-          <NBadge badge="soft" color="primary">{{ aiStatus === 'streaming' ? 'Streaming' : 'Preview' }}</NBadge>
+          <NBadge badge="soft" color="primary">{{ aiStatus === 'streaming' ? $t('pages.postEditor.streaming') : $t('common.preview') }}</NBadge>
         </div>
         <div class="flex justify-end gap-2 px-4 py-3">
-          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="retryAI">Retry</NButton>
-          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="revertAI">Revert</NButton>
-          <NButton btn="primary" size="xs" :disabled="aiLoading || aiStatus === 'streaming'" @click="commitAiDraft">Apply changes</NButton>
+          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="retryAI">{{ $t('pages.postEditor.retry') }}</NButton>
+          <NButton btn="ghost-gray" size="xs" :disabled="aiLoading" @click="revertAI">{{ $t('pages.postEditor.revert') }}</NButton>
+          <NButton btn="primary" size="xs" :disabled="aiLoading || aiStatus === 'streaming'" @click="commitAiDraft">{{ $t('pages.postEditor.applyChanges') }}</NButton>
         </div>
       </div>
     </transition>
@@ -170,23 +170,23 @@
     <NDialog v-model:open="translateDialogOpen">
       <NDialogContent class="max-w-md">
         <NDialogHeader>
-          <NDialogTitle>Translate selection</NDialogTitle>
+          <NDialogTitle>{{ $t('pages.postEditor.translateSelection') }}</NDialogTitle>
         </NDialogHeader>
 
         <NDialogDescription>
-          <p class="text-sm text-slate-600 dark:text-slate-300">Select the target language for translation. Source language defaults to the post language.</p>
+          <p class="text-sm text-slate-600 dark:text-slate-300">{{ $t('pages.postEditor.translateDescription') }}</p>
         </NDialogDescription>
 
         <div class="mt-4 space-y-3">
           <div class="text-sm font-semibold flex items-center gap-2">
             <span class="i-lucide-languages" />
-            <span>Source language</span>
+            <span>{{ $t('pages.postEditor.sourceLanguage') }}</span>
           </div>
           <div class="text-sm text-slate-600 dark:text-slate-400">{{ sourceLanguageLabel }} (from post)</div>
 
           <label class="text-sm font-semibold flex items-center gap-2" for="translate-target">
             <span class="i-lucide-flag" />
-            <span>Target language</span>
+            <span>{{ $t('pages.postEditor.targetLanguage') }}</span>
           </label>
           <select
             id="translate-target"
@@ -205,8 +205,8 @@
         </div>
 
         <NDialogFooter class="flex items-center gap-2 justify-end mt-5">
-          <NButton btn="ghost-gray" size="sm" :disabled="aiLoading" @click="cancelTranslateDialog">Cancel</NButton>
-          <NButton btn="primary" size="sm" :disabled="aiLoading" @click="confirmTranslate">Translate</NButton>
+          <NButton btn="ghost-gray" size="sm" :disabled="aiLoading" @click="cancelTranslateDialog">{{ $t('pages.postEditor.cancel') }}</NButton>
+          <NButton btn="primary" size="sm" :disabled="aiLoading" @click="confirmTranslate">{{ $t('pages.postEditor.translate') }}</NButton>
         </NDialogFooter>
       </NDialogContent>
     </NDialog>
@@ -220,16 +220,16 @@
     <NDialog v-model:open="confirmDeleteDialogOpen">
       <NDialogContent class="max-w-md">
         <NDialogHeader>
-          <NDialogTitle>Delete post</NDialogTitle>
+          <NDialogTitle>{{ $t('pages.postEditor.deletePost') }}</NDialogTitle>
         </NDialogHeader>
 
         <NDialogDescription>
-          <p class="text-sm text-gray-700 dark:text-gray-300">Are you sure you want to delete this post? This action cannot be undone.</p>
+          <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.postEditor.deletePostConfirm') }}</p>
         </NDialogDescription>
 
         <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-          <NButton btn="ghost-gray" size="sm" @click="confirmDeleteDialogOpen = false">Cancel</NButton>
-          <NButton btn="danger" size="sm" @click="performDeletePost" :loading="deletePostLoading">Delete</NButton>
+          <NButton btn="ghost-gray" size="sm" @click="confirmDeleteDialogOpen = false">{{ $t('pages.postEditor.cancel') }}</NButton>
+          <NButton btn="danger" size="sm" @click="performDeletePost" :loading="deletePostLoading">{{ $t('pages.postEditor.delete') }}</NButton>
         </NDialogFooter>
       </NDialogContent>
     </NDialog>
@@ -238,16 +238,16 @@
     <NDialog v-model:open="confirmDeleteCoverOpen">
       <NDialogContent class="max-w-md">
         <NDialogHeader>
-          <NDialogTitle>Remove cover image</NDialogTitle>
+          <NDialogTitle>{{ $t('pages.postEditor.removeCoverTitle') }}</NDialogTitle>
         </NDialogHeader>
 
         <NDialogDescription>
-          <p class="text-sm text-gray-700 dark:text-gray-300">Are you sure you want to remove the cover image?</p>
+          <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.postEditor.removeCoverConfirm') }}</p>
         </NDialogDescription>
 
         <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-          <NButton btn="ghost-gray" size="sm" @click="confirmDeleteCoverOpen = false">Cancel</NButton>
-          <NButton btn="danger" size="sm" @click="confirmDeleteCover" :loading="deleteCoverLoading">Remove</NButton>
+          <NButton btn="ghost-gray" size="sm" @click="confirmDeleteCoverOpen = false">{{ $t('pages.postEditor.cancel') }}</NButton>
+          <NButton btn="danger" size="sm" @click="confirmDeleteCover" :loading="deleteCoverLoading">{{ $t('pages.postEditor.delete') }}</NButton>
         </NDialogFooter>
       </NDialogContent>
     </NDialog>
@@ -365,12 +365,13 @@ const { fileInput, uploadingCover, uploadProgress, previewSrc, clearPreview, tri
 const enhancedPost = computed(() => (post.value ? enhancePost(post.value) : ({ readingTime: '—' } as any)))
 const isNumericIdentifier = computed(() => /^\d+$/.test(String(identifier.value)))
 
+const { $t } = useI18n()
 const languageOptions = [
-  { value: 'en', label: 'English' },
-  { value: 'fr', label: 'French' },
-  { value: 'es', label: 'Spanish' },
-  { value: 'de', label: 'German' },
-  { value: 'it', label: 'Italian' },
+  { value: 'en', label: $t('pages.postEditor.en') },
+  { value: 'fr', label: $t('pages.postEditor.fr') },
+  { value: 'es', label: $t('pages.postEditor.es') },
+  { value: 'de', label: $t('pages.postEditor.de') },
+  { value: 'it', label: $t('pages.postEditor.it') },
 ]
 const sourceLanguage = computed(() => post.value?.language || 'en')
 const sourceLanguageLabel = computed(() => languageOptions.find(o => o.value === sourceLanguage.value)?.label || sourceLanguage.value)
@@ -460,7 +461,7 @@ function openAiProviderDialog() {
 
 watch(aiError, (msg) => {
   if (!msg) return
-  useToast().toast({ title: 'AI error', description: msg, toast: 'danger' })
+  useToast().toast({ title: $t('pages.postEditor.aiError'), description: msg, toast: 'danger' })
 })
 
 const confirmTranslate = async () => {
@@ -489,8 +490,8 @@ const cancelTranslateDialog = () => {
   pendingAICommand.value = null
 }
 
-const undoTooltip = computed(() => (editor?.value && editor.value.can().undo() ? 'Undo last editor action' : 'Nothing to undo'))
-const redoTooltip = computed(() => (editor?.value && editor.value.can().redo() ? 'Redo last editor action' : 'Nothing to redo'))
+const undoTooltip = computed(() => (editor?.value && editor.value.can().undo() ? $t('pages.postEditor.undo') : $t('pages.postEditor.undoEmpty')))
+const redoTooltip = computed(() => (editor?.value && editor.value.can().redo() ? $t('pages.postEditor.redo') : $t('pages.postEditor.redoEmpty')))
 
 const openSlugDialog = () => {
   setSlugCandidate(slug.value || '')
@@ -538,24 +539,24 @@ const saveSlug = async () => {
 const menuItems = computed(() => {
   const items = [
     {
-      label: 'Status',
+      label: $t('pages.posts.status'),
       items: [
-        { label: 'Draft', trailing: status.value === 'draft' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'draft') },
-        { label: 'Published', trailing: status.value === 'published' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'published') },
-        { label: 'Archived', trailing: status.value === 'archived' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'archived') },
+        { label: $t('pages.posts.draft'), trailing: status.value === 'draft' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'draft') },
+        { label: $t('pages.posts.published'), trailing: status.value === 'published' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'published') },
+        { label: $t('pages.posts.archived'), trailing: status.value === 'archived' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'archived') },
       ],
     },
-    { label: 'Edit Slug', onSelect: openSlugDialog },
-    { label: 'Delete Post', onSelect: openDeleteDialog },
-    { label: 'Export (ZIP)', onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
+    { label: $t('pages.postEditor.editSlug'), onSelect: openSlugDialog },
+    { label: $t('common.deletePost'), onSelect: openDeleteDialog },
+    { label: $t('pages.postEditor.exportZip'), onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
     {
-      label: 'Cover Image',
+      label: $t('pages.posts.cover'),
       items: [
         post.value?.image?.src
-          ? { label: 'Replace Cover Image', onSelect: triggerFileInput, leading: uploadingCover.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-image' }
-          : { label: 'Add Cover Image', onSelect: triggerFileInput, leading: 'i-ph-image' },
+          ? { label: $t('pages.posts.replaceCover'), onSelect: triggerFileInput, leading: uploadingCover.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-image' }
+          : { label: $t('pages.posts.addCover'), onSelect: triggerFileInput, leading: 'i-ph-image' },
         post.value?.image?.src
-          ? { label: 'Delete Cover Image', onSelect: openDeleteCoverDialog, leading: 'i-ph-trash' }
+          ? { label: $t('pages.posts.removeCover'), onSelect: openDeleteCoverDialog, leading: 'i-ph-trash' }
           : {},
       ],
     },
@@ -565,8 +566,8 @@ const menuItems = computed(() => {
 })
 
 const exportMenuItems = computed(() => [
-  { label: 'Export JSON', onSelect: exportPost, leading: 'i-ph-file-json' },
-  { label: 'Export ZIP (with assets)', onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
+  { label: $t('pages.postEditor.exportJson'), onSelect: exportPost, leading: 'i-ph-file-json' },
+  { label: $t('pages.postEditor.exportZipAssets'), onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
 ])
 
 const fetchPost = async () => {

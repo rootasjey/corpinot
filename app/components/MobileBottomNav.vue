@@ -26,10 +26,12 @@ const route = useRoute()
 const showNav = ref(false)
 const lastY = ref(0)
 
+const { $t } = useI18n()
+
 const items = [
-  { label: 'Home', to: '/', icon: 'i-ph-house-simple-duotone' },
-  { label: 'Search', to: '/search', icon: 'i-ph-magnifying-glass-duotone' },
-  { label: 'Settings', to: '/settings', icon: 'i-ph-gear-six-duotone' },
+  { label: $t('mobileNav.home'), to: '/', icon: 'i-ph-house-simple-duotone' },
+  { label: $t('mobileNav.search'), to: '/search', icon: 'i-ph-magnifying-glass-duotone' },
+  { label: $t('mobileNav.settings'), to: '/settings', icon: 'i-ph-gear-six-duotone' },
 ]
 
 const isActive = (to: string) => {

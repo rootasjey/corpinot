@@ -7,25 +7,25 @@
           <div class="bg-background/60 backdrop-blur-sm border border-border rounded-2xl px-4 py-3 flex items-center justify-between gap-3 shadow-sm">
             <div class="flex items-center gap-2">
               <NButton @click="isNewDrawerOpen = true" btn="outline-gray" size="xs" rounded="2" leading="i-ph-plus-bold">
-                <span class="hidden md:inline">New Post</span>
+                <span class="hidden md:inline">{{ $t('pages.posts.newPost') }}</span>
               </NButton>
               <NButton @click="triggerImportFile" btn="outline-gray" size="xs"  rounded="2" leading="i-ph-file-arrow-up">
-                <span class="hidden md:inline">Import</span>
+                <span class="hidden md:inline">{{ $t('pages.posts.import') }}</span>
               </NButton>
               <template v-if="selection.selectionMode.value">
                 <span>•</span>
                 <NDropdownMenu :items="exportDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'start' }">
                   <NButton btn="outline-gray" size="xs" rounded="2" :disabled="!selection.hasSelection" :loading="exporting">
                     <NIcon :name="exporting ? 'i-lucide-loader' : 'i-ph-download-simple'" :class="{ 'animate-spin': exporting }" />
-                    <span class="ml-2">Export</span>
+                    <span class="ml-2">{{ $t('pages.posts.export') }}</span>
                   </NButton>
                 </NDropdownMenu>
                 <NBadge badge="soft" color="primary">{{ selection.selectedCount }}</NBadge>
                 <NButton @click="() => selection.toggleSelectAllVisible(visiblePosts)" btn="outline-gray" size="xs" rounded="2" 
                   :leading="selection.allVisibleSelected(visiblePosts) ? 'i-ph-square-duotone' : 'i-ph-list-checks'">
-                  {{ selection.allVisibleSelected(visiblePosts) ? 'Clear all' : 'Select all' }}
+                  {{ selection.allVisibleSelected(visiblePosts) ? $t('pages.posts.clearAll') : $t('pages.posts.selectAll') }}
                 </NButton>
-                <NTooltip content="Exit selection mode">
+                <NTooltip :content="$t('pages.posts.exitSelection')">
                   <NButton btn="ghost-gray" icon label="i-ph-x" size="xs" @click="selection.clearSelection" />
                 </NTooltip>
               </template>
@@ -37,7 +37,7 @@
             <!-- Tabs (icons-only) aligned to the end/right -->
             <div class="ml-auto flex items-center gap-2">
               <NButton
-                aria-label="Published"
+                :aria-label="$t('pages.posts.published')"
                 :btn="activeTab === 'published' ? 'soft' : 'ghost-gray'"
                 size="sm"
                 icon
@@ -47,7 +47,7 @@
               />
               
               <NButton
-                aria-label="Drafts"
+                :aria-label="$t('pages.posts.drafts')"
                 :btn="activeTab === 'drafts' ? 'soft' : 'ghost-gray'"
                 size="sm"
                 icon
@@ -57,7 +57,7 @@
               />
 
               <NButton
-                aria-label="Archived"
+                :aria-label="$t('pages.posts.archived')"
                 :btn="activeTab === 'archived' ? 'soft' : 'ghost-gray'"
                 size="sm"
                 icon
@@ -67,7 +67,7 @@
               />
 
               <div class="text-xs opacity-60 ml-3" v-if="draftsPending || archivedPending">
-                <span v-if="draftsPending" class="flex items-center gap-1"><span class="i-lucide-loader animate-spin" />Loading…</span>
+                <span v-if="draftsPending" class="flex items-center gap-1"><span class="i-lucide-loader animate-spin" />{{ $t('common.loading') }}</span>
               </div>
             </div>
           </div>
@@ -80,19 +80,19 @@
           <div class="flex items-start justify-between gap-4">
             <div>
               <h1 class="font-title text-size-24 font-bold line-height-28 overflow-hidden">
-                <TypewriterText :text="'Published'" :auto-hide-cursor="true" />
+                <TypewriterText :text="$t('pages.posts.publishedHeading')" :auto-hide-cursor="true" />
               </h1>
               
               <div class="flex items-center gap-2">
                 <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
                   <template #default>
-                    <NButton btn="outline-gray" size="xs" icon aria-label="Change view">
+                    <NButton btn="outline-gray" size="xs" icon :aria-label="$t('common.changeView')">
                       <NIcon :name="viewMode === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks'" />
                     </NButton>
                   </template>
                 </NDropdownMenu>
                 <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
-                  Explore stories, ideas, and insights from our writers.
+                  {{ $t('pages.posts.archivedDescription') }}
                 </p>
               </div>
             </div>
@@ -102,18 +102,18 @@
           <div class="flex items-start justify-between gap-4">
             <div>
               <h1 class="font-title text-size-24 font-bold line-height-24 overflow-hidden">
-                <TypewriterText :text="'Drafts'" :auto-hide-cursor="true" />
+                <TypewriterText :text="$t('pages.posts.draftsHeading')" :auto-hide-cursor="true" />
               </h1>
               <div class="flex items-center gap-2">
                 <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
                   <template #default>
-                    <NButton btn="outline-gray" size="xs" icon aria-label="Change view">
+                    <NButton btn="outline-gray" size="xs" icon :aria-label="$t('common.changeView')">
                       <NIcon :name="viewMode === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks'" />
                     </NButton>
                   </template>
                 </NDropdownMenu>
                 <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
-                  These posts are not visible to the public.
+                  {{ $t('pages.posts.draftsDescription') }}
                 </p>
               </div>
             </div>
@@ -123,19 +123,19 @@
           <div class="flex items-start justify-between gap-4">
             <div>
               <h1 class="font-title text-size-24 font-bold line-height-24 overflow-hidden">
-                <TypewriterText :text="'Archived'" :auto-hide-cursor="true" />
+                <TypewriterText :text="$t('pages.posts.archivedHeading')" :auto-hide-cursor="true" />
               </h1>
               
               <div class="flex items-center gap-2">
                 <NDropdownMenu :items="viewDropdownItems" :_dropdownMenuContent="{ side: 'bottom', align: 'end' }">
                   <template #default>
-                    <NButton btn="outline-gray" size="xs" icon aria-label="Change view">
+                    <NButton btn="outline-gray" size="xs" icon :aria-label="$t('common.changeView')">
                       <NIcon :name="viewMode === 'cards' ? 'i-ph-squares-four' : 'i-ph-list-checks'" />
                     </NButton>
                   </template>
                 </NDropdownMenu>
                 <p class="text-lg md:text-xl text-slate-500 dark:text-slate-400 max-w-2xl">
-                  These posts are archived and not visible to the public.
+                  {{ $t('pages.posts.publishedDescription') }}
                 </p>
               </div>
             </div>
@@ -163,7 +163,7 @@
 
       <!-- Loading state -->
       <div v-else-if="isLoadingVisible" class="text-center py-12">
-        <p class="text-slate-500 dark:text-slate-400">Loading posts...</p>
+        <p class="text-slate-500 dark:text-slate-400">{{ $t('pages.posts.loading') }}</p>
       </div>
 
       <!-- Empty state (styled like error page) -->
@@ -174,21 +174,21 @@
           <p class="error-code text-8xl md:text-size-54 font-extrabold leading-none">0</p>
         </div>
 
-        <h2 class="text-3xl md:text-4xl lg:text-5xl font-serif font-800 mb-4">No posts yet</h2>
+        <h2 class="text-3xl md:text-4xl lg:text-5xl font-serif font-800 mb-4">{{ $t('pages.posts.emptyHeading') }}</h2>
 
         <p class="font-body font-500 text-base md:text-lg text-gray-600 dark:text-gray-300 max-w-xl mx-auto mb-8">
-          There are no posts to display right now — yet. Create the first article, or explore other sections of the site.
+          {{ $t('pages.posts.emptyDescription') }}
         </p>
 
         <div class="flex flex-col sm:flex-row gap-6 justify-center mb-12">
           <NuxtLink to="/" class="px-6 py-5 bg-black dark:bg-white text-white dark:text-black text-sm font-500 uppercase tracking-wide rounded hover:bg-gray-800 dark:hover:bg-gray-200 transition flex items-center gap-2">
             <div class="i-ph-house-bold w-4 h-4"></div>
-            Go Home
+            {{ $t('common.goHome') }}
           </NuxtLink>
 
           <NuxtLink to="/credits" class="px-6 py-5 border border-gray-300 dark:border-gray-700 text-sm font-500 uppercase tracking-wide rounded hover:bg-gray-50 dark:hover:bg-gray-900 transition flex items-center gap-2">
             <div class="i-ph-arrow-left-bold w-4 h-4"></div>
-            Browse Credits
+            {{ $t('common.browseCredits') }}
           </NuxtLink>
         </div>
       </div>
@@ -242,16 +242,16 @@
   <NDialog v-model:open="confirmDialogOpen">
     <NDialogContent class="max-w-md">
       <NDialogHeader>
-        <NDialogTitle>Delete post</NDialogTitle>
+        <NDialogTitle>{{ $t('common.deletePost') }}</NDialogTitle>
       </NDialogHeader>
 
       <NDialogDescription>
-        <p class="text-sm text-gray-700 dark:text-gray-300">Are you sure you want to delete <strong>{{ postPendingDelete?.name }}</strong>? This action cannot be undone.</p>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{{ $t('pages.posts.deletePostConfirm', { name: postPendingDelete?.name }) }}</p>
       </NDialogDescription>
 
       <NDialogFooter class="flex items-center gap-2 justify-end mt-4">
-        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">Cancel</NButton>
-        <NButton btn="danger" size="sm" @click="confirmDelete" :loading="deleting">Delete</NButton>
+        <NButton btn="ghost-gray" size="sm" @click="confirmDialogOpen = false">{{ $t('common.cancel') }}</NButton>
+        <NButton btn="danger" size="sm" @click="confirmDelete" :loading="deleting">{{ $t('common.delete') }}</NButton>
       </NDialogFooter>
     </NDialogContent>
   </NDialog>
@@ -436,8 +436,8 @@ const activeTab = useStorage<'published'|'drafts'|'archived'>('posts.activeTab',
 const viewMode = useStorage<'cards'|'list'>('posts.viewMode', 'cards')
 
 const viewDropdownItems = computed(() => [
-  { label: 'Cards', onSelect: () => (viewMode.value = 'cards'), leading: 'i-ph-squares-four', trailing: viewMode.value === 'cards' ? 'i-ph-check' : undefined },
-  { label: 'List', onSelect: () => (viewMode.value = 'list'), leading: 'i-ph-list-checks', trailing: viewMode.value === 'list' ? 'i-ph-check' : undefined },
+  { label: $t('pages.posts.cardsView'), onSelect: () => (viewMode.value = 'cards'), leading: 'i-ph-squares-four', trailing: viewMode.value === 'cards' ? 'i-ph-check' : undefined },
+  { label: $t('pages.posts.listView'), onSelect: () => (viewMode.value = 'list'), leading: 'i-ph-list-checks', trailing: viewMode.value === 'list' ? 'i-ph-check' : undefined },
 ])
 
 function setTab(tab: 'published'|'drafts'|'archived') {
@@ -534,10 +534,11 @@ watch(
   { immediate: true }
 )
 
+const { $t } = useI18n()
 useHead({
-  title: 'Posts — corpinot',
+  title: `${$t('pages.posts.metaTitle')}`,
   meta: [
-    { name: 'description', content: 'Explore our latest articles on product, engineering, and ideas.' }
+    { name: 'description', content: $t('pages.posts.metaDescription') }
   ]
 })
 
@@ -592,9 +593,9 @@ async function exportPosts(format: 'zip' | 'json', includeAssets: boolean, idsOv
 }
 
 const exportDropdownItems = computed(() => [
-  { label: `Export ${selection.selectedCount.value || 0} as ZIP (with assets)`, onSelect: () => exportPosts('zip', true), leading: exporting.value ? 'i-lucide-loader animate-spin' : 'i-ph-download-simple', disabled: !selection.hasSelection.value },
-  { label: 'Clear selection', onSelect: () => selection.clearSelection(), leading: 'i-ph-x', disabled: !selection.hasSelection.value },
-  { label: 'Done', onSelect: () => selection.setSelectionMode(false), leading: 'i-ph-check', disabled: false },
+  { label: $t('pages.posts.exportZip', { count: selection.selectedCount.value || 0 }), onSelect: () => exportPosts('zip', true), leading: exporting.value ? 'i-lucide-loader animate-spin' : 'i-ph-download-simple', disabled: !selection.hasSelection.value },
+  { label: $t('pages.posts.clearSelection'), onSelect: () => selection.clearSelection(), leading: 'i-ph-x', disabled: !selection.hasSelection.value },
+  { label: $t('common.done'), onSelect: () => selection.setSelectionMode(false), leading: 'i-ph-check', disabled: false },
 ])
 
 // Router + post management actions (admin only)
@@ -639,27 +640,27 @@ function menuItemsForPost(post: Post) {
   const isCoverBusy = coverUploadingPosts.value.has(post.slug)
   return [
     {
-      label: 'Status',
+      label: $t('pages.posts.status'),
       items: [
-        { label: 'Draft', trailing: post.status === 'draft' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'draft'), disabled: isDup },
-        { label: 'Published', trailing: post.status === 'published' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'published'), disabled: isDup },
-        { label: 'Archived', trailing: post.status === 'archived' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'archived'), disabled: isDup },
+        { label: $t('pages.posts.draft'), trailing: post.status === 'draft' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'draft'), disabled: isDup },
+        { label: $t('pages.posts.published'), trailing: post.status === 'published' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'published'), disabled: isDup },
+        { label: $t('pages.posts.archived'), trailing: post.status === 'archived' ? 'i-ph-check' : undefined, onSelect: () => !isDup && updatePostStatus(post, 'archived'), disabled: isDup },
       ]
     },
     {
-      label: 'Cover',
+      label: $t('pages.posts.cover'),
       items: [
-        { label: post.image?.src ? 'Replace cover' : 'Add cover', leading: 'i-ph-image', onSelect: () => !isDup && !isCoverBusy && triggerCoverUpload(post), disabled: isDup || isCoverBusy },
-        { label: 'Remove cover', leading: 'i-ph-trash', onSelect: () => !isDup && !isCoverBusy && removeCover(post), disabled: isDup || isCoverBusy || !post.image?.src, color: 'danger' },
+        { label: post.image?.src ? $t('pages.posts.replaceCover') : $t('pages.posts.addCover'), leading: 'i-ph-image', onSelect: () => !isDup && !isCoverBusy && triggerCoverUpload(post), disabled: isDup || isCoverBusy },
+        { label: $t('pages.posts.removeCover'), leading: 'i-ph-trash', onSelect: () => !isDup && !isCoverBusy && removeCover(post), disabled: isDup || isCoverBusy || !post.image?.src, color: 'danger' },
       ],
     },
-    { label: 'Preview', onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
-    { label: 'Select', onSelect: () => (selection.setSelectionMode(true), selection.toggleSelected(post.slug)), leading: 'i-ph-check', disabled: isDup },
-    { label: 'Export ZIP', onSelect: () => exportPosts('zip', true, [post.slug]), leading: 'i-ph-download-simple', disabled: isDup },
-    { label: 'Open in editor', onSelect: () => !isDup && editPost(post), leading: 'i-ph-pencil-line-fill', disabled: isDup },
-    { label: 'Edit', onSelect: () => !isDup && (postToEdit.value = post, editDialogOpen.value = true), leading: 'i-ph-pencil', disabled: isDup },
-    { label: 'Duplicate', onSelect: () => !isDup && duplicatePost(post), leading: 'i-ph-copy', disabled: isDup },
-    { label: 'Delete Post', onSelect: () => !isDup && (postPendingDelete.value = post, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger', disabled: isDup },
+    { label: $t('common.preview'), onSelect: () => previewPost(post), leading: 'i-ph-external-link', disabled: isDup },
+    { label: $t('pages.posts.select'), onSelect: () => (selection.setSelectionMode(true), selection.toggleSelected(post.slug)), leading: 'i-ph-check', disabled: isDup },
+    { label: $t('pages.posts.exportZip', { count: 1 }), onSelect: () => exportPosts('zip', true, [post.slug]), leading: 'i-ph-download-simple', disabled: isDup },
+    { label: $t('pages.posts.openEditor'), onSelect: () => !isDup && editPost(post), leading: 'i-ph-pencil-line-fill', disabled: isDup },
+    { label: $t('common.edit'), onSelect: () => !isDup && (postToEdit.value = post, editDialogOpen.value = true), leading: 'i-ph-pencil', disabled: isDup },
+    { label: $t('pages.posts.duplicate'), onSelect: () => !isDup && duplicatePost(post), leading: 'i-ph-copy', disabled: isDup },
+    { label: $t('common.deletePost'), onSelect: () => !isDup && (postPendingDelete.value = post, confirmDialogOpen.value = true), leading: 'i-ph-trash', color: 'danger', disabled: isDup },
   ]
 }
 

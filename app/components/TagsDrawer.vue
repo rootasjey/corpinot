@@ -2,9 +2,9 @@
   <NDrawer v-model:open="isDrawerOpen">
     <template #header>
       <div class="flex items-center justify-between px-4 py-3">
-        <div class="text-sm font-semibold">Tags</div>
+        <div class="text-sm font-semibold">{{ $t('components.tagsDrawer.title') }}</div>
         <div class="flex items-center gap-2">
-          <NButton size="sm" btn="ghost-gray" @click="$emit('update:open', false)">Close</NButton>
+          <NButton size="sm" btn="ghost-gray" @click="$emit('update:open', false)">{{ $t('common.close') }}</NButton>
         </div>
       </div>
     </template>
@@ -17,12 +17,12 @@
             v-model="localSearch"
             @input="emitUpdateSearch"
             type="search"
-            placeholder="Search tags"
+            :placeholder="$t('pages.tags.searchPlaceholder')"
             class="w-full px-4 py-2 rounded-xl bg-white/70 dark:bg-gray-800/60 placeholder-gray-400 outline-none"
           />
 
           <div v-if="isAdmin">
-            <NButton btn="outline-gray" size="xs" rounded="2" leading="i-ph-plus-bold" @click="onNew">New</NButton>
+            <NButton btn="outline-gray" size="xs" rounded="2" leading="i-ph-plus-bold" @click="onNew">{{ $t('common.new') }}</NButton>
           </div>
         </div>
 
@@ -31,7 +31,7 @@
             @click="select(null)"
             :class="['px-3 py-2 rounded-full text-sm font-semibold mr-2 mb-2', selectedTag === null ? 'bg-gray-900 text-white dark:bg-white dark:text-gray-900' : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100']"
           >
-            All
+            {{ $t('common.all') }}
           </button>
         </div>
 
@@ -51,7 +51,7 @@
                   <span :style="{ backgroundColor: colorForTag(tag.name) }" class="w-9 h-9 rounded-lg inline-block flex-none"></span>
                   <div>
                     <div class="text-sm font-semibold">{{ tag.name }}</div>
-                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ tag.category || 'General' }}</div>
+                    <div class="text-xs text-gray-500 dark:text-gray-400">{{ tag.category || $t('pages.tags.general') }}</div>
                     <div v-if="tag.description" class="text-xs text-gray-500 dark:text-gray-400 line-clamp-2">{{ tag.description }}</div>
                   </div>
                 </div>
@@ -81,6 +81,7 @@ import { ref, watch, computed, nextTick } from 'vue'
 import type { ApiTag } from '~~/shared/types/tags'
 import type { PropType } from 'vue'
 
+const { $t } = useI18n()
 const props = defineProps({
   open: { type: Boolean, required: true },
   tags: { type: Array as PropType<ApiTag[]>, default: () => [] },
@@ -136,8 +137,8 @@ function onNew() {
 
 function dropdownItems(tag: ApiTag) {
   return [
-    { label: 'Edit', onSelect: () => emits('edit', tag), leading: 'i-ph-pencil' },
-    { label: 'Delete', onSelect: () => emits('delete', tag), leading: 'i-ph-trash', color: 'danger' },
+    { label: $t('common.edit'), onSelect: () => emits('edit', tag), leading: 'i-ph-pencil' },
+    { label: $t('common.delete'), onSelect: () => emits('delete', tag), leading: 'i-ph-trash', color: 'danger' },
   ]
 }
 </script>

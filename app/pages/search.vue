@@ -3,12 +3,12 @@
     <div class="mx-auto max-w-3xl px-4 pb-28 pt-6 md:pt-10">
       <header class="flex items-center justify-between gap-3 mb-5">
         <div>
-          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Search</p>
-          <h1 class="text-2xl md:text-3xl font-title font-bold text-gray-900 dark:text-gray-50">Find posts, authors, tags</h1>
+          <p class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $t('pages.search.heading') }}</p>
+          <h1 class="text-2xl md:text-3xl font-title font-bold text-gray-900 dark:text-gray-50">{{ $t('pages.search.title') }}</h1>
         </div>
         <NuxtLink to="/" class="hidden sm:inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wide border border-gray-200 dark:border-gray-800 rounded-full text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors">
           <span class="i-ph-house-duotone text-sm" />
-          Home
+          {{ $t('common.home') }}
         </NuxtLink>
       </header>
 
@@ -16,7 +16,7 @@
         <NInput
           id="search-page-input"
           v-model="query"
-          placeholder="Search posts, authors, tags"
+          :placeholder="$t('pages.search.placeholder')"
           input="outline-blue"
           autofocus
           class="shadow-none ring-none w-full"
@@ -26,7 +26,7 @@
 
       <div class="flex flex-col gap-3 mb-6">
         <div v-if="recentSearches.length" class="flex items-center gap-2">
-          <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Recent</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $t('pages.search.recent') }}</span>
           <div class="flex-1 overflow-x-auto scrollbar-hide">
             <div class="flex items-center gap-2 min-w-max pr-2">
               <button
@@ -43,7 +43,7 @@
         </div>
 
         <div class="flex flex-col gap-2">
-          <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">Suggested tags</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $t('pages.search.suggestedTags') }}</span>
           <div class="flex-1 overflow-x-auto scrollbar-hide">
             <div class="flex items-center gap-2 min-w-max pr-2">
               <button
@@ -56,8 +56,8 @@
               >
                 #{{ tag.name }}
               </button>
-              <span v-if="!suggestedTags.length && tagsPending" class="text-xs text-gray-500 dark:text-gray-400">Loading…</span>
-              <span v-else-if="!suggestedTags.length && !tagsPending" class="text-xs text-gray-500 dark:text-gray-400">No tags yet</span>
+              <span v-if="!suggestedTags.length && tagsPending" class="text-xs text-gray-500 dark:text-gray-400">{{ $t('common.loading') }}</span>
+              <span v-else-if="!suggestedTags.length && !tagsPending" class="text-xs text-gray-500 dark:text-gray-400">{{ $t('common.noTagsYet') }}</span>
             </div>
           </div>
         </div>
@@ -65,7 +65,7 @@
 
       <div v-if="isMobile && !query.trim() && enhancedRecentPosts.length" class="sm:hidden">
         <section class="py-4">
-          <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-900 dark:text-gray-100 mb-2">Recent Posts</h2>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-900 dark:text-gray-100 mb-2">{{ $t('pages.search.recentPosts') }}</h2>
 
           <div v-if="recentPending" class="space-y-3">
             <div v-for="i in 4" :key="i" class="h-12 rounded-lg bg-gray-200 dark:bg-gray-800 animate-pulse" />
@@ -98,7 +98,7 @@
             </li>
           </ul>
 
-          <div v-if="recentError" class="text-sm text-gray-500 dark:text-gray-400 mt-2">Couldn't load recent posts.</div>
+          <div v-if="recentError" class="text-sm text-gray-500 dark:text-gray-400 mt-2">{{ $t('pages.search.recentPostsError') }}</div>
         </section>
       </div>
 
@@ -108,11 +108,11 @@
         </div>
 
         <div v-else-if="!results.length && query.trim()" class="text-sm text-gray-600 dark:text-gray-400 px-1">
-          No results yet.
+          {{ $t('pages.search.noResultsYet') }}
         </div>
 
         <div v-else-if="!results.length" class="text-sm text-gray-600 dark:text-gray-400 px-1">
-          Try searching for a post title, an author name, or a tag.
+          {{ $t('pages.search.helperText') }}
         </div>
 
         <ul v-else class="space-y-2">
@@ -137,7 +137,7 @@
                 {{ item.biography }}
               </p>
               <p v-else-if="item.type === 'tag'" class="text-sm text-gray-600 dark:text-gray-400">
-                Tag
+                {{ $t('pages.search.tag') }}
               </p>
             </div>
             <div class="text-gray-400">

@@ -6,12 +6,12 @@
           <div class="text-sm text-slate-500 dark:text-slate-400">
             <NuxtLink to="/settings" class="inline-flex items-center gap-2 hover:underline">
               <span class="i-ph-arrow-left" aria-hidden="true" />
-              <span>Settings</span>
+              <span>{{ $t('pages.settings.heading') }}</span>
             </NuxtLink>
           </div>
-          <h1 class="text-2xl font-bold mt-1">AI settings</h1>
+          <h1 class="text-2xl font-bold mt-1">{{ $t('pages.settingsAi.heading') }}</h1>
           <p class="text-sm text-slate-500 dark:text-slate-400 mt-1">
-            Choose the default provider and override models per action. Translation and summaries always use Cloudflare.
+            {{ $t('pages.settingsAi.description') }}
           </p>
         </div>
       </div>
@@ -19,8 +19,8 @@
       <section class="rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60 p-4">
         <div class="flex items-center justify-between gap-3">
           <div>
-            <div class="font-semibold">Default provider</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Used for actions except translate and summarize.</div>
+            <div class="font-semibold">{{ $t('pages.settingsAi.defaultProvider') }}</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">{{ $t('pages.settingsAi.defaultProviderDesc') }}</div>
           </div>
           <NBadge badge="soft" color="primary">{{ provider }}</NBadge>
         </div>
@@ -35,8 +35,8 @@
             <div class="flex items-center gap-3">
               <span class="i-lucide-cloud" />
               <div class="text-left">
-                <div class="font-semibold">Cloudflare Workers AI</div>
-                <div class="text-sm text-slate-600 dark:text-slate-400">Fast defaults; translation/summarize stay on Cloudflare.</div>
+                <div class="font-semibold">{{ $t('pages.settingsAi.cloudflare') }}</div>
+                <div class="text-sm text-slate-600 dark:text-slate-400">{{ $t('pages.settingsAi.cloudflareDesc') }}</div>
               </div>
             </div>
             <span v-if="provider === 'cloudflare'" class="i-ph-check-fat text-primary" />
@@ -51,8 +51,8 @@
             <div class="flex items-center gap-3">
               <span class="i-lucide-network" />
               <div class="text-left">
-                <div class="font-semibold">OpenRouter</div>
-                <div class="text-sm text-slate-600 dark:text-slate-400">Community models via OpenRouter (streaming completions).</div>
+                <div class="font-semibold">{{ $t('pages.settingsAi.openrouter') }}</div>
+                <div class="text-sm text-slate-600 dark:text-slate-400">{{ $t('pages.settingsAi.openrouterDesc') }}</div>
               </div>
             </div>
             <span v-if="provider === 'openrouter'" class="i-ph-check-fat text-primary" />
@@ -63,10 +63,10 @@
       <section class="rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60 p-4 space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <div class="font-semibold">Cloudflare models</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Used for translate/summarize and when Cloudflare is the provider.</div>
+            <div class="font-semibold">{{ $t('pages.settingsAi.cfModels') }}</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">{{ $t('pages.settingsAi.cfModelsDesc') }}</div>
           </div>
-          <NButton btn="ghost-gray" size="xs" @click="resetModels('cloudflare')">Reset</NButton>
+          <NButton btn="ghost-gray" size="xs" @click="resetModels('cloudflare')">{{ $t('pages.settingsAi.reset') }}</NButton>
         </div>
 
         <div class="space-y-3">
@@ -76,13 +76,13 @@
                 <div class="font-medium">{{ action.label }}</div>
                 <div class="text-sm text-slate-500 dark:text-slate-400">{{ action.description }}</div>
               </div>
-              <NBadge v-if="action.key === 'translate' || action.key === 'summarize'" badge="soft" color="primary">Always CF</NBadge>
+              <NBadge v-if="action.key === 'translate' || action.key === 'summarize'" badge="soft" color="primary">{{ $t('pages.settingsAi.alwaysCf') }}</NBadge>
             </div>
             <NInput
               v-model="cloudflareModels[action.key]"
               input="outline"
               class="mt-3"
-              placeholder="@cf/..."
+              :placeholder="$t('pages.settingsAi.cfPlaceholder')"
             />
           </div>
         </div>
@@ -91,10 +91,10 @@
       <section class="rounded-2xl border border-gray-200/60 dark:border-gray-800/60 bg-white/60 dark:bg-gray-950/60 p-4 space-y-4">
         <div class="flex items-center justify-between">
           <div>
-            <div class="font-semibold">OpenRouter models</div>
-            <div class="text-sm text-slate-500 dark:text-slate-400">Used when OpenRouter is the provider.</div>
+            <div class="font-semibold">{{ $t('pages.settingsAi.orModels') }}</div>
+            <div class="text-sm text-slate-500 dark:text-slate-400">{{ $t('pages.settingsAi.orModelsDesc') }}</div>
           </div>
-          <NButton btn="ghost-gray" size="xs" @click="resetModels('openrouter')">Reset</NButton>
+          <NButton btn="ghost-gray" size="xs" @click="resetModels('openrouter')">{{ $t('pages.settingsAi.reset') }}</NButton>
         </div>
 
         <div class="space-y-3">
@@ -107,7 +107,7 @@
               v-model="openrouterModels[action.key]"
               input="outline"
               class="mt-3"
-              placeholder="openrouter/model:variant"
+              :placeholder="$t('pages.settingsAi.orPlaceholder')"
             />
           </div>
         </div>
@@ -119,7 +119,8 @@
 <script setup lang="ts">
 import { AI_ACTIONS, useAISettings } from '~/composables/useAISettings'
 
-useSeoMeta({ title: 'AI settings — Corpinot' })
+const { $t } = useI18n()
+useSeoMeta({ title: `${$t('pages.settingsAi.heading')} — ${$t('seo.siteName')}` })
 
 const actions = AI_ACTIONS
 const { provider, cloudflareModels, openrouterModels, resetModels } = useAISettings()
