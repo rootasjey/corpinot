@@ -339,7 +339,7 @@ async function handleLogout() {
   }
 }
 
-const { $t, $getLocale, $switchLocale, $getLocales } = useI18n()
+const { $t, $ts, $getLocale, $switchLocale, $getLocales } = useI18n()
 
 const localeOptions = computed(() => $getLocales().map(l => ({ code: l.code, displayName: l.displayName || l.code })))
 
@@ -369,9 +369,9 @@ const dropdownItems = computed(() => {
 const themeDropdownItems = computed(() => {
   const preference = colorMode.preference as ThemePreference
   return [
-    { label: $t('nav.dark'), leading: 'i-ph-moon', trailing: preference === 'dark' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('dark') },
-    { label: $t('nav.light'), leading: 'i-ph-sun', trailing: preference === 'light' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('light') },
-    { label: $t('nav.system'), leading: 'i-ph-laptop', trailing: preference === 'system' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('system') },
+    { label: $ts('nav.dark'), leading: 'i-ph-moon', trailing: preference === 'dark' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('dark') },
+    { label: $ts('nav.light'), leading: 'i-ph-sun', trailing: preference === 'light' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('light') },
+    { label: $ts('nav.system'), leading: 'i-ph-laptop', trailing: preference === 'system' ? 'i-ph-check' : undefined, onSelect: () => setThemePreference('system') },
   ]
 })
 
