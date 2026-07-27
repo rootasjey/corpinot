@@ -105,6 +105,28 @@
       </div>
     </div>
 
+    <!-- Translation Switcher -->
+    <div v-if="translations.length" class="border-b border-border">
+      <div class="container mx-auto px-4 md:px-8">
+        <div class="max-w-3xl mx-auto py-4 flex items-center gap-3">
+          <span class="text-xs font-semibold uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ $t('common.language') }}:</span>
+          <div class="flex flex-wrap gap-2">
+            <NuxtLink
+              v-for="t in allVersions"
+              :key="t.language"
+              :to="t.slug ? `/posts/${t.slug}` : undefined"
+              class="px-3 py-1 rounded-full text-xs font-semibold transition-colors"
+              :class="t.active
+                ? 'bg-black dark:bg-white text-white dark:text-black'
+                : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'"
+            >
+              {{ t.label }}
+            </NuxtLink>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- Article Content -->
     <article class="py-12 md:py-16 bg-background animate-entrance" style="animation-delay: 420ms;">
       <div class="container mx-auto px-4 md:px-8">
@@ -252,6 +274,32 @@ const editPostUrl = computed(() => `/posts/edit/${post.value?.slug || post.value
 
 // Enhance post with computed properties
 const enhancedPost = computed(() => enhancePost(post.value!))
+
+// Fetch translations
+const { data: translations } = await useFetch<any[]>('/api/posts/' + slug + '/translations', {
+  query: { t: Date.now() },
+  default: () => [],
+})
+
+const languageLabels: Record<string, string> = {
+  en: 'English',
+  fr: 'Fran\u00e7ais',
+  es: 'Espa\u00f1ol',
+  de: 'Deutsch',
+  it: 'Italiano',
+}
+
+const allVersions = computed(() => {
+  const current = post.value
+  if (!current) return []
+  const list: { language: string; label: string; slug?: string; active: boolean }[] = [
+    { language: current.language, label: languageLabels[current.language] || current.language, active: true },
+  ]
+  for (const t of (translations.value || [])) {
+    list.push({ language: t.language, label: languageLabels[t.language] || t.language, slug: t.slug, active: false })
+  }
+  return list
+})
 
 const iconTag: Record<string, string> = {
   featured: 'i-ph-lightning-fill',

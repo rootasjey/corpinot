@@ -171,6 +171,7 @@ export function convertApiToPost(
     publishedAt: apiPost.published_at ?? undefined,
     slug: apiPost.slug,
     status: apiPost.status,
+    translationGroupId: apiPost.translation_group_id ?? undefined,
     tags: (options?.tags || []).map(t => ({
       id: Number(t.id),
       name: String(t.name),

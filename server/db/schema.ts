@@ -37,6 +37,7 @@ export const posts = sqliteTable('posts', {
   published_at: text('published_at'),
   slug: text('slug').notNull().unique(),
   status: text('status').notNull().default('draft'),
+  translation_group_id: text('translation_group_id'),
   updated_at: text('updated_at').notNull().default(sql`CURRENT_TIMESTAMP`),
   user_id: integer('user_id').notNull(),
 })

@@ -753,6 +753,24 @@
       "addTag": "Add tag\u2026",
       "createTag": "Create \"{{ name }}\"",
       "alreadyAdded": "This tag is already added."
+    },
+    "translationsManager": {
+      "title": "Translations",
+      "currentLanguage": "Current: {{ language }}",
+      "createTranslation": "Create translation",
+      "createNew": "Create new {{ language }} translation",
+      "targetLanguage": "Target language",
+      "noTranslations": "No translations yet.",
+      "unlink": "Unlink",
+      "creating": "Creating\u2026",
+      "createSuccess": "Translation created. Redirecting\u2026",
+      "createFailed": "Failed to create translation",
+      "unlinkSuccess": "Translation unlinked",
+      "unlinkFailed": "Failed to unlink translation",
+      "edit": "Edit"
+    },
+    "tagsDrawer": {
+      "title": "Tags"
     }
   }
 }

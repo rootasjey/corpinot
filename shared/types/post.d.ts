@@ -38,6 +38,7 @@ export type Post = {
   slug: string
   status: PostStatus
   tags: ApiTag[]
+  translationGroupId?: string
   updatedAt: string
   user?: {
     id?: number
@@ -72,6 +73,7 @@ export type ApiPost = {
   published_at: string | null
   slug: string
   status: PostStatus
+  translation_group_id: string | null
   updated_at: string
   user_id: number
 }

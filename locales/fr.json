@@ -753,6 +753,21 @@
       "addTag": "Ajouter un tag\u2026",
       "createTag": "Cr\u00e9er \"{{ name }}\"",
       "alreadyAdded": "Ce tag est d\u00e9j\u00e0 ajout\u00e9."
+    },
+    "translationsManager": {
+      "title": "Traductions",
+      "currentLanguage": "Actuel : {{ language }}",
+      "createTranslation": "Cr\u00e9er une traduction",
+      "createNew": "Cr\u00e9er une traduction en {{ language }}",
+      "targetLanguage": "Langue cible",
+      "noTranslations": "Aucune traduction pour l'instant.",
+      "unlink": "D\u00e9lier",
+      "creating": "Cr\u00e9ation\u2026",
+      "createSuccess": "Traduction cr\u00e9\u00e9e. Redirection\u2026",
+      "createFailed": "\u00c9chec de la cr\u00e9ation de la traduction",
+      "unlinkSuccess": "Traduction d\u00e9li\u00e9e",
+      "unlinkFailed": "\u00c9chec du d\u00©liage de la traduction",
+      "edit": "Modifier"
     }
   }
 }
