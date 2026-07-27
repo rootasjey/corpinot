@@ -240,6 +240,8 @@
               :model-value="currentLocaleObj"
               @update:model-value="onLocaleChange"
               size="xs"
+              class="w-16"
+              :_combobox-trigger="{ class: 'w-14 min-w-0 px-2' }"
             >
               <template #trigger="{ modelValue }">
                 <span class="text-xs font-semibold uppercase tracking-wide">{{ modelValue?.code?.toUpperCase() || 'EN' }}</span>
