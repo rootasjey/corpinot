@@ -73,6 +73,22 @@
           </div>
         </div>
       </ClientOnly>
+
+      <!-- Language filter -->
+      <div v-if="$getLocale() !== 'en'" class="flex items-center gap-2 mb-4">
+        <button
+          @click="showAllLanguages = !showAllLanguages"
+          class="px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
+          :class="showAllLanguages
+            ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200'
+            : 'bg-black dark:bg-white text-white dark:text-black'"
+        >
+          {{ currentLanguageLabel }}
+        </button>
+        <span v-if="!showAllLanguages" class="text-xs text-gray-500 dark:text-gray-400">
+          {{ $t('pages.posts.filteredByLanguage') }}
+        </span>
+      </div>
       
       <!-- Page Header -->
       <div class="mb-12 md:mb-16">
@@ -424,7 +440,26 @@ async function onImportFileSelected(e: Event) {
   }
 }
 
-const { data: posts, pending, error } = await useFetch<Post[]>('/api/posts')
+const { $t, $getLocale } = useI18n()
+
+const showAllLanguages = useStorage('posts.showAllLanguages', false)
+
+const languageFilter = computed(() => {
+  if (showAllLanguages.value) return undefined
+  const locale = $getLocale()
+  return locale === 'en' ? undefined : locale
+})
+
+const currentLanguageLabel = computed(() => {
+  if (showAllLanguages.value) return 'All languages'
+  const locale = $getLocale()
+  const labels: Record<string, string> = { en: 'English', fr: 'Fran\u00e7ais', es: 'Espa\u00f1ol', de: 'Deutsch', it: 'Italiano' }
+  return labels[locale] || locale
+})
+
+const { data: posts, pending, error } = await useFetch<Post[]>('/api/posts', {
+  query: { language: languageFilter },
+})
 // Drafts & archived (lazy fetch on toggle)
 const { data: drafts, pending: draftsPending, execute: fetchDrafts } = useFetch<Post[]>('/api/posts/drafts', { immediate: false })
 const { data: archived, pending: archivedPending, execute: fetchArchived } = useFetch<Post[]>('/api/posts/archived', { immediate: false })
@@ -534,7 +569,6 @@ watch(
   { immediate: true }
 )
 
-const { $t } = useI18n()
 useHead({
   title: `${$t('pages.posts.metaTitle')}`,
   meta: [

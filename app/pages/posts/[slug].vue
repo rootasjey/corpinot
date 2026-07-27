@@ -301,6 +301,16 @@ const allVersions = computed(() => {
   return list
 })
 
+// Redirect to translated version when interface language changes
+const { $getLocale } = useI18n()
+watch($getLocale, (newLocale) => {
+  if (!post.value || newLocale === post.value.language) return
+  const match = (translations.value || []).find(t => t.language === newLocale)
+  if (match?.slug) {
+    navigateTo(`/posts/${match.slug}`)
+  }
+})
+
 const iconTag: Record<string, string> = {
   featured: 'i-ph-lightning-fill',
   'featured post': 'i-ph-lightning-fill',

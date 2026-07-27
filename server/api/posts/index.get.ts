@@ -10,6 +10,7 @@ export default defineEventHandler(async (event) => {
   const tag = query.tag as string
   const author = query.author as string
   const exclude = query.exclude as string
+  const language = query.language as string
   // Pagination
   const pageRaw = query.page as string
   const limitRaw = query.limit as string
@@ -21,6 +22,10 @@ export default defineEventHandler(async (event) => {
   if (limit > 50) limit = 50
   const offset = (page - 1) * limit
   const conditions = [eq(schema.posts.status, 'published')]
+
+  if (language && ['en', 'fr', 'es', 'de', 'it'].includes(language)) {
+    conditions.push(eq(schema.posts.language, language))
+  }
 
   const excludedTags = exclude
     ? exclude
