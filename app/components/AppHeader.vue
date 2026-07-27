@@ -234,16 +234,20 @@
                 <div class="i-ph-magnifying-glass-bold"></div>
               </button>
             </NTooltip>
-            <i18n-switcher
-              :customLabels="{ en: 'EN', fr: 'FR', es: 'ES', de: 'DE', it: 'IT' }"
-              :customButtonStyle="{ background: 'transparent', border: '1px solid #e5e7eb', borderRadius: '9999px', padding: '4px 10px', fontSize: '11px', fontWeight: '600', color: 'inherit', cursor: 'pointer' }"
-              :customDropdownStyle="{ border: '1px solid #e5e7eb', borderRadius: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.08)', background: 'inherit', overflow: 'hidden' }"
-              :customLinkStyle="{ padding: '8px 16px', fontSize: '13px', color: 'inherit', textDecoration: 'none', display: 'block' }"
-              :customActiveLinkStyle="{ fontWeight: '700', background: '#f3f4f6' }"
-              :customDisabledLinkStyle="{ color: '#9ca3af', cursor: 'default' }"
-              :customItemStyle="{ listStyle: 'none' }"
-              :customWrapperStyle="{ position: 'relative', display: 'inline-block' }"
-            />
+            <NCombobox
+              :items="localeOptions"
+              by="code"
+              :model-value="currentLocaleObj"
+              @update:model-value="onLocaleChange"
+              size="xs"
+            >
+              <template #trigger="{ modelValue }">
+                <span class="text-xs font-semibold uppercase tracking-wide">{{ modelValue?.code?.toUpperCase() || 'EN' }}</span>
+              </template>
+              <template #label="{ item }">
+                <span class="text-xs">{{ item.displayName }}</span>
+              </template>
+            </NCombobox>
             <NDropdownMenu
               :items="themeDropdownItems"
               v-model:open="desktopThemeOpen"
@@ -332,7 +336,18 @@ async function handleLogout() {
   }
 }
 
-const { $t } = useI18n()
+const { $t, $getLocale, $switchLocale, $getLocales } = useI18n()
+
+const localeOptions = computed(() => $getLocales().map(l => ({ code: l.code, displayName: l.displayName || l.code })))
+
+const currentLocaleObj = computed(() => {
+  const code = $getLocale()
+  return localeOptions.value.find(l => l.code === code) || localeOptions.value[0]
+})
+
+function onLocaleChange(item: { code: string } | null) {
+  if (item?.code) $switchLocale(item.code)
+}
 
 const dropdownItems = computed(() => {
   const items = [
