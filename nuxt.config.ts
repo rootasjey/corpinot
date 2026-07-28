@@ -68,6 +68,7 @@ export default defineNuxtConfig({
     localeCookie: 'user-locale',
     define: true,
     disablePageLocales: false,
+    hmr: false,
   },
   
   runtimeConfig: {
