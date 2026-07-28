@@ -1,0 +1,31 @@
+{
+  "name": "@eneide/cli",
+  "version": "0.1.0",
+  "description": "CLI for the Énéide API",
+  "type": "module",
+  "main": "./dist/index.js",
+  "bin": {
+    "eneide": "./dist/index.js"
+  },
+  "exports": {
+    ".": {
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "bun run build"
+  },
+  "dependencies": {
+    "@eneide/sdk": "workspace:*",
+    "commander": "^13.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  },
+  "keywords": ["eneide", "cli", "blog", "cms"],
+  "license": "MIT"
+}

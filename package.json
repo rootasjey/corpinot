@@ -1,8 +1,11 @@
 {
-  "name": "corpinot",
-  "version": "0.43.7",
+  "name": "eneide",
+  "version": "1.0.0",
   "type": "module",
   "private": true,
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "build": "NODE_OPTIONS=\"--max-old-space-size=8192\" nuxt build",
     "dev": "nuxt dev",
@@ -10,6 +13,9 @@
     "generate": "nuxt generate",
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
+    "sdk:build": "bun run --cwd packages/sdk build",
+    "cli:build": "bun run --cwd packages/cli build",
+    "packages:build": "bun run sdk:build && bun run cli:build",
     "bump:version": "node ./scripts/bump-version.mjs patch",
     "bump:fix": "node ./scripts/bump-version.mjs fix",
     "test": "vitest run",

@@ -128,6 +128,16 @@ export const ai_requests = sqliteTable('ai_requests', {
   created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
 })
 
+export const api_keys = sqliteTable('api_keys', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  name: text('name').notNull(),
+  hash: text('hash').notNull().unique(),
+  prefix: text('prefix').notNull(),
+  created_at: text('created_at').notNull().default(sql`CURRENT_TIMESTAMP`),
+  last_used_at: text('last_used_at'),
+  revoked_at: text('revoked_at'),
+})
+
 export const site_settings = sqliteTable('site_settings', {
   id: integer('id').primaryKey({ autoIncrement: true }),
   key: text('key').notNull().unique(),
