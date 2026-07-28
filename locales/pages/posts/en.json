@@ -32,6 +32,8 @@
       "replaceCover": "Replace cover",
       "addCover": "Add cover",
       "removeCover": "Remove cover",
+      "select": "Select",
+      "exportZipAssets": "Export ZIP (with assets)",
       "filteredByLanguage": "Showing posts in this language only",
       "openEditor": "Open in editor",
       "duplicate": "Duplicate"

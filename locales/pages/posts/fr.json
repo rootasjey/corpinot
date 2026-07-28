@@ -32,6 +32,8 @@
       "replaceCover": "Remplacer la couverture",
       "addCover": "Ajouter une couverture",
       "removeCover": "Retirer la couverture",
+      "select": "S\u00e9lectionner",
+      "exportZipAssets": "Exporter ZIP (avec fichiers)",
       "openEditor": "Ouvrir dans l'\u00e9diteur",
       "duplicate": "Dupliquer"
     }

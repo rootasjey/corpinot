@@ -1,5 +1,17 @@
 {
   "pages": {
+    "posts": {
+      "published": "Published",
+      "drafts": "Drafts",
+      "archived": "Archived",
+      "draft": "Draft",
+      "status": "Status",
+      "cardsView": "Cards",
+      "listView": "List",
+      "duplicate": "Duplicate",
+      "draftsHeading": "Drafts",
+      "archivedHeading": "Archived"
+    },
     "projects": {
       "newProject": "New Project",
       "heading": "Projects",
