@@ -16,6 +16,10 @@ export default defineNuxtConfig({
       ],
       link: [
         { rel: 'icon', type: 'image/x-icon', href: '/favicon.ico' },
+        { rel: 'preconnect', href: 'https://api.fontshare.com', crossorigin: '' },
+        { rel: 'preconnect', href: 'https://images.pexels.com' },
+        { rel: 'dns-prefetch', href: 'https://api.fontshare.com' },
+        { rel: 'dns-prefetch', href: 'https://images.pexels.com' },
       ]
     }
   },
