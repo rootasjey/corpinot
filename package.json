@@ -1,6 +1,6 @@
 {
   "name": "corpinot",
-  "version": "0.42.0",
+  "version": "0.42.1",
   "type": "module",
   "private": true,
   "scripts": {
@@ -9,7 +9,12 @@
     "dev:clean": "rm -rf .nuxt .output node_modules/.vite && nuxt dev",
     "generate": "nuxt generate",
     "preview": "nuxt preview",
-    "postinstall": "nuxt prepare"
+    "postinstall": "nuxt prepare",
+    "bump:version": "node ./scripts/bump-version.mjs patch",
+    "bump:fix": "node ./scripts/bump-version.mjs fix",
+    "bump:minor": "node ./scripts/bump-version.mjs minor",
+    "bump:major": "node ./scripts/bump-version.mjs major",
+    "version": "node ./scripts/tag-version.mjs"
   },
   "dependencies": {
     "@cloudflare/puppeteer": "^1.0.4",
