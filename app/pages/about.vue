@@ -121,15 +121,20 @@
 
 <script setup lang="ts">
 const { $t } = useI18n()
+const config = useRuntimeConfig()
 
 useSeoMeta({
   title: $t('pages.about.metaTitle'),
   ogTitle: $t('pages.about.metaTitle'),
   description: $t('pages.about.metaDescription'),
   ogDescription: $t('pages.about.metaDescription'),
+  ogUrl: `${config.public.siteUrl}/about`,
+  twitterCard: 'summary_large_image',
 })
 
-const config = useRuntimeConfig()
+useHead({
+  link: [{ rel: 'canonical', href: `${config.public.siteUrl}/about` }],
+})
 const appVersion = (config.public?.appVersion as string) || '0.0.0'
 
 // fetch small site stats for metrics

@@ -35,6 +35,8 @@ const ogImageUrl = `${config.public.siteUrl}/og/home/default.png`
 
 const { $t } = useI18n()
 
+const { website } = useJsonld()
+
 useSeoMeta({
   title: $t('pages.home.title'),
   description: $t('pages.home.description'),
@@ -44,6 +46,16 @@ useSeoMeta({
   ogUrl: config.public.siteUrl,
   twitterCard: 'summary_large_image',
   twitterImage: ogImageUrl,
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: config.public.siteUrl }],
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify(website()),
+    },
+  ],
 })
 </script>
 

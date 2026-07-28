@@ -514,6 +514,8 @@ const ogImageUrl = computed(() => {
   return `${config.public.siteUrl}/og/post/${route.params.slug}.png?v=${v}`
 })
 
+const { article, breadcrumbList } = useJsonld()
+
 useSeoMeta({
   title: post.value.name,
   description: post.value.description || '',
@@ -523,6 +525,23 @@ useSeoMeta({
   ogUrl: `${config.public.siteUrl}/posts/${route.params.slug}`,
   twitterCard: 'summary_large_image',
   twitterImage: ogImageUrl.value,
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: `${config.public.siteUrl}/posts/${route.params.slug}` }],
+  script: [
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify(article(post.value!)),
+    },
+    {
+      type: 'application/ld+json',
+      innerHTML: JSON.stringify(breadcrumbList([
+        { name: 'Posts', url: '/posts' },
+        { name: post.value!.name, url: `/posts/${route.params.slug}` },
+      ])),
+    },
+  ],
 })
 </script>
 

@@ -151,4 +151,8 @@ useSeoMeta({
   twitterCard: 'summary_large_image',
   twitterImage: ogImageUrl,
 })
+
+useHead({
+  link: [{ rel: 'canonical', href: `${config.public.siteUrl}/authors/${slug}` }],
+})
 </script>

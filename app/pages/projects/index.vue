@@ -446,12 +446,20 @@ onUnmounted(() => {
 })
 
 const { $t } = useI18n()
-useHead({
+const config = useRuntimeConfig()
+
+useSeoMeta({
   title: $t('pages.projects.metaTitle'),
-  meta: [
-    { name: 'description', content: $t('pages.projects.metaDescription') }
-  ]
-}) 
+  description: $t('pages.projects.metaDescription'),
+  ogTitle: $t('pages.projects.metaTitle'),
+  ogDescription: $t('pages.projects.metaDescription'),
+  ogUrl: `${config.public.siteUrl}/projects`,
+  twitterCard: 'summary_large_image',
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: `${config.public.siteUrl}/projects` }],
+})
 
 async function refreshAllLists() {
   try {

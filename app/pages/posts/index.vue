@@ -441,6 +441,7 @@ async function onImportFileSelected(e: Event) {
 }
 
 const { $t, $getLocale } = useI18n()
+const config = useRuntimeConfig()
 
 const showAllLanguages = useStorage('posts.showAllLanguages', false)
 
@@ -568,11 +569,17 @@ watch(
   { immediate: true }
 )
 
+useSeoMeta({
+  title: $t('pages.posts.metaTitle'),
+  description: $t('pages.posts.metaDescription'),
+  ogTitle: $t('pages.posts.metaTitle'),
+  ogDescription: $t('pages.posts.metaDescription'),
+  ogUrl: `${config.public.siteUrl}/posts`,
+  twitterCard: 'summary_large_image',
+})
+
 useHead({
-  title: `${$t('pages.posts.metaTitle')}`,
-  meta: [
-    { name: 'description', content: $t('pages.posts.metaDescription') }
-  ]
+  link: [{ rel: 'canonical', href: `${config.public.siteUrl}/posts` }],
 })
 
 function exportFileName(extension: string, ids: string[]) {

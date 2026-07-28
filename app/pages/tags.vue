@@ -254,6 +254,10 @@ useSeoMeta({
   twitterImage: ogImageUrl,
 })
 
+useHead({
+  link: [{ rel: 'canonical', href: () => `${config.public.siteUrl}/tags${selectedTag.value ? `?tag=${selectedTag.value}` : ''}` }],
+})
+
 // when tags are loaded, if the route has a tag param select it (no route update)
 watch([() => tags.value.length, () => route.query.tag], ([len, t]) => {
   if (!len) return

@@ -261,11 +261,19 @@ const pexelsAttributions: Attribution[] = [
 ]
 
 const { $t } = useI18n()
+const config = useRuntimeConfig()
+
 useSeoMeta({
   title: $t('pages.credits.heading'),
   description: $t('pages.credits.description'),
   ogTitle: $t('pages.credits.heading'),
   ogDescription: $t('pages.credits.description'),
+  ogUrl: `${config.public.siteUrl}/credits`,
+  twitterCard: 'summary_large_image',
+})
+
+useHead({
+  link: [{ rel: 'canonical', href: `${config.public.siteUrl}/credits` }],
 })
 </script>
 
