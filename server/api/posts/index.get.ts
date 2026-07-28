@@ -5,8 +5,9 @@ import { Post, ApiPost } from '~~/shared/types/post'
 import { convertApiToPost } from '~~/server/utils/post'
 
 export default defineEventHandler(async (event) => {
-  const query = getQuery(event)
-  const search = query.search as string
+  try {
+    const query = getQuery(event)
+    const search = query.search as string
   const tag = query.tag as string
   const author = query.author as string
   const exclude = query.exclude as string
@@ -110,4 +111,8 @@ export default defineEventHandler(async (event) => {
   }
 
   return posts
+  } catch (err: any) {
+    console.error('[GET /api/posts] Error:', err?.message || err, err?.stack)
+    throw createError({ statusCode: 500, message: err?.message || 'Internal server error' })
+  }
 })
