@@ -148,12 +148,12 @@
 
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 const { enhancePost } = usePost()
 
 const FEATURED_POST_TAG = 'featured post'
 const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
-  query: { tag: FEATURED_POST_TAG, limit: 5 },
+  query: { tag: FEATURED_POST_TAG, limit: 5, language: $getLocale() },
 })
 
 const featuredPosts = computed(() => (data.value ?? []).map(p => enhancePost(p)).sort((a, b) => {

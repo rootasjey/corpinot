@@ -86,11 +86,12 @@
 <script setup lang="ts">
 import type { Post } from '~~/shared/types/post'
 
+const { $getLocale } = useI18n()
 const { enhancePost } = usePost()
 const TOP_PINNED_TAG = 'top pinned' 
 
 const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
-  query: { tag: TOP_PINNED_TAG, limit: 4 },
+  query: { tag: TOP_PINNED_TAG, limit: 4, language: $getLocale() },
 })
 
 const topPosts = computed(() => (data.value ?? []).map(p => enhancePost(p)))

@@ -79,7 +79,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { Post } from '~~/shared/types/post'
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 import {
   FEATURED_PROJECT_FALLBACK_IMAGE,
   FEATURED_PROJECT_TAG,
@@ -91,7 +91,7 @@ import {
 const { enhancePost } = usePost()
 
 const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
-  query: { tag: FEATURED_PROJECT_TAG, limit: 12 },
+  query: { tag: FEATURED_PROJECT_TAG, limit: 12, language: $getLocale() },
   key: FEATURED_PROJECTS_KEY,
 })
 

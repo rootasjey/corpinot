@@ -116,12 +116,12 @@ import { useEventListener, useThrottleFn } from '@vueuse/core'
 import type { Post } from '~~/shared/types/post'
 import type { ApiTag } from '~~/shared/types/tags'
 
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 const { enhancePost } = usePost()
 const FEATURED_POST_TAG = 'featured post'
 
 const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
-  query: { tag: FEATURED_POST_TAG, limit: 6 },
+  query: { tag: FEATURED_POST_TAG, limit: 6, language: $getLocale() },
 })
 
 type HeroSlide = Partial<Post> & {

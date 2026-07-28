@@ -82,7 +82,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Post } from '~~/shared/types/post'
-const { $t } = useI18n()
+const { $t, $getLocale } = useI18n()
 import {
   FEATURED_PROJECT_FALLBACK_IMAGE,
   FEATURED_PROJECT_TAG,
@@ -103,7 +103,7 @@ function scrollProjects(direction: 'left' | 'right') {
 
 // Fetch posts with the featured project tag
 const { data, pending, error } = await useFetch<Post[]>('/api/posts', {
-  query: { tag: FEATURED_PROJECT_TAG, limit: 12 },
+  query: { tag: FEATURED_PROJECT_TAG, limit: 12, language: $getLocale() },
   key: FEATURED_PROJECTS_KEY,
 })
 
