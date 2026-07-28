@@ -1,27 +1,85 @@
-# Corpinot 🚀
+# Énéide 🚀
 
 > A modern, full-featured blogging platform powered by Nuxt 4 — built for curious minds and creative builders.
 
 ![Corpinot Home](./screenshots/corpinot-home-desktop-1.jpeg)
 
-## ✨ What is Corpinot?
+## ✨ What is Énéide?
 
-Corpinot is a next-generation blogging platform designed for simplicity, speed, and delightful content creation. Built with cutting-edge web technologies, it offers a seamless experience for writers, readers, and content managers.
+Énéide is a next-generation blogging platform and CMS, designed for simplicity, speed, and delightful content creation. Built on cutting-edge web technologies, it offers a seamless experience for writers, readers, and content managers.
+
+### Architecture
+
+Énéide is the **platform** — the API, SDK, and CLI — that powers individual blog deployments (called *tenants*). Each tenant is a fully customized Nuxt frontend:
+
+```
+Énéide                    ← platform (API, SDK, CLI)
+├── corpinot.cc           ← tenant blog
+├── paul.fr               ← another tenant
+└── ...
+```
+
+### 📦 Monorepo Structure
+
+```
+├── server/               ← Nitro API server (Nuxt 4)
+│   ├── api/v1/           ← REST API v1 endpoints
+│   ├── db/               ← Drizzle schema + migrations
+│   └── utils/            ← Server utilities
+├── app/                  ← Tenant frontend (corpinot.cc)
+├── packages/
+│   ├── sdk/              ← @eneide/sdk — TypeScript SDK
+│   └── cli/              ← @eneide/cli — CLI tool
+├── shared/types/         ← Shared TypeScript types
+└── ...
+```
 
 ### 🎯 Key Features
 
 - **🎨 Rich Content Editor** — TipTap-powered editor with support for images, videos, audio, code blocks, tables, and more
-- **⚡ Lightning Fast** — Built on Nuxt 4 with SSR, SSG, and edge deployment support via NuxtHub/Cloudflare Workers
+- **⚡ Lightning Fast** — Built on Nuxt 4 with SSR, SSG, and edge deployment via NuxtHub/Cloudflare Workers
 - **🤖 AI-Powered Writing** — Integrated AI writer using Cloudflare Workers AI for content generation and suggestions
 - **📱 Mobile-First Design** — Responsive UI with dedicated mobile experiences using UnoCSS and Una UI
 - **🏷️ Smart Tagging System** — Organize content with categories, featured posts, and trending tags
 - **👥 Multi-Author Support** — User management with profiles, avatars, and author pages
-- **🖼️ Advanced Image Handling** — Custom blob storage provider with automatic optimization via @nuxt/image
 - **🔍 Full-Text Search** — Fast search across posts, tags, and authors
-- **📊 Post Metrics** — Track views, likes, and comments
 - **📧 Newsletter Integration** — Built-in newsletter subscription system
 - **🌙 Dark Mode** — Beautiful light and dark themes
-- **📤 Import/Export** — Export posts with assets for backup or migration
+
+### API v1
+
+The REST API v1 is available at `/api/v1/` with a consistent JSON format:
+
+```
+GET  /api/v1/posts          List published posts (paginated, filterable)
+GET  /api/v1/posts/:slug    Get a single post
+GET  /api/v1/tags           List tags
+GET  /api/v1/authors        List authors
+GET  /api/v1/authors/:id    Get an author
+GET  /api/v1/stats          Blog statistics
+GET  /api/v1/search?q=      Search posts
+GET  /api/v1/site-settings  Public site settings
+```
+
+### SDK — `@eneide/sdk`
+
+```ts
+import { EneideClient } from '@eneide/sdk'
+
+const client = new EneideClient({ baseUrl: 'https://corpinot.cc' })
+
+const { data: posts, meta } = await client.getPosts({ page: 1, limit: 10 })
+const { data: post } = await client.getPost('my-article')
+```
+
+### CLI — `@eneide/cli`
+
+```bash
+npx eneide config set-base-url https://corpinot.cc
+eneide posts list --limit 10 --tag javascript
+eneide posts get my-article
+eneide stats
+```
 
 ### 🛠️ Tech Stack
 
@@ -30,10 +88,8 @@ Corpinot is a next-generation blogging platform designed for simplicity, speed, 
 - **Editor:** [TipTap](https://tiptap.dev/) (extensible rich-text editor)
 - **Database:** SQLite via [Drizzle ORM](https://orm.drizzle.team/)
 - **Storage:** Cloudflare R2 via [@nuxthub/core](https://hub.nuxt.com/)
-- **Images:** [@nuxt/image](https://image.nuxt.com/) with custom blob provider
-- **State:** [Pinia](https://pinia.vuejs.org/)
-- **AI:** [Cloudflare Workers AI](https://ai.cloudflare.com/) + [Vercel AI SDK](https://sdk.vercel.ai/)
 - **Deployment:** [NuxtHub](https://hub.nuxt.com/) / Cloudflare Workers
+- **SDK/CLI:** TypeScript, published on npm as `@eneide/sdk` and `@eneide/cli`
 
 ---
 
@@ -46,11 +102,10 @@ Corpinot is a next-generation blogging platform designed for simplicity, speed, 
 
 ### Installation
 
-Install dependencies:
-
 ```bash
+git clone https://github.com/rootasjey/eneide.git
+cd eneide
 bun install
-# or npm install / pnpm install / yarn install
 ```
 
 ### Development Server
@@ -59,24 +114,25 @@ Start the development server on `http://localhost:3000`:
 
 ```bash
 bun run dev
-# or npm run dev / pnpm dev / yarn dev
 ```
 
-### Production Build
-
-Build the application for production:
+### Build & Preview
 
 ```bash
 bun run build
-```
-
-Preview the production build locally:
-
-```bash
 bun run preview
 ```
 
-Check out the [NuxtHub deployment documentation](https://hub.nuxt.com/docs/getting-started/deploy) for deploying to Cloudflare Workers.
+### SDK / CLI
+
+Build the packages:
+
+```bash
+bun run sdk:build
+bun run cli:build
+# or both:
+bun run packages:build
+```
 
 ---
 
@@ -84,7 +140,7 @@ Check out the [NuxtHub deployment documentation](https://hub.nuxt.com/docs/getti
 
 ### Environment Variables
 
-Create a `.env` file in the root directory:
+Create a `.env` file:
 
 ```bash
 # AI Writer (optional)
@@ -92,13 +148,13 @@ NUXT_AI_CLOUDFLARE_ACCOUNT_ID=your_account_id
 NUXT_AI_CLOUDFLARE_KEY=your_api_key
 NUXT_PUBLIC_FEATURE_AI_WRITER=true
 
-# Site URL (for image generation)
+# Site URL
 NUXT_PUBLIC_SITE_URL=http://localhost:3000
 ```
 
 ### Database Setup
 
-The database is automatically initialized on first run. Migrations are located in `server/db/migrations/`.
+The database is automatically initialized on first run. Migrations are in `server/db/migrations/`.
 
 ---
 
@@ -119,7 +175,6 @@ The database is automatically initialized on first run. Migrations are located i
 - **Code Blocks** — Syntax-highlighted code with language selection
 - **Tables** — Create and edit tables inline
 - **AI Assistant** — Generate content suggestions with AI
-- **Drag & Drop** — Reorder content blocks easily
 - **Auto-save** — Never lose your work
 
 ### Post Status
@@ -127,52 +182,6 @@ The database is automatically initialized on first run. Migrations are located i
 - **Draft** — Work in progress, not visible to public
 - **Published** — Live and visible to all readers
 - **Archived** — Hidden from public view but preserved
-
----
-
-## 🎨 Customization
-
-### Styling
-
-The project uses UnoCSS with custom shortcuts defined in `unocss.config.ts`. Styles are organized in:
-
-- `app/styles/main.css` — Global styles
-- `app/styles/editor.css` — Editor-specific styles
-- `app/styles/code-theme.css` — Code highlighting themes
-
-### Components
-
-All components are auto-imported from `app/components/`. Key components include:
-
-- **Editor components** — `app/components/editor/` (TipTap extensions and node views)
-- **UI components** — Using Una UI with `N` prefix
-- **Layout components** — Header, footer, navigation
-
----
-
-## 🔧 Development Notes
-
-### Editor Linting & @apply Warnings
-
-If your editor shows warnings like `Unknown at rule @apply (css(unknownAtRules))`, this is the CSS language server complaining about UnoCSS-specific at-rules.
-
-This repo includes:
-- `.stylelintrc.cjs` — Whitelists utility at-rules
-- `.vscode/settings.json` — Silences unknown at-rule warnings
-
-### Terminal Management
-
-Never run commands (e.g., tests, builds) in a terminal that already has `bun run dev` running. These will fail or hang. Always open a separate terminal for concurrent commands.
-
-### Database Access (Local Development)
-
-You can query the SQLite database directly for debugging:
-
-```bash
-sqlite3 .data/hub/d1/miniflare-D1DatabaseObject/7b8799eb95f0bb5448e259812996a461ce40142dacbdea254ea597e307767f45.sqlite
-```
-
-**Important:** All schema changes must be done via SQL migrations in `server/db/migrations/`. Never modify the database directly in production.
 
 ---
 
@@ -191,8 +200,6 @@ npx nuxthub deploy
 
 ### Traditional Node Server
 
-Build and serve with Node:
-
 ```bash
 bun run build
 node .output/server/index.mjs
@@ -208,46 +215,25 @@ node .output/server/index.mjs
 
 ---
 
-## 🖼️ Open Graph Images URLs
-Dynamic Open Graph images are generated for the following URL pattern:
-
-- home: http://localhost:3000/og/home/default.png
-- tags: http://localhost:3000/og/tag/{tag}.png
-- author: http://localhost:3000/og/author/{author}.png
-- post: http://localhost:3000/og/post/{postId}.png
-- clear cache: http://localhost:3000/api/admin/clear-og-cache?key=NUXT_OG_CACHE_RESET_KEY
-
 ## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
 
 1. Fork the repository
 2. Create your feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add some amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
+3. Commit your changes
+4. Push to the branch
 5. Open a Pull Request
 
 ---
 
 ## 📄 License
 
-This project is open source and available under the MIT License.
-
----
-
-## 🙏 Acknowledgments
-
-- [Nuxt](https://nuxt.com/) — The Intuitive Vue Framework
-- [Una UI](https://una-ui.com/) — Beautifully designed components
-- [TipTap](https://tiptap.dev/) — The headless editor framework
-- [NuxtHub](https://hub.nuxt.com/) — Deploy Nuxt on Cloudflare
-- [UnoCSS](https://unocss.dev/) — Instant on-demand atomic CSS
+MIT
 
 ---
 
 <div align="center">
 
-**[Documentation](https://github.com/rootasjey/corpinot/wiki)** • **[Report Bug](https://github.com/rootasjey/corpinot/issues)** • **[Request Feature](https://github.com/rootasjey/corpinot/issues)**
+**[Report Bug](https://github.com/rootasjey/eneide/issues)** • **[Request Feature](https://github.com/rootasjey/eneide/issues)**
 
 Made with ❤️ by [rootasjey](https://github.com/rootasjey)
 
