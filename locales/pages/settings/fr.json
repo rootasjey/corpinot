@@ -1,0 +1,20 @@
+{
+  "pages": {
+    "settings": {
+      "heading": "Param\u00e8tres",
+      "switchTheme": "Changer de th\u00e8me (actuel : {theme})",
+      "theme": "Th\u00e8me",
+      "themeDescription": "Clair \u00b7 Sombre \u00b7 Syst\u00e8me",
+      "profile": "Profil",
+      "profileDescription": "G\u00e9rer le compte et les d\u00e9tails du profil",
+      "aiSettings": "Param\u00e8tres IA",
+      "aiSettingsDescription": "Fournisseur et mod\u00e8les par action",
+      "about": "\u00c0 propos",
+      "aboutDescription": "Infos sur l'appli et le projet",
+      "credits": "Cr\u00e9dits",
+      "creditsDescription": "Open source, contributeurs et remerciements",
+      "appVersion": "Version de l'application",
+      "appVersionDescription": "Version actuelle v{version}"
+    }
+  }
+}

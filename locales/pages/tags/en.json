@@ -1,0 +1,25 @@
+{
+  "pages": {
+    "tags": {
+      "heading": "Tags",
+      "description": "Browse all tags and discover posts grouped by topic.",
+      "filters": "Filters",
+      "newTag": "New Tag",
+      "searchPlaceholder": "Search tags",
+      "unavailable": "Tags unavailable",
+      "unavailableDesc": "We couldn't fetch tags right now. Try again later.",
+      "general": "General",
+      "postsUnavailable": "Posts unavailable",
+      "postsUnavailableDesc": "We couldn't fetch posts right now. Try again later.",
+      "noPostsFound": "No posts found for this tag.",
+      "createPost": "Create a post",
+      "editTag": "Edit Tag",
+      "createTag": "New Tag",
+      "tagNamePlaceholder": "Tag name",
+      "descriptionPlaceholder": "Description (optional)",
+      "categoryPlaceholder": "Category (optional)",
+      "deleteTagTitle": "Delete tag",
+      "deleteTagConfirm": "Are you sure you want to delete **{name}**? This action cannot be undone and will remove the tag from posts."
+    }
+  }
+}

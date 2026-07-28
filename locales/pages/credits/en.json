@@ -1,0 +1,15 @@
+{
+  "pages": {
+    "credits": {
+      "heading": "Credits & Acknowledgments",
+      "description": "Huge thanks to the open-source projects, icon sets, fonts, and services that make this site possible.",
+      "frameworksAndCore": "Frameworks & Core",
+      "platformAndData": "Platform & Data",
+      "uiAndStyling": "UI & Styling",
+      "contentAndEditing": "Content & Editing",
+      "imagesAndMedia": "Images & Media Pipeline",
+      "thankYou": "Thank you",
+      "thankYouText": "We're grateful to all maintainers, contributors, and communities behind these tools and services. If we missed anyone, please let us know and we'll add the credit."
+    }
+  }
+}

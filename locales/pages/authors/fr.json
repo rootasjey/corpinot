@@ -1,0 +1,15 @@
+{
+  "pages": {
+    "authors": {
+      "heading": "Nos auteurs",
+      "title": "Les voix derri\u00e8re Corpinot",
+      "description": "D\u00e9couvrez les auteurs qui cr\u00e9ent nos histoires. Cliquez sur un auteur pour voir sa bio et ses articles.",
+      "backToAuthors": "\u2190 Retour aux auteurs",
+      "articles": "Articles",
+      "published": "publi\u00e9",
+      "noArticles": "Aucun article pour l'instant.",
+      "notFound": "Auteur introuvable",
+      "publishedLabel": "Publi\u00e9"
+    }
+  }
+}

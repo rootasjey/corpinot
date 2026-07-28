@@ -1,0 +1,43 @@
+{
+  "pages": {
+    "profile": {
+      "heading": "Profil",
+      "editAvatar": "Modifier l'avatar",
+      "namePlaceholder": "Votre nom",
+      "jobTitlePlaceholder": "Ajouter un titre",
+      "bioPlaceholder": "\u00c9crivez une courte biographie\u2026",
+      "required": "Requis",
+      "email": "Email",
+      "emailPlaceholder": "votre@email.com",
+      "location": "Localisation",
+      "locationPlaceholder": "Ville, Pays",
+      "job": "Emploi",
+      "jobPlaceholder": "Votre r\u00f4le",
+      "language": "Langue",
+      "languagePlaceholder": "en, fr, es\u2026",
+      "socials": "R\u00e9seaux",
+      "editSocials": "Modifier les r\u00e9seaux",
+      "avatarUrl": "URL de l'avatar",
+      "avatarUrlPlaceholder": "https://\u2026",
+      "biography": "Biographie",
+      "biographyPlaceholder": "Parlez-nous de vous\u2026",
+      "saveChanges": "Enregistrer les modifications",
+      "resetChanges": "Annuler les modifications",
+      "uploading": "T\u00e9l\u00e9chargement\u2026",
+      "changeAvatar": "Changer l'avatar",
+      "addAvatar": "Ajouter un avatar",
+      "removeAvatar": "Supprimer l'avatar",
+      "editSocialsTitle": "Modifier les r\u00e9seaux",
+      "noSocials": "Aucun r\u00e9seau pour l'instant. Ajoutez-en un ci-dessous.",
+      "socialPlatformPlaceholder": "Plateforme (ex. Twitter)",
+      "socialUrlPlaceholder": "https://\u2026",
+      "removeAvatarTitle": "Supprimer l'avatar",
+      "removeAvatarConfirm": "\u00cates-vous s\u00fbr de vouloir supprimer votre avatar ? Cette action est irr\u00e9versible.",
+      "nameRequired": "Le nom est requis",
+      "emailValid": "Entrez un email valide",
+      "socialsJson": "Les r\u00e9seaux doivent \u00eatre un JSON valide",
+      "updatedSuccess": "Profil mis \u00e0 jour avec succ\u00e8s",
+      "updateFailed": "\u00c9chec de la mise \u00e0 jour du profil"
+    }
+  }
+}

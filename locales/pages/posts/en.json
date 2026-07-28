@@ -1,0 +1,42 @@
+{
+  "pages": {
+    "posts": {
+      "newPost": "New Post",
+      "import": "Import",
+      "export": "Export",
+      "clearAll": "Clear all",
+      "selectAll": "Select all",
+      "exitSelection": "Exit selection mode",
+      "published": "Published",
+      "drafts": "Drafts",
+      "archived": "Archived",
+      "publishedHeading": "Published",
+      "publishedDescription": "Explore stories, ideas, and insights from our writers.",
+      "draftsHeading": "Drafts",
+      "draftsDescription": "These posts are not visible to the public.",
+      "archivedHeading": "Archived",
+      "archivedDescription": "These posts are archived and not visible to the public.",
+      "loading": "Loading posts\u2026",
+      "emptyHeading": "No posts yet",
+      "emptyDescription": "There are no posts to display right now \u2014 yet. Create the first article, or explore other sections of the site.",
+      "deletePostConfirm": "Are you sure you want to delete **{name}**? This action cannot be undone.",
+      "cardsView": "Cards",
+      "listView": "List",
+      "metaTitle": "Posts \u2014 corpinot",
+      "metaDescription": "Explore our latest articles on product, engineering, and ideas.",
+      "exportZip": "Export {count} as ZIP (with assets)",
+      "clearSelection": "Clear selection",
+      "status": "Status",
+      "draft": "Draft",
+      "cover": "Cover",
+      "replaceCover": "Replace cover",
+      "addCover": "Add cover",
+      "removeCover": "Remove cover",
+      "select": "Select",
+      "exportZipAssets": "Export ZIP (with assets)",
+      "filteredByLanguage": "Showing posts in this language only",
+      "openEditor": "Open in editor",
+      "duplicate": "Duplicate"
+    }
+  }
+}

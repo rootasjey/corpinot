@@ -67,7 +67,10 @@ export default defineNuxtConfig({
     meta: true,
     localeCookie: 'user-locale',
     define: true,
-    disablePageLocales: true,
+    disablePageLocales: false,
+    translationPayloads: {
+      prerenderRoutes: false,
+    },
     hmr: false,
   },
   

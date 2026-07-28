@@ -1,0 +1,16 @@
+{
+  "pages": {
+    "search": {
+      "heading": "Search",
+      "title": "Find posts, authors, tags",
+      "placeholder": "Search posts, authors, tags\u2026",
+      "recent": "Recent",
+      "suggestedTags": "Suggested tags",
+      "recentPosts": "Recent Posts",
+      "recentPostsError": "Couldn't load recent posts.",
+      "noResultsYet": "No results yet.",
+      "helperText": "Try searching for a post title, an author name, or a tag.",
+      "tag": "Tag"
+    }
+  }
+}

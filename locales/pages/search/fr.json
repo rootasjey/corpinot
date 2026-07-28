@@ -1,0 +1,16 @@
+{
+  "pages": {
+    "search": {
+      "heading": "Recherche",
+      "title": "Trouver des articles, auteurs, tags",
+      "placeholder": "Rechercher articles, auteurs, tags\u2026",
+      "recent": "R\u00e9cent",
+      "suggestedTags": "Tags sugg\u00e9r\u00e9s",
+      "recentPosts": "Articles r\u00e9cents",
+      "recentPostsError": "Impossible de charger les articles r\u00e9cents.",
+      "noResultsYet": "Aucun r\u00e9sultat pour l'instant.",
+      "helperText": "Essayez de chercher un titre d'article, un nom d'auteur ou un tag.",
+      "tag": "Tag"
+    }
+  }
+}

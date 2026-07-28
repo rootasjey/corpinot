@@ -1,0 +1,25 @@
+{
+  "pages": {
+    "tags": {
+      "heading": "Tags",
+      "description": "Parcourez tous les tags et d\u00e9couvrez les articles regroup\u00e9s par sujet.",
+      "filters": "Filtres",
+      "newTag": "Nouveau tag",
+      "searchPlaceholder": "Rechercher des tags",
+      "unavailable": "Tags indisponibles",
+      "unavailableDesc": "Impossible de charger les tags pour le moment. R\u00e9essayez plus tard.",
+      "general": "G\u00e9n\u00e9ral",
+      "postsUnavailable": "Articles indisponibles",
+      "postsUnavailableDesc": "Impossible de charger les articles pour le moment. R\u00e9essayez plus tard.",
+      "noPostsFound": "Aucun article trouv\u00e9 pour ce tag.",
+      "createPost": "Cr\u00e9er un article",
+      "editTag": "Modifier le tag",
+      "createTag": "Nouveau tag",
+      "tagNamePlaceholder": "Nom du tag",
+      "descriptionPlaceholder": "Description (optionnelle)",
+      "categoryPlaceholder": "Cat\u00e9gorie (optionnelle)",
+      "deleteTagTitle": "Supprimer le tag",
+      "deleteTagConfirm": "\u00cates-vous s\u00fbr de vouloir supprimer **{name}** ? Cette action est irr\u00e9versible et retirera le tag des articles."
+    }
+  }
+}

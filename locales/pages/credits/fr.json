@@ -1,0 +1,15 @@
+{
+  "pages": {
+    "credits": {
+      "heading": "Cr\u00e9dits & Remerciements",
+      "description": "Un grand merci aux projets open source, jeux d'ic\u00f4nes, polices et services qui rendent ce site possible.",
+      "frameworksAndCore": "Frameworks & C\u0153ur",
+      "platformAndData": "Plateforme & Donn\u00e9es",
+      "uiAndStyling": "UI & Style",
+      "contentAndEditing": "Contenu & \u00c9dition",
+      "imagesAndMedia": "Images & M\u00e9dias",
+      "thankYou": "Merci",
+      "thankYouText": "Nous sommes reconnaissants envers tous les mainteneurs, contributeurs et communaut\u00e9s derri\u00e8re ces outils et services. Si nous avons oubli\u00e9 quelqu'un, veuillez nous le faire savoir et nous ajouterons le cr\u00e9dit."
+    }
+  }
+}

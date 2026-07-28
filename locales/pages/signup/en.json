@@ -1,0 +1,23 @@
+{
+  "pages": {
+    "signup": {
+      "startJourney": "Start your journey",
+      "heading": "Create your account",
+      "description": "Start publishing and subscribing in minutes.",
+      "namePlaceholder": "Your name",
+      "emailPlaceholder": "Your email address",
+      "passwordPlaceholder": "Create a password (min 8 characters)",
+      "showPassword": "Show password",
+      "submit": "Create account",
+      "submitting": "Creating\u2026",
+      "hasAccount": "Already have an account?",
+      "signInLink": "Sign in",
+      "nameMinLength": "Name must be at least 2 characters",
+      "emailRequired": "Email is required",
+      "emailValid": "Enter a valid email address",
+      "passwordRequired": "Password is required",
+      "passwordMinLength": "Password must be at least 8 characters",
+      "createFailed": "Failed to create account"
+    }
+  }
+}
