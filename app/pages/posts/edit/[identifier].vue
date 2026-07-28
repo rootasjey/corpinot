@@ -167,14 +167,22 @@
       </div>
     </transition>
 
-    <div class="translations-section">
-      <TranslationsManager
-        v-if="post"
-        :post-id="post.id"
-        :current-language="post.language"
-        @translation-created="onTranslationCreated"
-      />
-    </div>
+    <NDialog v-model:open="translationsDialogOpen" dialog="md">
+      <NDialogContent>
+        <NDialogHeader>
+          <NDialogTitle>{{ $t('editor.translationsManager.title') }}</NDialogTitle>
+        </NDialogHeader>
+        <TranslationsManager
+          v-if="post"
+          :post-id="post.id"
+          :current-language="post.language"
+          @translation-created="onTranslationCreated"
+        />
+        <div class="flex justify-end pt-4">
+          <NButton btn="ghost-gray" size="sm" @click="translationsDialogOpen = false">{{ $t('common.close') }}</NButton>
+        </div>
+      </NDialogContent>
+    </NDialog>
 
     <NDialog v-model:open="translateDialogOpen">
       <NDialogContent class="max-w-md">
@@ -385,6 +393,7 @@ const languageOptions = [
 const sourceLanguage = computed(() => post.value?.language || 'en')
 const sourceLanguageLabel = computed(() => languageOptions.find(o => o.value === sourceLanguage.value)?.label || sourceLanguage.value)
 const translateDialogOpen = ref(false)
+const translationsDialogOpen = ref(false)
 const translateTargetLanguage = ref('en')
 const pendingAICommand = ref<AICommand | null>(null)
 
@@ -555,7 +564,7 @@ const menuItems = computed(() => {
         { label: $t('pages.posts.archived'), trailing: status.value === 'archived' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'archived') },
       ],
     },
-    { label: $t('editor.translationsManager.title'), onSelect: () => { document.querySelector('.translations-section')?.scrollIntoView({ behavior: 'smooth' }) }, leading: 'i-ph-translate' },
+    { label: $t('editor.translationsManager.title'), onSelect: () => { translationsDialogOpen.value = true }, leading: 'i-ph-translate' },
     { label: $t('pages.postEditor.editSlug'), onSelect: openSlugDialog },
     { label: $t('common.deletePost'), onSelect: openDeleteDialog },
     { label: $t('pages.postEditor.exportZip'), onSelect: exportPostZipFile, leading: exportingZip.value ? 'i-ph-spinner-gap-bold animate-spin' : 'i-ph-download-simple' },
