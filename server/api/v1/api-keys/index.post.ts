@@ -15,7 +15,7 @@ export default defineEventHandler(async (event) => {
 
     const { raw, hash, prefix } = await generateApiKey()
 
-    await db.insert(schema.api_keys).values({ name, hash, prefix }).run()
+    await db.insert(schema.api_keys).values({ user_id: session.user.id, name, hash, prefix }).run()
 
     return apiCreated(event, {
       name,

@@ -130,6 +130,7 @@ export const ai_requests = sqliteTable('ai_requests', {
 
 export const api_keys = sqliteTable('api_keys', {
   id: integer('id').primaryKey({ autoIncrement: true }),
+  user_id: integer('user_id').notNull(),
   name: text('name').notNull(),
   hash: text('hash').notNull().unique(),
   prefix: text('prefix').notNull(),

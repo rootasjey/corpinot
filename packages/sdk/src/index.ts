@@ -2,9 +2,11 @@ import type {
   Post, Tag, Author, SiteSettings, BlogStats, PostStatus, PostLink,
   ApiKey, ApiKeyCreated,
   PaginatedResponse, SingleResponse, QueryParams,
+  CreatePostPayload, UpdatePostPayload,
+  CreateTagPayload, UpdateTagPayload,
 } from './types'
 
-export type { PostStatus, PostLink, Post, Tag, Author, SiteSettings, BlogStats, ApiKey, ApiKeyCreated, QueryParams }
+export type { PostStatus, PostLink, Post, Tag, Author, SiteSettings, BlogStats, ApiKey, ApiKeyCreated, QueryParams, CreatePostPayload, UpdatePostPayload, CreateTagPayload, UpdateTagPayload }
 
 export class EneideClient {
   private baseUrl: string
@@ -94,6 +96,46 @@ export class EneideClient {
 
   async revokeApiKey(id: number): Promise<SingleResponse<{ id: number; revoked: boolean }>> {
     return this.request<SingleResponse<{ id: number; revoked: boolean }>>(`/api-keys/${id}`, {
+      method: 'DELETE',
+    })
+  }
+
+  async createPost(payload: CreatePostPayload): Promise<SingleResponse<Post>> {
+    return this.request<SingleResponse<Post>>('/posts', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async updatePost(identifier: string | number, payload: UpdatePostPayload): Promise<SingleResponse<Post>> {
+    return this.request<SingleResponse<Post>>(`/posts/${identifier}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async deletePost(identifier: string | number): Promise<SingleResponse<{ id: number; deleted: boolean }>> {
+    return this.request<SingleResponse<{ id: number; deleted: boolean }>>(`/posts/${identifier}`, {
+      method: 'DELETE',
+    })
+  }
+
+  async createTag(payload: CreateTagPayload): Promise<SingleResponse<Tag>> {
+    return this.request<SingleResponse<Tag>>('/tags', {
+      method: 'POST',
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async updateTag(id: number, payload: UpdateTagPayload): Promise<SingleResponse<Tag>> {
+    return this.request<SingleResponse<Tag>>(`/tags/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(payload),
+    })
+  }
+
+  async deleteTag(id: number): Promise<SingleResponse<{ id: number; deleted: boolean }>> {
+    return this.request<SingleResponse<{ id: number; deleted: boolean }>>(`/tags/${id}`, {
       method: 'DELETE',
     })
   }

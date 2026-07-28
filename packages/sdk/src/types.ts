@@ -117,3 +117,31 @@ export type QueryParams = {
   q?: string
   category?: string
 }
+
+export type CreatePostPayload = {
+  name: string
+  description?: string
+  status?: PostStatus
+  tags?: { name: string; category?: string; description?: string }[]
+}
+
+export type UpdatePostPayload = {
+  name?: string
+  description?: string
+  slug?: string
+  status?: PostStatus
+  language?: string
+  tags?: { name: string; category?: string; description?: string }[]
+}
+
+export type CreateTagPayload = {
+  name: string
+  category?: string
+  description?: string
+}
+
+export type UpdateTagPayload = {
+  name: string
+  category?: string
+  description?: string
+}

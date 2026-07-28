@@ -1,5 +1,5 @@
 import { db, schema } from 'hub:db'
-import { desc } from 'drizzle-orm'
+import { eq, desc } from 'drizzle-orm'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -16,8 +16,14 @@ export default defineEventHandler(async (event) => {
         created_at: schema.api_keys.created_at,
         last_used_at: schema.api_keys.last_used_at,
         revoked_at: schema.api_keys.revoked_at,
+        user: {
+          id: schema.users.id,
+          name: schema.users.name,
+          slug: schema.users.slug,
+        },
       })
       .from(schema.api_keys)
+      .innerJoin(schema.users, eq(schema.users.id, schema.api_keys.user_id))
       .orderBy(desc(schema.api_keys.created_at))
 
     return apiSuccess(event, rows)

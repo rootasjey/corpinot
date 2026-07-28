@@ -113,8 +113,69 @@ postsCmd
     }
   })
 
+postsCmd
+  .command('create')
+  .description('Create a new post')
+  .requiredOption('-n, --name <name>', 'Post name')
+  .option('-d, --description <desc>', 'Post description')
+  .option('-s, --status <status>', 'Post status (draft|published|archived)')
+  .option('-t, --tags <tags>', 'Comma-separated tag names')
+  .action(async (options) => {
+    try {
+      const client = createClient()
+      const tags = options.tags
+        ? options.tags.split(',').map((t: string) => ({ name: t.trim() }))
+        : undefined
+      const result = await client.createPost({ name: options.name, description: options.description, status: options.status, tags })
+      console.log(formatJson(result))
+    } catch (err) {
+      handleError(err)
+    }
+  })
+
+postsCmd
+  .command('update')
+  .description('Update a post')
+  .argument('<identifier>', 'Post ID or slug')
+  .option('-n, --name <name>', 'Post name')
+  .option('-d, --description <desc>', 'Post description')
+  .option('-s, --slug <slug>', 'Post slug')
+  .option('--status <status>', 'Post status (draft|published|archived)')
+  .option('-l, --language <lang>', 'Language (en|fr|es|de|it)')
+  .option('-t, --tags <tags>', 'Comma-separated tag names')
+  .action(async (identifier: string, options) => {
+    try {
+      const client = createClient()
+      const payload: Record<string, any> = {}
+      if (options.name) payload.name = options.name
+      if (options.description) payload.description = options.description
+      if (options.slug) payload.slug = options.slug
+      if (options.status) payload.status = options.status
+      if (options.language) payload.language = options.language
+      if (options.tags) payload.tags = options.tags.split(',').map((t: string) => ({ name: t.trim() }))
+      const result = await client.updatePost(identifier, payload)
+      console.log(formatJson(result))
+    } catch (err) {
+      handleError(err)
+    }
+  })
+
+postsCmd
+  .command('delete')
+  .description('Delete a post')
+  .argument('<identifier>', 'Post ID or slug')
+  .action(async (identifier: string) => {
+    try {
+      const client = createClient()
+      const result = await client.deletePost(identifier)
+      console.log(formatJson(result))
+    } catch (err) {
+      handleError(err)
+    }
+  })
+
 // tags
-const tagsCmd = program.command('tags').description('List tags')
+const tagsCmd = program.command('tags').description('Manage tags')
 
 tagsCmd
   .command('list')
@@ -125,6 +186,53 @@ tagsCmd
     try {
       const client = createClient()
       const result = await client.getTags(options)
+      console.log(formatJson(result))
+    } catch (err) {
+      handleError(err)
+    }
+  })
+
+tagsCmd
+  .command('create')
+  .description('Create a new tag')
+  .requiredOption('-n, --name <name>', 'Tag name')
+  .option('-c, --category <category>', 'Tag category')
+  .option('-d, --description <desc>', 'Tag description')
+  .action(async (options) => {
+    try {
+      const client = createClient()
+      const result = await client.createTag({ name: options.name, category: options.category, description: options.description })
+      console.log(formatJson(result))
+    } catch (err) {
+      handleError(err)
+    }
+  })
+
+tagsCmd
+  .command('update')
+  .description('Update a tag')
+  .argument('<id>', 'Tag ID')
+  .requiredOption('-n, --name <name>', 'Tag name')
+  .option('-c, --category <category>', 'Tag category')
+  .option('-d, --description <desc>', 'Tag description')
+  .action(async (id: string, options) => {
+    try {
+      const client = createClient()
+      const result = await client.updateTag(Number(id), { name: options.name, category: options.category, description: options.description })
+      console.log(formatJson(result))
+    } catch (err) {
+      handleError(err)
+    }
+  })
+
+tagsCmd
+  .command('delete')
+  .description('Delete a tag')
+  .argument('<id>', 'Tag ID')
+  .action(async (id: string) => {
+    try {
+      const client = createClient()
+      const result = await client.deleteTag(Number(id))
       console.log(formatJson(result))
     } catch (err) {
       handleError(err)
