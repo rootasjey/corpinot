@@ -1,6 +1,6 @@
 {
   "name": "corpinot",
-  "version": "0.43.1",
+  "version": "0.43.2",
   "type": "module",
   "private": true,
   "scripts": {
@@ -12,6 +12,9 @@
     "postinstall": "nuxt prepare",
     "bump:version": "node ./scripts/bump-version.mjs patch",
     "bump:fix": "node ./scripts/bump-version.mjs fix",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:ci": "vitest run --reporter=verbose",
     "bump:minor": "node ./scripts/bump-version.mjs minor",
     "bump:major": "node ./scripts/bump-version.mjs major",
     "version": "node ./scripts/tag-version.mjs"
@@ -70,8 +73,11 @@
     "@iconify-json/ph": "^1.2.2",
     "@iconify-json/radix-icons": "^1.2.5",
     "@iconify-json/tabler": "^1.2.23",
+    "@nuxt/test-utils": "^4.1.0",
+    "jsdom": "^30.0.0",
     "puppeteer": "^24.32.1",
     "typescript": "^5.6.3",
+    "vitest": "^4.1.10",
     "wrangler": "^4.53.0"
   }
 }
