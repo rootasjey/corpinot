@@ -1,5 +1,15 @@
 {
   "pages": {
+    "posts": {
+      "status": "Status",
+      "draft": "Draft",
+      "published": "Published",
+      "archived": "Archived",
+      "cover": "Cover",
+      "replaceCover": "Replace cover",
+      "addCover": "Add cover",
+      "removeCover": "Remove cover"
+    },
     "postEditor": {
       "allPosts": "All Posts",
       "replace": "Replace",

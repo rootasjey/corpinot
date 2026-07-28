@@ -1,5 +1,15 @@
 {
   "pages": {
+    "posts": {
+      "status": "Statut",
+      "draft": "Brouillon",
+      "published": "Publi\u00e9",
+      "archived": "Archiv\u00e9",
+      "cover": "Couverture",
+      "replaceCover": "Remplacer la couverture",
+      "addCover": "Ajouter une couverture",
+      "removeCover": "Retirer la couverture"
+    },
     "postEditor": {
       "allPosts": "Tous les articles",
       "replace": "Remplacer",
