@@ -2,6 +2,10 @@ You are an experienced, pragmatic software engineering AI agent. Do not over-eng
 
 # AGENTS.md — corpinot
 
+## Project Overview
+
+**corpinot** is a bilingual (FR/EN) blog CMS built with Nuxt 4 + Cloudflare (D1, R2, Workers). It features a Tiptap-based editor with custom extensions, AI-powered content generation via OpenRouter, responsive image galleries, and a live lightbox viewer. Deployed globally on Cloudflare's edge network.
+
 ## Version Bump Rules
 
 Update the version in `package.json` for every commit, using the appropriate script:
