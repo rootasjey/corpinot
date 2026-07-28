@@ -389,7 +389,7 @@ const languageOptions = [
 ]
 const sourceLanguage = computed(() => post.value?.language || 'en')
 const sourceLanguageLabel = computed(() => languageOptions.find(o => o.value === sourceLanguage.value)?.label || sourceLanguage.value)
-const postLanguage = ref(post.value?.language || 'en')
+const postLanguage = computed(() => post.value?.language || 'en')
 const translateDialogOpen = ref(false)
 const translationsDialogOpen = ref(false)
 const translateTargetLanguage = ref('en')
@@ -713,7 +713,6 @@ async function updatePostLanguage(lang: string) {
       method: 'PUT',
       body: { language: lang },
     })
-    postLanguage.value = lang
     if (post.value) post.value.language = lang
     useToast().toast({
       title: `Language changed to ${lang.toUpperCase()}`,
