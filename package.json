@@ -1,10 +1,10 @@
 {
   "name": "corpinot",
-  "version": "0.43.6",
+  "version": "0.43.7",
   "type": "module",
   "private": true,
   "scripts": {
-    "build": "nuxt build",
+    "build": "NODE_OPTIONS=\"--max-old-space-size=8192\" nuxt build",
     "dev": "nuxt dev",
     "dev:clean": "rm -rf .nuxt .output node_modules/.vite && nuxt dev",
     "generate": "nuxt generate",
