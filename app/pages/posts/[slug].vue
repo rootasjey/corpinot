@@ -547,7 +547,7 @@ useSeoMeta({
 }
 
 .lightbox-image-frame {
-  width: min(90vw, 1200px);
+  max-width: min(90vw, 1200px);
   max-height: 90vh;
   overflow: hidden;
   border-radius: 1.5rem;
@@ -555,9 +555,10 @@ useSeoMeta({
 }
 
 .lightbox-image {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;
+  max-width: min(90vw, 1200px);
+  max-height: 90vh;
+  width: auto;
+  height: auto;
   display: block;
 }
 
