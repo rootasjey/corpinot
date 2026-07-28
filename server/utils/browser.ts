@@ -1,32 +1,24 @@
-import cfPuppeteer, { PuppeteerWorkers } from '@cloudflare/puppeteer'
-import type { Puppeteer, Browser, Page, BrowserWorker, ActiveSession } from '@cloudflare/puppeteer'
 import { createError } from 'h3'
 import type { H3Event } from 'h3'
 //// @ts-expect-error useNitroApp not yet typed
 import { useNitroApp, useEvent } from '#imports'
 
-function getBrowserBinding(name: string = 'BROWSER'): BrowserWorker | undefined {
+function getBrowserBinding(name: string = 'BROWSER') {
   // @ts-expect-error globalThis.__env__ is not typed
   return process.env[name] || globalThis.__env__?.[name] || globalThis[name]
 }
 
 interface HubBrowserOptions {
-  /**
-   * Keep the browser instance alive for the given number of seconds.
-   * Maximum value is 600 seconds (10 minutes).
-   *
-   * @default 60
-   */
   keepAlive?: number
 }
 
 interface HubBrowser {
-  browser: Browser
-  page: Page
+  browser: any
+  page: any
 }
 
-let _browserPromise: Promise<Browser> | null = null
-let _browser: Browser | null = null
+let _browserPromise: Promise<any> | null = null
+let _browser: any = null
 /**
  * Get a browser instance (puppeteer)
  *
@@ -39,19 +31,26 @@ let _browser: Browser | null = null
  * @see https://hub.nuxt.com/docs/features/browser
  * @deprecated See https://hub.nuxt.com/docs/features/browser#migration-guide for more information.
  */
+let _cfModule: any = null
+async function getCFPuppeteer() {
+  if (!_cfModule) {
+    _cfModule = await import('@cloudflare/puppeteer')
+  }
+  return _cfModule.default
+}
+
 export async function hubBrowser(options: HubBrowserOptions = {}): Promise<HubBrowser> {
-  const puppeteer = await getPuppeteer()
   const nitroApp = useNitroApp()
   const event = useEvent()
-  // If in production, use Cloudflare Puppeteer
-  if (puppeteer instanceof PuppeteerWorkers) {
+
+  if (!import.meta.dev) {
+    const puppeteer = await getCFPuppeteer()
     const binding = getBrowserBinding()
     if (!binding) {
       throw createError('Missing Cloudflare Browser binding (BROWSER)')
     }
-    let browser: Browser | null = null
+    let browser: any = null
     const sessionId = await getRandomSession(puppeteer, binding)
-    // if there is free open session, connect to it
     if (sessionId) {
       try {
         browser = await puppeteer.connect(binding, sessionId)
@@ -60,30 +59,23 @@ export async function hubBrowser(options: HubBrowserOptions = {}): Promise<HubBr
       }
     }
     if (!browser) {
-      // No open sessions, launch new session
       browser = await puppeteer.launch(binding, {
-        // keep_alive is in milliseconds
-        // https://developers.cloudflare.com/browser-rendering/platform/puppeteer/#keep-alive
         keep_alive: (options.keepAlive || 60) * 1000
       })
     }
     const page = await browser.newPage()
-    // Disconnect browser after response
     const unregister = nitroApp.hooks.hook('afterResponse', async (closingEvent: H3Event) => {
       if (event !== closingEvent) return
       unregister()
       await page?.close().catch(() => {})
       browser?.disconnect()
     })
-    return {
-      browser,
-      page
-    }
+    return { browser, page }
   }
+
+  const puppeteer = await getLocalPuppeteer()
   if (!_browserPromise) {
-    // @ts-expect-error we use puppeteer directly here
     _browserPromise = puppeteer.launch()
-    // Stop browser when server shuts down or restarts
     nitroApp.hooks.hook('close', async () => {
       const browser = _browser || await _browserPromise
       browser?.close()
@@ -92,8 +84,7 @@ export async function hubBrowser(options: HubBrowserOptions = {}): Promise<HubBr
     })
   }
   if (!_browser) {
-    _browser = (await _browserPromise) as Browser
-    // Make disconnect a no-op
+    _browser = await _browserPromise
     _browser.disconnect = () => Promise.resolve()
   }
   const page = await _browser.newPage()
@@ -102,40 +93,24 @@ export async function hubBrowser(options: HubBrowserOptions = {}): Promise<HubBr
     unregister()
     await page?.close().catch(() => {})
   })
-  return {
-    browser: _browser,
-    page
-  }
+  return { browser: _browser, page }
 }
 
-async function getRandomSession(puppeteer: PuppeteerWorkers, binding: BrowserWorker): Promise<string | null> {
-  const sessions: ActiveSession[] = await puppeteer.sessions(binding)
+async function getRandomSession(puppeteer: any, binding: any): Promise<string | null> {
+  const sessions = await puppeteer.sessions(binding)
   const sessionsIds = sessions
-    // remove sessions with workers connected to them
-    .filter(v => !v.connectionId)
-    .map(v => v.sessionId)
+    .filter((v: any) => !v.connectionId)
+    .map((v: any) => v.sessionId)
 
-  if (!sessionsIds.length) {
-    return null
-  }
-
+  if (!sessionsIds.length) return null
   return sessionsIds[Math.floor(Math.random() * sessionsIds.length)]
 }
 
-let _puppeteer: PuppeteerWorkers | Puppeteer
-async function getPuppeteer() {
-  if (_puppeteer) {
-    return _puppeteer
-  }
-  if (import.meta.dev) {
-    const _pkg = 'puppeteer' // Bypass bundling!
-    _puppeteer = (await import(_pkg).catch(() => {
-      throw new Error(
-        'Package `puppeteer` not found, please install it with: `npx nypm i puppeteer`'
-      )
-    }))
-  } else {
-    _puppeteer = cfPuppeteer
-  }
-  return _puppeteer
+async function getLocalPuppeteer() {
+  if (_localPuppeteer) return _localPuppeteer
+  _localPuppeteer = await import('puppeteer').catch(() => {
+    throw new Error('Package `puppeteer` not found, please install it with: `npx nypm i puppeteer`')
+  })
+  return _localPuppeteer
 }
+let _localPuppeteer: any = null

@@ -2,7 +2,6 @@
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
-import { Jimp } from 'jimp'
 
 export default defineEventHandler(async (event) => {
   const session = await requireUserSession(event)
@@ -61,6 +60,7 @@ export default defineEventHandler(async (event) => {
   const avatarFolder = `users/${userId}/avatar`
 
   // Process image
+  const { Jimp } = await import('jimp')
   const originalImage = await Jimp.fromBuffer(file)
   const sizes = [
     { width: 48, suffix: 'xxs' },

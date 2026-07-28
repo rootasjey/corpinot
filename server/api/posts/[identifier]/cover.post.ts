@@ -2,7 +2,6 @@
 import { blob } from 'hub:blob'
 import { db, schema } from 'hub:db'
 import { eq } from 'drizzle-orm'
-import { Jimp } from "jimp"
 import type { ApiPost } from '~~/shared/types/post'
 
 export default defineEventHandler(async (event) => {
@@ -54,6 +53,7 @@ export default defineEventHandler(async (event) => {
   const coverFolder = `posts/${post.id}/cover`
 
   // Process the original image with Jimp
+  const { Jimp } = await import('jimp')
   const originalImage = await Jimp.fromBuffer(file)
 
   const sizes = [
