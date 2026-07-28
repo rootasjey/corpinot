@@ -178,9 +178,6 @@
           :current-language="post.language"
           @translation-created="onTranslationCreated"
         />
-        <div class="flex justify-end pt-4">
-          <NButton btn="ghost-gray" size="sm" @click="translationsDialogOpen = false">{{ $t('common.close') }}</NButton>
-        </div>
       </NDialogContent>
     </NDialog>
 

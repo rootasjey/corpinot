@@ -1,80 +1,72 @@
 <template>
-  <div class="border-t border-gray-200 dark:border-gray-800">
-    <div class="container mx-auto px-4 md:px-8">
-      <div class="max-w-3xl mx-auto py-6">
-        <div class="flex items-center justify-between mb-4">
-          <h3 class="text-sm font-semibold uppercase tracking-wide">{{ $t('editor.translationsManager.title') }}</h3>
-          <NButton btn="outline-gray" size="xs" @click="openCreateDialog" :disabled="creating">
-            {{ $t('editor.translationsManager.createTranslation') }}
-          </NButton>
-        </div>
+  <div>
+    <div class="flex items-center justify-between mb-4">
+      <span class="text-xs text-gray-500 dark:text-gray-400">
+        {{ $t('editor.translationsManager.currentLanguage', { language: currentLanguage }) }}
+      </span>
+      <NButton v-if="!showCreateForm" btn="outline-gray" size="xs" @click="showCreateForm = true" :disabled="creating">
+        {{ $t('editor.translationsManager.createTranslation') }}
+      </NButton>
+    </div>
 
-        <div class="text-xs text-gray-500 dark:text-gray-400 mb-3">
-          {{ $t('editor.translationsManager.currentLanguage', { language: currentLanguage }) }}
-        </div>
+    <div v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ $t('common.loading') }}</div>
 
-        <div v-if="loading" class="text-sm text-gray-500 dark:text-gray-400">{{ $t('common.loading') }}</div>
+    <div v-else-if="error" class="text-sm text-red-500">{{ error }}</div>
 
-        <div v-else-if="error" class="text-sm text-red-500">{{ error }}</div>
+    <div v-else-if="!translations.length && !showCreateForm" class="text-sm text-gray-500 dark:text-gray-400">
+      {{ $t('editor.translationsManager.noTranslations') }}
+    </div>
 
-        <div v-else-if="!translations.length" class="text-sm text-gray-500 dark:text-gray-400">
-          {{ $t('editor.translationsManager.noTranslations') }}
-        </div>
-
-        <div v-else class="space-y-2">
-          <div
-            v-for="t in translations"
-            :key="t.id"
-            class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800"
-          >
-            <div class="flex items-center gap-3 min-w-0">
-              <span class="text-xs font-semibold uppercase px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 shrink-0">{{ t.language }}</span>
-              <div class="min-w-0">
-                <div class="text-sm font-medium truncate">{{ t.name }}</div>
-                <div class="text-xs text-gray-500 dark:text-gray-400">
-                  {{ t.authorName }}
-                  <span v-if="t.status !== 'published'" class="ml-2 text-yellow-600 dark:text-yellow-400">({{ $t('pages.posts.' + t.status) }})</span>
-                </div>
-              </div>
-            </div>
-            <div class="flex items-center gap-2 shrink-0">
-              <NButton btn="ghost-gray" size="xs" :to="`/posts/edit/${t.id}`" leading="i-ph-pencil">
-                {{ $t('editor.translationsManager.edit') }}
-              </NButton>
-              <NButton btn="ghost-gray" size="xs" leading="i-ph-link-break" @click="unlinkTranslation(t.id)" :disabled="unlinking">
-                {{ $t('editor.translationsManager.unlink') }}
-              </NButton>
+    <div v-else class="space-y-2">
+      <div
+        v-for="t in translations"
+        :key="t.id"
+        class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-800"
+      >
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="text-xs font-semibold uppercase px-2 py-0.5 rounded bg-gray-200 dark:bg-gray-700 shrink-0">{{ t.language }}</span>
+          <div class="min-w-0">
+            <div class="text-sm font-medium truncate">{{ t.name }}</div>
+            <div class="text-xs text-gray-500 dark:text-gray-400">
+              {{ t.authorName }}
+              <span v-if="t.status !== 'published'" class="ml-2 text-yellow-600 dark:text-yellow-400">({{ $t('pages.posts.' + t.status) }})</span>
             </div>
           </div>
+        </div>
+        <div class="flex items-center gap-2 shrink-0">
+          <NButton btn="ghost-gray" size="xs" :to="`/posts/edit/${t.id}`" leading="i-ph-pencil">
+            {{ $t('editor.translationsManager.edit') }}
+          </NButton>
+          <NButton btn="ghost-gray" size="xs" leading="i-ph-link-break" @click="unlinkTranslation(t.id)" :disabled="unlinking">
+            {{ $t('editor.translationsManager.unlink') }}
+          </NButton>
         </div>
       </div>
     </div>
 
-    <NDialog v-model:open="createDialogOpen" :title="$t('editor.translationsManager.createTranslation')" dialog="sm">
-      <div class="space-y-4">
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          {{ $t('editor.translationsManager.createNew', { language: targetLanguage ? $t('pages.postEditor.' + targetLanguage) : '' }) }}
-        </p>
-        <div>
-          <label class="text-sm font-medium block mb-1">{{ $t('editor.translationsManager.targetLanguage') }}</label>
-          <select
-            v-model="targetLanguage"
-            class="w-full px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
-          >
-            <option v-for="opt in availableLanguages" :key="opt.value" :value="opt.value" :disabled="opt.disabled">
-              {{ opt.label }}
-            </option>
-          </select>
-        </div>
-        <div class="flex justify-end gap-2">
-          <NButton btn="ghost-gray" size="sm" @click="createDialogOpen = false">{{ $t('common.cancel') }}</NButton>
-          <NButton btn="solid-blue" size="sm" @click="createTranslation" :disabled="!targetLanguage || creating">
-            <span v-if="!creating">{{ $t('editor.translationsManager.createTranslation') }}</span>
-            <span v-else>{{ $t('editor.translationsManager.creating') }}</span>
-          </NButton>
-        </div>
+    <!-- Inline create form -->
+    <div v-if="showCreateForm" class="mt-4 p-4 rounded-xl border border-gray-200 dark:border-gray-700 space-y-3">
+      <p class="text-sm text-gray-600 dark:text-gray-400">
+        {{ $t('editor.translationsManager.createNew', { language: targetLanguageLabel }) }}
+      </p>
+      <div>
+        <select
+          v-model="targetLanguage"
+          class="w-full px-3 py-2 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-sm"
+        >
+          <option v-for="opt in availableLanguages" :key="opt.value" :value="opt.value" :disabled="opt.disabled">
+            {{ opt.label }}
+          </option>
+        </select>
       </div>
-    </NDialog>
+      <div class="flex justify-end gap-2">
+        <NButton btn="ghost-gray" size="xs" @click="showCreateForm = false">{{ $t('common.cancel') }}</NButton>
+        <NButton btn="solid-blue" size="xs" @click="createTranslation" :disabled="!targetLanguage || creating">
+          <span v-if="!creating">{{ $t('editor.translationsManager.createTranslation') }}</span>
+          <span v-else>{{ $t('editor.translationsManager.creating') }}</span>
+        </NButton>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -96,7 +88,7 @@ const loading = ref(true)
 const error = ref('')
 const creating = ref(false)
 const unlinking = ref(false)
-const createDialogOpen = ref(false)
+const showCreateForm = ref(false)
 const targetLanguage = ref('')
 
 const languageOptions = [
@@ -117,6 +109,11 @@ const availableLanguages = computed(() => {
     }))
 })
 
+const targetLanguageLabel = computed(() => {
+  const opt = availableLanguages.value.find(o => o.value === targetLanguage.value)
+  return opt?.label || ''
+})
+
 async function fetchTranslations() {
   loading.value = true
   error.value = ''
@@ -130,12 +127,6 @@ async function fetchTranslations() {
   }
 }
 
-function openCreateDialog() {
-  const first = availableLanguages.value.find(l => !l.disabled)
-  targetLanguage.value = first?.value || ''
-  createDialogOpen.value = true
-}
-
 async function createTranslation() {
   if (!targetLanguage.value) return
   creating.value = true
@@ -144,7 +135,7 @@ async function createTranslation() {
       method: 'POST',
       body: { language: targetLanguage.value },
     })
-    createDialogOpen.value = false
+    showCreateForm.value = false
     emit('translationCreated', newPost.id)
     await router.push(`/posts/edit/${newPost.id}`)
   } catch (e: any) {
