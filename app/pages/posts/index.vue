@@ -75,7 +75,7 @@
       </ClientOnly>
 
       <!-- Language filter -->
-      <div v-if="$getLocale() !== 'en'" class="flex items-center gap-2 mb-4">
+      <div class="flex items-center gap-2 mb-4">
         <button
           @click="showAllLanguages = !showAllLanguages"
           class="px-3 py-1.5 rounded-full text-xs font-semibold transition-colors"
@@ -446,8 +446,7 @@ const showAllLanguages = useStorage('posts.showAllLanguages', false)
 
 const languageFilter = computed(() => {
   if (showAllLanguages.value) return undefined
-  const locale = $getLocale()
-  return locale === 'en' ? undefined : locale
+  return $getLocale()
 })
 
 const currentLanguageLabel = computed(() => {

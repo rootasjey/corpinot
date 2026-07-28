@@ -389,6 +389,7 @@ const languageOptions = [
 ]
 const sourceLanguage = computed(() => post.value?.language || 'en')
 const sourceLanguageLabel = computed(() => languageOptions.find(o => o.value === sourceLanguage.value)?.label || sourceLanguage.value)
+const postLanguage = ref(post.value?.language || 'en')
 const translateDialogOpen = ref(false)
 const translationsDialogOpen = ref(false)
 const translateTargetLanguage = ref('en')
@@ -561,6 +562,14 @@ const menuItems = computed(() => {
         { label: $t('pages.posts.archived'), trailing: status.value === 'archived' ? 'i-ph-check' : undefined, onSelect: () => (status.value = 'archived') },
       ],
     },
+    {
+      label: $t('common.language'),
+      items: languageOptions.map(lang => ({
+        label: lang.label,
+        trailing: postLanguage.value === lang.value ? 'i-ph-check' : undefined,
+        onSelect: () => updatePostLanguage(lang.value),
+      })),
+    },
     { label: $t('editor.translationsManager.title'), onSelect: () => { translationsDialogOpen.value = true }, leading: 'i-ph-translate' },
     { label: $t('pages.postEditor.editSlug'), onSelect: openSlugDialog },
     { label: $t('common.deletePost'), onSelect: openDeleteDialog },
@@ -695,6 +704,28 @@ const onTranslationCreated = (newPostId: number) => {
     title: $t('editor.translationsManager.createSuccess'),
     toast: 'success',
   })
+}
+
+async function updatePostLanguage(lang: string) {
+  if (!post.value) return
+  try {
+    await $fetch(`/api/posts/${identifier.value}`, {
+      method: 'PUT',
+      body: { language: lang },
+    })
+    postLanguage.value = lang
+    if (post.value) post.value.language = lang
+    useToast().toast({
+      title: `Language changed to ${lang.toUpperCase()}`,
+      toast: 'success',
+    })
+  } catch (e: any) {
+    useToast().toast({
+      title: 'Failed to update language',
+      description: e?.data?.message || '',
+      toast: 'danger',
+    })
+  }
 }
 
 // Open the delete-post confirmation dialog
